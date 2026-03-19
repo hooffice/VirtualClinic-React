@@ -1,0 +1,103 @@
+import { getFirebaseBackend } from "helpers/firebase_helper";
+import { postFakeLogin, postJwtLogin } from "helpers/fakebackend_helper";
+import { loginSuccess, apiError, logoutUserSuccess, resetLoginFlag } from "./reducer";
+import { ENV } from "config/env";
+import { useAuthStore } from "store/useAuthStore";
+
+export const loginuser = (user: any, history: any) => async (dispatch: any) => {
+    try {
+        let response: any;
+        if (ENV.REACT_APP_DEFAULTAUTH === "firebase") {
+            let fireBaseBackend = await getFirebaseBackend();
+            response = fireBaseBackend.loginUser(
+                user.email,
+                user.password
+            )
+        } else if (ENV.REACT_APP_DEFAULTAUTH === "jwt") {
+            response = await postJwtLogin({
+                user: user.email,
+                password: user.password
+            })
+
+            // Store in Zustand auth store
+            const authStore = useAuthStore.getState();
+            authStore.setAuth(response.token || response.data?.token, {
+                username: response.username,
+                email: response.email,
+                uid: response.id,
+                displayName: response.displayName,
+            });
+        } else if (ENV.REACT_APP_DEFAULTAUTH === "fake") {
+            response = await postFakeLogin({
+                email: user.email,
+                password: user.password
+            })
+            localStorage.setItem("authUser", JSON.stringify(response));
+
+            // Store in Zustand auth store
+            const authStore = useAuthStore.getState();
+            authStore.setAuth(response.token || 'fake-jwt-token', {
+                username: response.username,
+                email: response.email,
+                uid: response.id,
+            });
+
+            dispatch(loginSuccess(response));
+        }
+        history('/dashboard');
+    } catch (error) {
+        dispatch(apiError(error));
+    }
+}
+
+export const logoutUser = () => async (dispatch: any) => {
+    try {
+        localStorage.removeItem("authUser");
+
+        // Clear Zustand auth store
+        const authStore = useAuthStore.getState();
+        authStore.logout();
+
+        const fireBaseBackend = getFirebaseBackend();
+        if (ENV.REACT_APP_DEFAULTAUTH === "firebase") {
+            const response = fireBaseBackend.logout;
+            dispatch(logoutUserSuccess(response));
+        } else {
+            dispatch(logoutUserSuccess(true));
+        }
+
+    } catch (error) {
+        dispatch(apiError(error));
+    }
+};
+
+export const resetLoginMsgFlag = () => {
+    try {
+        const response = resetLoginFlag();
+        return response;
+    } catch (error) {
+        return error;
+    }
+};
+
+
+export const socialLogin = (type: any, history: any) => async (dispatch: any) => {
+    try {
+        let response: any;
+
+        if (ENV.REACT_APP_DEFAULTAUTH === "firebase") {
+            const fireBaseBackend = getFirebaseBackend();
+            response = fireBaseBackend.socialLoginUser(type);
+        }
+
+        const socialdata = await response;
+        if (socialdata) {
+            sessionStorage.setItem("authUser", JSON.stringify(socialdata));
+            dispatch(loginSuccess(socialdata));
+            history('/dashboard');
+        }
+
+    } catch (error) {
+        dispatch(apiError(error));
+    }
+};

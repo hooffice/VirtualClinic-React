@@ -1,0 +1,44 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "useDefineForClassFields": true,
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true,
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"],
+      "@component/*": ["src/Components/views/*"],
+      "@common/*": ["src/Components/Common/*"],
+      "@assets/*": ["src/Components/assets/*"],
+      "@shared/*": ["src/app/_shared/*"],
+      "@helpers/*": ["src/helpers/*"],
+      "Components/*": ["src/Components/*"],
+      "slices/*": ["src/slices/*"],
+      "pages/*": ["src/pages/*"],
+      "helpers/*": ["src/helpers/*"],
+      "assets/*": ["src/assets/*"],
+      "common/*": ["src/common/*"],
+      "config/*": ["src/config/*"],
+      "store/*": ["src/store/*"]
+    }
+  },
+  "include": ["src"],
+  "references": [{ "path": "./tsconfig.node.json" }]
+}
+
+
+
