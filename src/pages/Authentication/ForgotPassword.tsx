@@ -22,7 +22,7 @@ import { createSelector } from 'reselect';
 const ForgetPasswordPage = (props) => {
 
     //meta title
-    document.title = "Forget Password | Skote - React Admin & Dashboard Template";
+    document.title = "Forget Password | Virtual Clinic";
 
     const dispatch = useDispatch<any>();
 

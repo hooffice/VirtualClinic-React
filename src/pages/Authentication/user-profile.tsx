@@ -34,7 +34,7 @@ import { ENV } from "config/env";
 const UserProfile = () => {
 
   //meta title
-  document.title = "Profile | Skote - React Admin & Dashboard Template";
+  document.title = "Profile | Virtual Clinic";
 
   const dispatch = useDispatch<any>();
 

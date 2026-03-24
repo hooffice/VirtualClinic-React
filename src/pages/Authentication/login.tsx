@@ -25,7 +25,7 @@ const Login = (props: any) => {
   const dispatch: any = useDispatch();
 
   //meta title
-  document.title = "Login | Skote - React Admin & Dashboard Template";
+  document.title = "Login | Virtual Clinic";
 
 
   const selectProperties = createSelector(
@@ -84,7 +84,7 @@ const Login = (props: any) => {
                     <Col className="col-7">
                       <div className="text-primary p-4">
                         <h5 className="text-primary">Welcome Back !</h5>
-                        <p>Sign in to continue to Skote.</p>
+                        <p>Sign in to Virtual Clinic.</p>
                       </div>
                     </Col>
                     <Col className="col-5 align-self-end">
@@ -277,8 +277,7 @@ const Login = (props: any) => {
                   </Link>{" "}
                 </p>
                 <p>
-                  © {new Date().getFullYear()} Skote. Crafted with{" "}
-                  <i className="mdi mdi-heart text-danger" /> by Themesbrand
+                  © {new Date().getFullYear()} Virtual Clinic. 
                 </p>
               </div>
             </Col>

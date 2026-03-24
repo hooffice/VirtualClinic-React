@@ -22,7 +22,7 @@ import { createSelector } from 'reselect';
 const Register = props => {
 
   //meta title
-  document.title = "Register | Skote - React Admin & Dashboard Template";
+  document.title = "Register | Virtual Clinic";
 
   const dispatch = useDispatch<any>();
 
