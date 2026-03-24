@@ -1,13 +1,14 @@
-import axios, { AxiosInstance } from 'axios';
+import axios from 'axios';
 import { useAuthStore } from 'store/useAuthStore';
 
 /**
  * Initialize axios instance with JWT interceptors
+ * @deprecated Use src/config/axiosInstance.ts instead
  */
-export const setupAxiosInterceptors = (): AxiosInstance => {
+export const setupAxiosInterceptors = (): any => {
   // Request interceptor - Add JWT token to headers
   axios.interceptors.request.use(
-    (config) => {
+    (config: any) => {
       const token = useAuthStore.getState().getToken();
 
       if (token) {
@@ -16,15 +17,15 @@ export const setupAxiosInterceptors = (): AxiosInstance => {
 
       return config;
     },
-    (error) => {
+    (error: any) => {
       return Promise.reject(error);
     }
   );
 
   // Response interceptor - Handle token expiration
   axios.interceptors.response.use(
-    (response) => response,
-    (error) => {
+    (response: any) => response,
+    (error: any) => {
       if (error.response?.status === 401) {
         // Token expired or unauthorized
         console.warn('Token expired or unauthorized');
@@ -51,8 +52,9 @@ export const setupAxiosInterceptors = (): AxiosInstance => {
 
 /**
  * Get axios instance with JWT headers
+ * @deprecated Use src/config/axiosInstance.ts instead
  */
-export const getAxiosInstance = (): AxiosInstance => {
+export const getAxiosInstance = (): any => {
   const token = useAuthStore.getState().getToken();
 
   const instance = axios.create({

@@ -31,11 +31,12 @@ const Login = (props: any) => {
   const selectProperties = createSelector(
     (state: any) => state.Login,
     (login) => ({
-      error: login.error
+      error: login.error,
+      loading: login.loading
     })
   );
 
-  const { error } = useSelector(selectProperties);
+  const { error, loading } = useSelector(selectProperties);
 
   // Form validation 
   const validation: any = useFormik({
@@ -43,8 +44,8 @@ const Login = (props: any) => {
     enableReinitialize: true,
 
     initialValues: {
-      email: "admin@themesbrand.com" || '',
-      password: "123456" || '',
+      email: '',
+      password: '',
     },
     validationSchema: Yup.object({
       email: Yup.string().required("Please Enter Your email"),
@@ -122,7 +123,9 @@ const Login = (props: any) => {
                     <Form className="form-horizontal"
                       onSubmit={(e) => {
                         e.preventDefault();
-                        validation.handleSubmit();
+                        if (!loading) {
+                          validation.handleSubmit();
+                        }
                         return false;
                       }}
                     >
@@ -137,6 +140,7 @@ const Login = (props: any) => {
                           onChange={validation.handleChange}
                           onBlur={validation.handleBlur}
                           value={validation.values.email || ""}
+                          disabled={loading}
                           invalid={
                             validation.touched.email && validation.errors.email ? true : false
                           }
@@ -156,42 +160,62 @@ const Login = (props: any) => {
                             placeholder="Enter Password"
                             onChange={validation.handleChange}
                             onBlur={validation.handleBlur}
+                            disabled={loading}
                             invalid={
                               validation.touched.password && validation.errors.password ? true : false
                             }
                           />
-                          <button onClick={() => setShow(!show)} className="btn btn-light " type="button" id="password-addon">
-                            <i className="mdi mdi-eye-outline"></i></button>
+                          <button
+                            onClick={() => setShow(!show)}
+                            className="btn btn-light"
+                            type="button"
+                            id="password-addon"
+                            disabled={loading}
+                          >
+                            <i className="mdi mdi-eye-outline"></i>
+                          </button>
                         </div>
                         {validation.touched.password && validation.errors.password ? (
                           <FormFeedback type="invalid">{validation.errors.password}</FormFeedback>
                         ) : null}
                       </div>
 
-                      <div className="form-check">
-                        <input
-                          type="checkbox"
-                          className="form-check-input"
-                          id="customControlInline"
-                        />
-                        <label
-                          className="form-check-label"
-                          htmlFor="customControlInline"
-                        >
-                          Remember me
-                        </label>
-                      </div>
+
+                        <div className="form-check d-none">
+                          <input
+                            type="checkbox"
+                            className="form-check-input"
+                            id="customControlInline"
+                          />
+                          <label
+                            className="form-check-label"
+                            htmlFor="customControlInline"
+                          >
+                            Remember me
+                          </label>
+                        </div>
+
 
                       <div className="mt-3 d-grid">
                         <button
-                          className="btn btn-primary btn-block "
+                          className="btn btn-primary btn-block"
                           type="submit"
+                          disabled={loading}
                         >
-                          Log In
+                          {loading ? (
+                            <>
+                              <i className="mdi mdi-loading mdi-spin me-2"></i>
+                              Signing in...
+                            </>
+                          ) : (
+                            'Log In'
+                          )}
                         </button>
                       </div>
 
-                      <div className="mt-4 text-center">
+                      {/* Social Media Buttons - Hidden during loading */}
+
+                      <div className="mt-4 text-center d-none">
                         <h5 className="font-size-14 mb-3">Sign in with</h5>
 
                         <ul className="list-inline">
@@ -229,6 +253,7 @@ const Login = (props: any) => {
                           </li>
                         </ul>
                       </div>
+
 
                       <div className="mt-4 text-center">
                         <Link to="/forgot-password" className="text-muted">
