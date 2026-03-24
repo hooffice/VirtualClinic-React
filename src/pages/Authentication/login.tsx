@@ -27,6 +27,11 @@ const Login = (props: any) => {
   //meta title
   document.title = "Login | Virtual Clinic";
 
+  // Reset login state when page loads (fixes disabled inputs after logout)
+  useEffect(() => {
+    console.log('[Login] Page mounted - resetting login state');
+    dispatch(resetLoginMsgFlag());
+  }, [dispatch]);
 
   const selectProperties = createSelector(
     (state: any) => state.Login,

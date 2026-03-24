@@ -150,8 +150,8 @@ export interface MfaSetupResponse {
 
 export interface MfaVerifyRequest {
   userId: string;
-  code: string;
-  method: 'totp' | 'sms' | 'email';
+  token: string;  // 6-digit code from authenticator
+  method?: 'totp' | 'sms' | 'email';
   rememberDevice?: boolean;
 }
 

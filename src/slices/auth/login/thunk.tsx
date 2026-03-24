@@ -21,50 +21,72 @@ export const loginuser = (user: any, history: any) => async (dispatch: any) => {
             response = fireBaseBackend.loginUser(user.email, user.password);
         } else if (ENV.REACT_APP_DEFAULTAUTH === "jwt") {
             console.log('[Thunk] Using JWT authService (OAuth 2 flow)');
-            // Use production VC API with OAuth 2 flow
+
+            // Step 1: POST /api/oauth/login to get authorization code
             response = await authService.login({
                 email: user.email,
                 password: user.password,
             });
 
-            console.log('[Thunk] authService.login response:', {
-                hasAccessToken: !!response.accessToken,
-                hasUser: !!response.user,
-                status: response.status,
+            const status = response.status || response.Status;
+            const statusString = String(status).toLowerCase();
+            const code = response.code || response.Code;
+            const state = response.state || response.State;
+            const userId = response.userId || response.UserId;
+            const twoFactorEnabled = response.twoFactorEnabled || response.TwoFactorEnabled;
+            const message = response.message || response.Message || '';
+
+            console.log('[Thunk] Login response received:', {
+                status,
+                statusString,
+                hasCode: !!code,
+                message,
+                twoFactorEnabled,
             });
 
-            // Check if MFA is required
-            if (response.status === 'RequiresMfa' || response.Status === 'RequiresMfa') {
-                console.log('[Thunk] MFA required, redirecting to MFA verification');
-                const authStore = useAuthStore.getState();
-                authStore.setMfaRequired(response.UserId || response.userId);
-                history(`/mfa-verification?userId=${response.UserId || response.userId}&source=login`);
-                return;
+            // AuthStatus enum from backend:
+            // 0 = Failed
+            // 1 = RequiresMfa (modern MFA)
+            // 2 = Authenticated
+            // 3 = TwoFARequired (legacy 2FA setup needed)
+
+            // Case 1: MFA is required (status: 1 = RequiresMfa)
+            const isMfaRequired = statusString === 'requiresmfa' || status === 1;
+
+            if (isMfaRequired) {
+              console.log('[Thunk] MFA required, redirecting to MFA verification');
+              const authStore = useAuthStore.getState();
+              authStore.setMfaRequired(userId);
+              history(`/mfa-verification?userId=${userId}&source=login`);
+              return;
             }
 
-            // Store in Zustand
-            const authStore = useAuthStore.getState();
+            // Case 2: Legacy 2FA setup required (status: 3 = TwoFARequired)
+            const isTwoFARequired = statusString === 'twofarequired' || status === 3;
 
-            // Store both access and refresh tokens
-            authStore.setTokens(
-                response.accessToken || '',
-                response.refreshToken || ''
-            );
-            console.log('[Thunk] Tokens stored in Zustand:', {
-                hasAccessToken: !!response.accessToken,
-                hasRefreshToken: !!response.refreshToken,
-            });
+            if (isTwoFARequired) {
+              console.log('[Thunk] 2FA setup required, redirecting to MFA setup');
+              history(`/mfa-setup?userId=${userId}&fromLogin=true`);
+              return;
+            }
 
-            // Store user info
-            authStore.setUser({
-                username: response.user?.userName,
-                email: response.user?.email,
-                uid: response.user?.id,
-                displayName: response.user?.userName,
-            });
+            // Case 3: Authorization code received (need to exchange via callback)
+            if (code && state) {
+              console.log('[Thunk] Authorization code received, redirecting to OAuth callback');
+              history(`/oauth-callback?code=${code}&state=${state}&provider=webapi`);
+              return;
+            }
 
-            // Dispatch Redux success
-            dispatch(loginSuccess(response));
+            // Case 4: Login failed (status: 0 = Failed)
+            const isFailed = statusString === 'failed' || status === 0;
+            if (isFailed) {
+              console.error('[Thunk] Login failed:', message);
+              throw new Error(message || 'Login failed. Please try again.');
+            }
+
+            // Fallback: unexpected response
+            console.error('[Thunk] Unexpected login response:', response);
+            throw new Error('Unexpected login response. Please try again.');
         } else {
             console.log('[Thunk] Using fake backend (dev mode)');
             // This is for development/testing only

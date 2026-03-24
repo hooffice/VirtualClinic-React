@@ -8,6 +8,11 @@ import UserProfile from "pages/Authentication/user-profile";
 import ForgotPassword from "pages/Authentication/ForgotPassword";
 import SignUp from "pages/Authentication/Register"
 
+// OAuth & MFA
+import OAuthCallback from "pages/Authentication/OAuthCallback";
+import MfaVerification from "pages/Authentication/MfaVerification";
+import MfaSetup from "pages/Authentication/MfaSetup";
+
 const authProtectedRoutes = [
   { path: "/dashboard", component: <Dashboard /> },
   { path: "/profile", component: <UserProfile /> },
@@ -19,6 +24,11 @@ const publicRoutes = [
   { path: "/login", component: <Login /> },
   { path: "/logout", component: <Logout /> },
   { path: "/forgot-password", component: <ForgotPassword /> },
-  { path: "/register", component: <SignUp /> }
+  { path: "/register", component: <SignUp /> },
+
+  // OAuth & MFA flows
+  { path: "/oauth-callback", component: <OAuthCallback /> },
+  { path: "/mfa-verification", component: <MfaVerification /> },
+  { path: "/mfa-setup", component: <MfaSetup /> },
 ]
 export { authProtectedRoutes, publicRoutes };

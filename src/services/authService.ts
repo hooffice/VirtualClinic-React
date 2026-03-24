@@ -33,6 +33,8 @@ const ENDPOINTS = {
   CONFIRM_EMAIL: '/api/auth/confirm-email',
   OAUTH_CALLBACK: '/api/oauth/callback',
   MFA_VERIFY: '/api/mfa/verify',
+  MFA_SETUP: '/api/mfa/setup',
+  MFA_ENABLE: '/api/mfa/enable',
 };
 
 class AuthService {
@@ -40,9 +42,38 @@ class AuthService {
 
   /**
    * Normalize API response to handle different property casing
+   * Maps numeric status codes to string equivalents
+   *
+   * Backend AuthStatus enum:
+   * - 0 = Failed
+   * - 1 = RequiresMfa
+   * - 2 = Authenticated
+   * - 3 = TwoFARequired
    */
   private normalizeResponse(response: any): any {
     if (!response) return response;
+
+    // Map numeric status codes to string equivalents
+    let normalizedStatus = response.Status || response.status;
+    if (typeof normalizedStatus === 'number') {
+      switch (normalizedStatus) {
+        case 0:
+          normalizedStatus = 'Failed';
+          break;
+        case 1:
+          normalizedStatus = 'RequiresMfa';
+          break;
+        case 2:
+          normalizedStatus = 'Authenticated';
+          break;
+        case 3:
+          normalizedStatus = 'TwoFARequired';
+          break;
+        default:
+          normalizedStatus = 'Unknown';
+      }
+    }
+
     return {
       ...response,
       code: response.Code || response.code,
@@ -55,86 +86,44 @@ class AuthService {
       RefreshToken: response.RefreshToken || response.refreshToken,
       user: response.User || response.user,
       User: response.User || response.user,
-      status: response.Status || response.status,
-      Status: response.Status || response.status,
+      status: normalizedStatus,
+      Status: normalizedStatus,
       userId: response.UserId || response.userId,
       UserId: response.UserId || response.userId,
     };
   }
 
   /**
-   * OAuth 2 Login Flow:
-   * Step 1: POST /api/oauth/login with email/password → get authorization code
-   * Step 2: POST /api/oauth/callback with code → exchange for JWT
+   * OAuth 2 Login Flow - Step 1 ONLY:
+   * POST /api/oauth/login with email/password → get authorization code OR MFA requirement
+   *
+   * NOTE: This method only calls /api/oauth/login
+   * Code exchange happens in OAuthCallback component via exchangeCodeForToken()
    */
   async login(credentials: LoginRequest): Promise<AuthResponse> {
     try {
       console.log('[AuthService] login() called', { email: credentials.email });
 
-      // Step 1: Get authorization code
+      // Step 1: Get authorization code OR MFA requirement
       const loginResponse = await this.axiosInstance.post(
         ENDPOINTS.LOGIN,
         credentials
       );
 
-      const normalizedLoginResponse = this.normalizeResponse(loginResponse.data);
-      console.log('[AuthService] OAuth login response received');
+      const normalizedResponse = this.normalizeResponse(loginResponse.data);
 
-      // Check if MFA is required
-      if (
-        normalizedLoginResponse?.Status === 'RequiresMfa' ||
-        normalizedLoginResponse?.status === 'RequiresMfa'
-      ) {
-        console.log('[AuthService] MFA required');
-        return normalizedLoginResponse;
-      }
+      console.log('[AuthService] OAuth login response received:', {
+        status: normalizedResponse?.Status || normalizedResponse?.status,
+        hasCode: !!(normalizedResponse?.Code || normalizedResponse?.code),
+        twoFactorEnabled: normalizedResponse?.TwoFactorEnabled || normalizedResponse?.twoFactorEnabled,
+      });
 
-      // Step 2: Exchange code for JWT
-      const authCode = normalizedLoginResponse?.Code || normalizedLoginResponse?.code;
-      if (authCode) {
-        console.log('[AuthService] Exchanging authorization code for token');
-        const callbackResponse = await this.exchangeCodeForToken({
-          code: authCode,
-          state: normalizedLoginResponse?.State || normalizedLoginResponse?.state,
-          provider: 'webapi',
-        });
-
-        const normalizedCallbackResponse = this.normalizeResponse(callbackResponse);
-
-        // Store tokens in Zustand
-        if (normalizedCallbackResponse?.accessToken) {
-          const authStore = useAuthStore.getState();
-          authStore.setTokens(
-            normalizedCallbackResponse.accessToken,
-            normalizedCallbackResponse.refreshToken || ''
-          );
-          console.log('[AuthService] ✅ Tokens stored in Zustand:', {
-            accessTokenLength: normalizedCallbackResponse.accessToken.length,
-            refreshTokenLength: normalizedCallbackResponse.refreshToken?.length || 0,
-          });
-
-          // Verify tokens are actually in store
-          const verify = useAuthStore.getState();
-          console.log('[AuthService] ✓ Verification - tokens in store:', {
-            hasJwt: !!verify.jwt,
-            hasRefreshToken: !!verify.refreshToken,
-          });
-        }
-
-        // Store user in localStorage
-        const userToStore =
-          normalizedCallbackResponse?.user ||
-          callbackResponse?.User ||
-          callbackResponse?.user;
-        if (userToStore) {
-          console.log('[AuthService] Storing user in localStorage');
-          localStorage.setItem('authUser', JSON.stringify(userToStore));
-        }
-
-        return normalizedCallbackResponse;
-      }
-
-      return normalizedLoginResponse;
+      // Return the raw response - let the thunk/callback page handle routing
+      // Response can be:
+      // 1. { Code, State, Success: true } → Redirect to OAuthCallback
+      // 2. { Status: "RequiresMfa", UserId, Success: true } → Redirect to MFAVerification
+      // 3. { Status: "Require2FaSetup", UserId, Success: true } → Redirect to MFASetup
+      return normalizedResponse;
     } catch (error) {
       console.error('[AuthService] login() error:', error);
       throw axiosErrorToApiError(error);
@@ -143,6 +132,7 @@ class AuthService {
 
   /**
    * Exchange authorization code for JWT token (OAuth 2 callback)
+   * This is called from OAuthCallback component
    */
   async exchangeCodeForToken(request: {
     code: string;
@@ -150,12 +140,43 @@ class AuthService {
     provider: string;
   }): Promise<AuthResponse> {
     try {
-      console.log('[AuthService] exchangeCodeForToken()');
+      console.log('[AuthService] exchangeCodeForToken()', { provider: request.provider });
+
       const response = await this.axiosInstance.post(
         ENDPOINTS.OAUTH_CALLBACK,
         request
       );
-      return response.data;
+
+      const normalizedResponse = this.normalizeResponse(response.data);
+
+      console.log('[AuthService] Token exchange response:', {
+        status: normalizedResponse?.Status || normalizedResponse?.status,
+        hasAccessToken: !!(normalizedResponse?.AccessToken || normalizedResponse?.accessToken),
+        hasUser: !!(normalizedResponse?.User || normalizedResponse?.user),
+      });
+
+      // Store tokens in Zustand if present
+      if (normalizedResponse?.accessToken || normalizedResponse?.AccessToken) {
+        const authStore = useAuthStore.getState();
+        const accessToken = normalizedResponse.accessToken || normalizedResponse.AccessToken;
+        const refreshToken = normalizedResponse.refreshToken || normalizedResponse.RefreshToken || '';
+
+        authStore.setTokens(accessToken, refreshToken);
+
+        console.log('[AuthService] ✅ Tokens stored in Zustand:', {
+          accessTokenLength: accessToken.length,
+          refreshTokenLength: refreshToken.length,
+        });
+      }
+
+      // Store user in localStorage if present
+      const userToStore = normalizedResponse?.user || normalizedResponse?.User;
+      if (userToStore) {
+        console.log('[AuthService] Storing user in localStorage');
+        localStorage.setItem('authUser', JSON.stringify(userToStore));
+      }
+
+      return normalizedResponse;
     } catch (error) {
       console.error('[AuthService] Token exchange failed:', error);
       throw axiosErrorToApiError(error);
@@ -319,7 +340,8 @@ class AuthService {
   }
 
   /**
-   * Verify MFA code
+   * Verify MFA code during login
+   * Returns authorization code (not JWT) for OAuth callback
    */
   async verifyMfa(request: MfaVerifyRequest): Promise<MfaVerifyResponse> {
     try {
@@ -328,26 +350,53 @@ class AuthService {
 
       const normalizedResponse = this.normalizeResponse(response.data);
 
-      // Store tokens if present
-      if (normalizedResponse?.accessToken) {
-        const authStore = useAuthStore.getState();
-        authStore.setTokens(
-          normalizedResponse.accessToken,
-          normalizedResponse.refreshToken || ''
-        );
-        console.log('[AuthService] Tokens stored after MFA verification');
-      }
+      console.log('[AuthService] MFA verification successful', {
+        hasCode: !!normalizedResponse?.code || !!normalizedResponse?.Code,
+        status: normalizedResponse?.status,
+      });
 
-      // Store user if present
-      const userToStore =
-        normalizedResponse?.user ||
-        response.data?.User ||
-        response.data?.user;
-      if (userToStore) {
-        localStorage.setItem('authUser', JSON.stringify(userToStore));
-      }
+      // Note: MFA verify returns authorization code, NOT JWT
+      // Frontend must exchange code via /api/oauth/callback
+      // Tokens will be stored after callback exchange
 
       return normalizedResponse;
+    } catch (error) {
+      throw axiosErrorToApiError(error);
+    }
+  }
+
+  /**
+   * Setup MFA for user (legacy 2FA to modern MFA)
+   * Generates QR code and secret key
+   */
+  async setupMfa(userId: string): Promise<any> {
+    try {
+      console.log('[AuthService] setupMfa() for userId:', userId);
+      const response = await this.axiosInstance.post(ENDPOINTS.MFA_SETUP, {
+        userId,
+        method: 'totp',
+      });
+
+      console.log('[AuthService] MFA setup generated');
+      return response.data;
+    } catch (error) {
+      throw axiosErrorToApiError(error);
+    }
+  }
+
+  /**
+   * Enable MFA after verification
+   * User scans QR and verifies code
+   */
+  async enableMfa(userId: string, token: string): Promise<void> {
+    try {
+      console.log('[AuthService] enableMfa() for userId:', userId);
+      await this.axiosInstance.post(ENDPOINTS.MFA_ENABLE, {
+        userId,
+        token,
+      });
+
+      console.log('[AuthService] ✅ MFA enabled successfully');
     } catch (error) {
       throw axiosErrorToApiError(error);
     }
