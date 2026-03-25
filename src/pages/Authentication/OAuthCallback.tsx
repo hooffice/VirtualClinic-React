@@ -27,11 +27,14 @@ const OAuthCallback: React.FC = () => {
         const code = searchParams.get('code');
         const state = searchParams.get('state');
         const provider = searchParams.get('provider') || 'webapi';
+        const isTrusted = searchParams.get('trustedDevice') || '';
+        const trustedDevice = isTrusted == '' ? false : true;
 
         console.log('[OAuthCallback] Starting code exchange', {
           hasCode: !!code,
           hasState: !!state,
           provider,
+          trustedDevice
         });
 
         // Validate parameters
@@ -48,17 +51,26 @@ const OAuthCallback: React.FC = () => {
         setProgress(20);
         setMessage('Validating authorization code...');
 
-        console.log('[OAuthCallback] Exchanging code for tokens');
+        console.log('[OAuthCallback] Exchanging code for tokens', {
+          code: code.substring(0, 20) + '...',
+          state: state.substring(0, 20) + '...',
+          provider,
+          trustedDevice
+        });
+
         const response = await authService.exchangeCodeForToken({
           code,
           state,
           provider,
+          trustedDevice
         });
 
-        console.log('[OAuthCallback] Exchange successful', {
-          hasAccessToken: !!response.accessToken,
-          hasUser: !!response.user,
-          status: response.status,
+        console.log('[OAuthCallback] Exchange response received:', {
+          hasAccessToken: !!response.accessToken || !!response.AccessToken,
+          hasUser: !!response.user || !!response.User,
+          status: response.status || response.Status,
+          statusCode: response.status === 'RequiresMfa' ? 1 : (response.status === 'Authenticated' ? 2 : '?'),
+          fullResponse: JSON.stringify(response, null, 2),
         });
 
         // Step 2: Check if MFA is still required (shouldn't happen, but safety check)

@@ -82,6 +82,7 @@ export interface OAuthCallbackRequest {
   code: string;
   state: string;
   provider: string;
+  trustedDevice: boolean;
 }
 
 // =====================================================
@@ -152,7 +153,8 @@ export interface MfaVerifyRequest {
   userId: string;
   token: string;  // 6-digit code from authenticator
   method?: 'totp' | 'sms' | 'email';
-  rememberDevice?: boolean;
+  TrustDevice?: boolean;  // Trust this device for future logins (PascalCase for backend)
+  TrustDays?: number;     // How many days to trust (default: 30) (PascalCase for backend)
 }
 
 export interface MfaVerifyResponse {

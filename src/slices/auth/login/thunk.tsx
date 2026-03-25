@@ -35,6 +35,7 @@ export const loginuser = (user: any, history: any) => async (dispatch: any) => {
             const userId = response.userId || response.UserId;
             const twoFactorEnabled = response.twoFactorEnabled || response.TwoFactorEnabled;
             const message = response.message || response.Message || '';
+            const trustedDevice = response.trustedDevice || false;
 
             console.log('[Thunk] Login response received:', {
                 status,
@@ -42,6 +43,7 @@ export const loginuser = (user: any, history: any) => async (dispatch: any) => {
                 hasCode: !!code,
                 message,
                 twoFactorEnabled,
+                trustedDevice
             });
 
             // AuthStatus enum from backend:
@@ -50,30 +52,40 @@ export const loginuser = (user: any, history: any) => async (dispatch: any) => {
             // 2 = Authenticated
             // 3 = TwoFARequired (legacy 2FA setup needed)
 
-            // Case 1: MFA is required (status: 1 = RequiresMfa)
+            // IMPORTANT: Check for code/state FIRST before checking status
+            // Because MFA verification also returns status: 1 with code/state
+
+            // Case 1: Authorization code received (need to exchange via callback)
+            // This handles BOTH:
+            //   a) Direct login without MFA → get code/state
+            //   b) After MFA verification → backend returns status:1 + code/state for callback
+            if (code && state) {
+              console.log('[Thunk] Authorization code received, redirecting to OAuth callback');
+              console.log('[Thunk] ⚠️ IMPORTANT: Always use provider=webapi for code exchange');
+              console.log('[Thunk] (NOT provider=mfa, even if from MFA verification)');
+              console.log('[Thunk] Passing trustedDevice:', trustedDevice);
+              history(`/oauth-callback?code=${code}&state=${state}&provider=webapi&trustedDevice=${trustedDevice}`);
+              return;
+            }
+
+            // Case 2: MFA is required (status: 1 = RequiresMfa) but NO code/state
+            // This means initial login attempt found MFA is enabled, user needs to enter code
             const isMfaRequired = statusString === 'requiresmfa' || status === 1;
 
-            if (isMfaRequired) {
-              console.log('[Thunk] MFA required, redirecting to MFA verification');
+            if (isMfaRequired && !code) {
+              console.log('[Thunk] MFA required, user needs to enter code');
               const authStore = useAuthStore.getState();
               authStore.setMfaRequired(userId);
               history(`/mfa-verification?userId=${userId}&source=login`);
               return;
             }
 
-            // Case 2: Legacy 2FA setup required (status: 3 = TwoFARequired)
+            // Case 3: Legacy 2FA setup required (status: 3 = TwoFARequired)
             const isTwoFARequired = statusString === 'twofarequired' || status === 3;
 
             if (isTwoFARequired) {
               console.log('[Thunk] 2FA setup required, redirecting to MFA setup');
               history(`/mfa-setup?userId=${userId}&fromLogin=true`);
-              return;
-            }
-
-            // Case 3: Authorization code received (need to exchange via callback)
-            if (code && state) {
-              console.log('[Thunk] Authorization code received, redirecting to OAuth callback');
-              history(`/oauth-callback?code=${code}&state=${state}&provider=webapi`);
               return;
             }
 

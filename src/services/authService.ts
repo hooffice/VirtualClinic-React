@@ -138,9 +138,22 @@ class AuthService {
     code: string;
     state: string;
     provider: string;
+    trustedDevice: boolean;
   }): Promise<AuthResponse> {
     try {
-      console.log('[AuthService] exchangeCodeForToken()', { provider: request.provider });
+      console.log('[AuthService] exchangeCodeForToken() called with:', {
+        provider: request.provider,
+        trustedDevice: request.trustedDevice,
+        codeLength: request.code?.length,
+        stateLength: request.state?.length,
+      });
+
+      console.log('[AuthService] Sending to backend:', {
+        code: request.code?.substring(0, 20) + '...',
+        state: request.state?.substring(0, 20) + '...',
+        provider: request.provider,
+        trustedDevice: request.trustedDevice,  // ✅ This will be sent
+      });
 
       const response = await this.axiosInstance.post(
         ENDPOINTS.OAUTH_CALLBACK,
@@ -149,10 +162,15 @@ class AuthService {
 
       const normalizedResponse = this.normalizeResponse(response.data);
 
+      console.log('[AuthService] Raw backend response:', {
+        rawData: JSON.stringify(response.data, null, 2),
+      });
+
       console.log('[AuthService] Token exchange response:', {
         status: normalizedResponse?.Status || normalizedResponse?.status,
         hasAccessToken: !!(normalizedResponse?.AccessToken || normalizedResponse?.accessToken),
         hasUser: !!(normalizedResponse?.User || normalizedResponse?.user),
+        normalizedResponse: JSON.stringify(normalizedResponse, null, 2),
       });
 
       // Store tokens in Zustand if present
@@ -345,7 +363,14 @@ class AuthService {
    */
   async verifyMfa(request: MfaVerifyRequest): Promise<MfaVerifyResponse> {
     try {
-      console.log('[AuthService] verifyMfa()');
+      console.log('[AuthService] verifyMfa() called with request:', {
+        userId: request.userId,
+        tokenLength: request.token?.length,
+        method: request.method,
+        TrustDevice: request.TrustDevice,
+        TrustDays: request.TrustDays,
+      });
+
       const response = await this.axiosInstance.post(ENDPOINTS.MFA_VERIFY, request);
 
       const normalizedResponse = this.normalizeResponse(response.data);

@@ -20,7 +20,8 @@ const MfaVerification: React.FC = () => {
   const [success, setSuccess] = useState(false);
   const [attempts, setAttempts] = useState(0);
   const [timeRemaining, setTimeRemaining] = useState(300); // 5 minutes
-  const [rememberDevice, setRememberDevice] = useState(false);
+  const [trustDevice, setTrustDevice] = useState(false);
+  const [trustDays, setTrustDays] = useState(30); // Default: trust for 30 days
   const inputRefs = React.useRef<(HTMLInputElement | null)[]>([]);
 
   const userId = searchParams.get('userId');
@@ -117,11 +118,18 @@ const MfaVerification: React.FC = () => {
       setError(null);
 
       // Call MFA verify endpoint
+      console.log('[MfaVerification] Submitting MFA with trust device:', {
+        trustDevice,
+        trustDays,
+        willSendTrustDays: trustDevice ? trustDays : undefined,
+      });
+
       const response = await authService.verifyMfa({
         userId,
-        token: codeToVerify,  // Backend expects 'token' not 'code'
-        method: 'totp', // Assuming TOTP, can be extended for SMS/Email
-        rememberDevice,
+        token: codeToVerify,
+        method: 'totp',
+        TrustDevice: trustDevice,  // Send as PascalCase to match backend
+        TrustDays: trustDevice ? trustDays : undefined,
       });
 
       console.log('[MfaVerification] MFA verification successful', {
@@ -138,6 +146,7 @@ const MfaVerification: React.FC = () => {
       if (authCode && state) {
         console.log('[MfaVerification] Redirecting to OAuth callback with code');
         // Redirect to OAuth callback to exchange code for JWT
+        // Always use provider=webapi to call HandleWebApiOAuthCallback handler
         navigate(
           `/oauth-callback?code=${authCode}&state=${state}&provider=mfa`,
           { replace: true }
@@ -165,7 +174,7 @@ const MfaVerification: React.FC = () => {
       }
 
       setLoading(false);
-      setCode(''); // Clear input on error
+      setDigits(['', '', '', '', '', '']); // Clear input on error
     }
   };
 
@@ -293,18 +302,44 @@ const MfaVerification: React.FC = () => {
                       </small>
                     </FormGroup>
 
+                    {/* Trust Device Section */}
                     <FormGroup check className="mb-3">
                       <Input
-                        id="remember-device"
+                        id="trust-device"
                         type="checkbox"
-                        checked={rememberDevice}
-                        onChange={(e) => setRememberDevice(e.target.checked)}
+                        checked={trustDevice}
+                        onChange={(e) => setTrustDevice(e.target.checked)}
                         disabled={loading}
                       />
-                      <Label htmlFor="remember-device" className="form-check-label">
-                        Remember this device for 30 days
+                      <Label htmlFor="trust-device" className="form-check-label">
+                        Trust this device
                       </Label>
                     </FormGroup>
+
+                    {/* Trust Days Selection */}
+                    {trustDevice && (
+                      <FormGroup className="mb-3">
+                        <Label htmlFor="trust-days" className="small text-muted">
+                          Trust this device for:
+                        </Label>
+                        <Input
+                          id="trust-days"
+                          type="select"
+                          value={trustDays}
+                          onChange={(e) => setTrustDays(Number(e.target.value))}
+                          disabled={loading}
+                        >
+                          <option value={7}>7 days</option>
+                          <option value={14}>14 days</option>
+                          <option value={30}>30 days</option>
+                          <option value={60}>60 days</option>
+                          <option value={90}>90 days</option>
+                        </Input>
+                        <small className="text-muted d-block mt-2">
+                          You won't need to enter a code when logging in from this device during the selected period.
+                        </small>
+                      </FormGroup>
+                    )}
 
                     <Button
                       type="submit"
