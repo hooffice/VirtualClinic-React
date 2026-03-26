@@ -22,6 +22,7 @@ import { timezoneService, Timezone } from '@/services/timezoneService';
 import { affiliationService, Affiliation } from '@/services/affiliationService';
 import { referredByService, ReferredBy } from '@/services/referredByService';
 import { salesRepService, SalesRep } from '@/services/salesRepService';
+import { emailService } from '@/services/emailService';
 import './Register.css';
 
 interface FormData {
@@ -83,6 +84,8 @@ const Register: React.FC = () => {
   const [affiliations, setAffiliations] = useState<Affiliation[]>([]);
   const [referredByList, setReferredByList] = useState<ReferredBy[]>([]);
   const [salesRepList, setSalesRepList] = useState<SalesRep[]>([]);
+  const [emailExists, setEmailExists] = useState(false);
+  const [emailChecking, setEmailChecking] = useState(false);
 
   // Fetch reference data on component mount
   useEffect(() => {
@@ -117,6 +120,27 @@ const Register: React.FC = () => {
 
     fetchReferenceData();
   }, []);
+
+  // Check email availability (debounced)
+  useEffect(() => {
+    const checkEmail = async () => {
+      if (formData.email && validateEmail(formData.email)) {
+        setEmailChecking(true);
+        const exists = await emailService.checkEmailExists(formData.email);
+        setEmailExists(exists);
+        setEmailChecking(false);
+      } else {
+        setEmailExists(false);
+      }
+    };
+
+    // Debounce email check - wait 500ms after user stops typing
+    const timer = setTimeout(() => {
+      checkEmail();
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [formData.email]);
 
   // Redirect to email verification on success
   useEffect(() => {
@@ -167,6 +191,8 @@ const Register: React.FC = () => {
       errors.email = 'Email is required';
     } else if (!validateEmail(formData.email)) {
       errors.email = 'Please enter a valid email';
+    } else if (emailExists) {
+      errors.email = 'This email is already registered. Please use a different email.';
     }
 
     if (!passwords.password) {
@@ -411,19 +437,57 @@ const Register: React.FC = () => {
                       <Label for="email" className="fw-bold">
                         Email Address
                       </Label>
-                      <Input
-                        type="email"
-                        name="email"
-                        id="email"
-                        placeholder="Enter your email"
-                        value={formData.email}
-                        onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                          handleFormChange('email', e.target.value)
-                        }
-                        invalid={!!validationErrors.email}
-                      />
+                      <div style={{ position: 'relative' }}>
+                        <Input
+                          type="email"
+                          name="email"
+                          id="email"
+                          placeholder="Enter your email"
+                          value={formData.email}
+                          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                            handleFormChange('email', e.target.value)
+                          }
+                          invalid={!!validationErrors.email}
+                        />
+                        {emailChecking && formData.email && (
+                          <small
+                            style={{
+                              position: 'absolute',
+                              right: '10px',
+                              top: '50%',
+                              transform: 'translateY(-50%)',
+                              color: '#667eea',
+                            }}
+                          >
+                            Checking...
+                          </small>
+                        )}
+                      </div>
                       {validationErrors.email && (
                         <FormText color="danger">{validationErrors.email}</FormText>
+                      )}
+                      {!validationErrors.email && formData.email && (
+                        <>
+                          {emailChecking && (
+                            <FormText style={{ color: '#667eea' }}>
+                              Checking email availability...
+                            </FormText>
+                          )}
+                          {!emailChecking &&
+                            validateEmail(formData.email) &&
+                            emailExists && (
+                              <FormText color="danger">
+                                ✗ This email is already registered. Please use a different email.
+                              </FormText>
+                            )}
+                          {!emailChecking &&
+                            validateEmail(formData.email) &&
+                            !emailExists && (
+                              <FormText color="success">
+                                ✓ Email is available
+                              </FormText>
+                            )}
+                        </>
                       )}
                     </FormGroup>
 
