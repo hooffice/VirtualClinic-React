@@ -17,6 +17,7 @@ import {
 } from '@/types/api.types';
 import { axiosErrorToApiError } from '@/types/errors';
 import { useAuthStore } from '@/store/useAuthStore';
+import { clearDeviceId } from '@/helpers/deviceHelper';
 
 /**
  * OAuth 2 Authorization Code Flow Endpoints
@@ -258,6 +259,7 @@ class AuthService {
       // Always clear local state
       authStore.logout();
       localStorage.removeItem('authUser');
+      clearDeviceId();
       console.log('[AuthService] ✅ Local state cleared, user logged out');
     } catch (error) {
       console.error('[AuthService] Unexpected logout error:', error);
@@ -265,6 +267,7 @@ class AuthService {
       const authStore = useAuthStore.getState();
       authStore.logout();
       localStorage.removeItem('authUser');
+      clearDeviceId();
     }
   }
 

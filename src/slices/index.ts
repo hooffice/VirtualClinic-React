@@ -7,6 +7,7 @@ import ProfileReducer from "./auth/profile/reducer";
 import ForgotPasswordReducer from "./auth/forgetpwd/reducer";
 import AccountReducer from "./auth/register/reducer";
 import RoleReducer from "./auth/role/reducer";
+import RegisterReducer from "./auth/register/reducer";
 
 const rootReducer = combineReducers({
     Layout: LayoutReducer,
@@ -14,6 +15,7 @@ const rootReducer = combineReducers({
     Profile: ProfileReducer,
     ForgetPassword: ForgotPasswordReducer,
     Account: AccountReducer,
+    register: RegisterReducer,
     role: RoleReducer,
 });
 

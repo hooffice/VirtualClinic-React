@@ -12,6 +12,7 @@ import SignUp from "pages/Authentication/Register"
 import OAuthCallback from "pages/Authentication/OAuthCallback";
 import MfaVerification from "pages/Authentication/MfaVerification";
 import MfaSetup from "pages/Authentication/MfaSetup";
+import EmailVerification from "pages/Authentication/EmailVerification";
 
 const authProtectedRoutes = [
   { path: "/dashboard", component: <Dashboard /> },
@@ -30,5 +31,6 @@ const publicRoutes = [
   { path: "/oauth-callback", component: <OAuthCallback /> },
   { path: "/mfa-verification", component: <MfaVerification /> },
   { path: "/mfa-setup", component: <MfaSetup /> },
+  { path: "/email-verification", component: <EmailVerification /> },
 ]
 export { authProtectedRoutes, publicRoutes };

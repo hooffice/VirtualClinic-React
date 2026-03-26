@@ -1,55 +1,102 @@
-//Include Both Helper File with needed methods
-import { getFirebaseBackend } from "../../../helpers/firebase_helper";
-import {
-  postFakeRegister,
-  postJwtRegister,
-} from "../../../helpers/fakebackend_helper";
+/**
+ * Register Thunk
+ * Handles registration API calls and state management
+ */
 
-// action
-import {
-  registerUserSuccessful,
-  registerUserFailed,
-  resetRegisterFlagChange,
-  apiErrorChange
-} from "./reducer";
-import { ENV } from "../../../config/env";
+import { RegistrationRequest } from '@/types/api.types';
+import { registrationService } from '@/services/registrationService';
+import { getErrorMessage } from '@/types/errors';
+import { 
+  setLoading, 
+  registerSuccess, 
+  registerError,
+  verifyEmailSuccess,
+  verifyEmailError 
+} from './reducer';
 
-// initialize relavant method of both Auth
-const fireBaseBackend = getFirebaseBackend();
-
-// Is user register successfull then direct plot user in redux.
-export const registerUser = (user: any) => async (dispatch: any) => {
+/**
+ * Register new user (Patient or Clinician)
+ */
+export const registerUser = (data: RegistrationRequest) => async (dispatch: any) => {
   try {
-    let response;
+    console.log('[RegisterThunk] registerUser() called', { email: data.email, userType: data.userType });
 
-    if (ENV.REACT_APP_DEFAULTAUTH === "firebase") {
-      response = fireBaseBackend.registerUser(user.email, user.password);
-    } else if (ENV.REACT_APP_DEFAULTAUTH === "jwt") {
-      response = postJwtRegister('/post-jwt-register', user);
-    } else if (ENV.REACT_APP_DEFAULTAUTH) {
-      response = postFakeRegister(user);
-      const data: any = await response;
-      dispatch(registerUserSuccessful(data));
-    }
+    dispatch(setLoading());
+
+    // Call registration service
+    const response = await registrationService.register(data);
+
+    console.log('[RegisterThunk] Registration successful:', {
+      userId: response.userId,
+      message: response.message,
+    });
+
+    // Dispatch success action
+    dispatch(registerSuccess({
+      userId: response.userId,
+      email: data.email,
+      message: response.message,
+    }));
+
   } catch (error) {
-    dispatch(registerUserFailed(error));
+    console.error('[RegisterThunk] Registration error:', error);
+    const errorMessage = getErrorMessage(error);
+    dispatch(registerError(errorMessage));
   }
 };
 
-export const resetRegisterFlag = () => {
+/**
+ * Verify email with confirmation token
+ */
+export const verifyEmailToken = (token: string, email: string, history: any) => async (dispatch: any) => {
   try {
-    const response = resetRegisterFlagChange();
-    return response;
+    console.log('[RegisterThunk] verifyEmailToken() called');
+
+    dispatch(setLoading());
+
+    // Call verification service
+    const response = await registrationService.verifyEmail(token, email);
+
+    console.log('[RegisterThunk] Email verified successfully');
+
+    dispatch(verifyEmailSuccess());
+
+    // Redirect to login with success message
+    setTimeout(() => {
+      history('/login', { 
+        state: { message: 'Email verified! You can now log in.' }
+      });
+    }, 2000);
+
   } catch (error) {
-    return error;
+    console.error('[RegisterThunk] Email verification error:', error);
+    const errorMessage = getErrorMessage(error);
+    dispatch(verifyEmailError(errorMessage));
   }
 };
 
-export const apiError = () => {
+/**
+ * Resend verification email
+ */
+export const resendVerificationEmail = (email: string) => async (dispatch: any) => {
   try {
-    const response = apiErrorChange("");
-    return response;
+    console.log('[RegisterThunk] resendVerificationEmail() called');
+
+    dispatch(setLoading());
+
+    const response = await registrationService.resendVerificationEmail(email);
+
+    console.log('[RegisterThunk] Verification email resent');
+    
+    dispatch(registerSuccess({
+      userId: '',
+      email: email,
+      message: response.message || 'Verification email sent. Please check your inbox.',
+    }));
+
   } catch (error) {
-    return error;
+    console.error('[RegisterThunk] Resend verification error:', error);
+    const errorMessage = getErrorMessage(error);
+    dispatch(registerError(errorMessage));
   }
 };

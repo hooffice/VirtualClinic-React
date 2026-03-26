@@ -42,10 +42,31 @@ export interface LoginRequest {
 export interface RegistrationRequest {
   email: string;
   password: string;
-  confirmPassword?: string;
-  firstName?: string;
-  lastName?: string;
-  [key: string]: any;
+  firstName: string;
+  lastName: string;
+  userType: 3 | 6;  // 3=Clinician, 6=Patient
+  timezone?: string;
+  contact: string;  // Phone number
+
+  // Patient specific fields
+  clinicianID?: number;
+  referredBy?: string;
+  referredbyOther?: string;
+
+  // Clinician specific fields
+  credential?: string;
+  npiNo?: string;
+  cliacertification?: boolean;
+  cliacertificationNo?: string;
+  salesRep?: string;
+  affiliation?: string;
+  affiliationOther?: string;
+}
+
+export interface RegistrationResponse {
+  message: string;
+  userId: string;
+  success?: boolean;
 }
 
 export interface AuthResponse {

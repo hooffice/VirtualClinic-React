@@ -1,218 +1,1026 @@
-import React, { useEffect } from "react";
-import { Row, Col, CardBody, Card, Alert, Container, Input, Label, Form, FormFeedback } from "reactstrap";
+import React, { useState, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
+import {
+  Container,
+  Row,
+  Col,
+  Card,
+  CardBody,
+  Button,
+  Input,
+  Label,
+  FormGroup,
+  FormText,
+  Alert,
+} from 'reactstrap';
+import CreatableSelect from 'react-select/creatable';
+import PasswordStrengthIndicator from '@/Components/PasswordStrengthIndicator';
+import { registerUser } from '@/slices/auth/register/thunk';
+import { RootState, AppDispatch } from '@/store';
+import { timezoneService, Timezone } from '@/services/timezoneService';
+import { affiliationService, Affiliation } from '@/services/affiliationService';
+import { referredByService, ReferredBy } from '@/services/referredByService';
+import { salesRepService, SalesRep } from '@/services/salesRepService';
+import './Register.css';
 
-// Formik Validation
-import * as Yup from "yup";
-import { useFormik } from "formik";
+interface FormData {
+  userType: number | null;
+  email: string;
+  firstName: string;
+  lastName: string;
+  contact: string;
+  timezone: string;
+  // Clinician-specific
+  credential: string;
+  hasNpi: boolean;
+  npiNo: string;
+  hasClia: boolean;
+  cliacertification: string;
+  affiliation: string;
+  referredBy: string; // Clinician only
+  salesRep: string; // Clinician only
+}
 
-// action
-import { registerUser, apiError } from "../../slices/thunk";
+interface ValidationErrors {
+  [key: string]: string;
+}
 
-//redux
-import { useSelector, useDispatch } from "react-redux";
-
-import { Link } from "react-router-dom";
-
-// import images
-import profileImg from "./../../assets/images/profile-img.png";
-import logoImg from "./../../assets/images/logo.svg";
-import { createSelector } from 'reselect';
-
-
-const Register = props => {
-
-  //meta title
-  document.title = "Register | Virtual Clinic";
-
-  const dispatch = useDispatch<any>();
-
-  const validation = useFormik({
-    // enableReinitialize : use this flag when initial values needs to be changed
-    enableReinitialize: true,
-
-    initialValues: {
-      email: '',
-      username: '',
-      password: '',
-    },
-    validationSchema: Yup.object({
-      email: Yup.string().required("Please Enter Your Email"),
-      username: Yup.string().required("Please Enter Your Username"),
-      password: Yup.string().required("Please Enter Your Password"),
-    }),
-    onSubmit: (values) => {
-      dispatch(registerUser(values));
-    }
-  });
-
- const selectProperties = createSelector(
-    (state: any) => state.Account,
-    (account) => ({
-      user: account.user,
-      registrationError: account.registrationError,
-      loading: account.loading,
-    })
+const Register: React.FC = () => {
+  const dispatch = useDispatch<AppDispatch>();
+  const navigate = useNavigate();
+  const { loading, error, success, email } = useSelector(
+    (state: RootState) => state.register
   );
 
-  const { user, registrationError } = useSelector(selectProperties);
+  const [activeStep, setActiveStep] = useState(0);
+  const [formData, setFormData] = useState<FormData>({
+    userType: null,
+    email: '',
+    firstName: '',
+    lastName: '',
+    contact: '',
+    timezone: 'Eastern Standard Time',
+    credential: '',
+    hasNpi: false,
+    npiNo: '',
+    hasClia: false,
+    cliacertification: '',
+    affiliation: 'None',
+    referredBy: '',
+    salesRep: '',
+  });
 
+  const [passwords, setPasswords] = useState({
+    password: '',
+    confirmPassword: '',
+  });
+
+  const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
+  const [agreeToTerms, setAgreeToTerms] = useState(false);
+  const [timezones, setTimezones] = useState<Timezone[]>([]);
+  const [timezonesLoading, setTimezonesLoading] = useState(false);
+  const [affiliations, setAffiliations] = useState<Affiliation[]>([]);
+  const [referredByList, setReferredByList] = useState<ReferredBy[]>([]);
+  const [salesRepList, setSalesRepList] = useState<SalesRep[]>([]);
+
+  // Fetch reference data on component mount
   useEffect(() => {
-    dispatch(apiError());
-  }, [dispatch]);
+    const fetchReferenceData = async () => {
+      try {
+        // Fetch timezones
+        setTimezonesLoading(true);
+        const timezonesData = await timezoneService.getTimezones();
+        setTimezones(timezonesData);
+
+        // Fetch affiliations
+        const affiliationsData = await affiliationService.getAffiliations();
+        setAffiliations(affiliationsData);
+
+        // Fetch referred by list
+        const referredByData = await referredByService.getReferredByList();
+        setReferredByList(referredByData);
+
+        // Fetch sales rep list
+        const salesRepData = await salesRepService.getSalesRepList();
+        setSalesRepList(salesRepData);
+      } catch (err) {
+        console.error('Failed to fetch reference data:', err);
+        setTimezones([]);
+        setAffiliations([]);
+        setReferredByList([]);
+        setSalesRepList([]);
+      } finally {
+        setTimezonesLoading(false);
+      }
+    };
+
+    fetchReferenceData();
+  }, []);
+
+  // Redirect to email verification on success
+  useEffect(() => {
+    if (success && email) {
+      const timer = setTimeout(() => {
+        navigate(`/email-verification?email=${encodeURIComponent(email)}`);
+      }, 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [success, email, navigate]);
+
+  // Validation functions
+  const validateEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const validatePassword = (password: string): boolean => {
+    return (
+      password.length >= 8 &&
+      /[a-z]/.test(password) &&
+      /[A-Z]/.test(password) &&
+      /[0-9]/.test(password) &&
+      /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\\/?]/.test(password)
+    );
+  };
+
+  const validatePhoneNumber = (phone: string): boolean => {
+    const phoneRegex = /^[\d\-\+\(\)\s]{10,}$/;
+    return phoneRegex.test(phone);
+  };
+
+  const validateStep1 = (): boolean => {
+    const errors: ValidationErrors = {};
+
+    if (!formData.userType) {
+      errors.userType = 'Please select a user type';
+    }
+
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const validateStep2 = (): boolean => {
+    const errors: ValidationErrors = {};
+
+    if (!formData.email) {
+      errors.email = 'Email is required';
+    } else if (!validateEmail(formData.email)) {
+      errors.email = 'Please enter a valid email';
+    }
+
+    if (!passwords.password) {
+      errors.password = 'Password is required';
+    } else if (!validatePassword(passwords.password)) {
+      errors.password = 'Password does not meet all requirements';
+    }
+
+    if (!passwords.confirmPassword) {
+      errors.confirmPassword = 'Please confirm your password';
+    } else if (passwords.password !== passwords.confirmPassword) {
+      errors.confirmPassword = 'Passwords do not match';
+    }
+
+    if (!agreeToTerms) {
+      errors.terms = 'You must agree to the terms and conditions';
+    }
+
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const validateStep3 = (): boolean => {
+    const errors: ValidationErrors = {};
+
+    if (!formData.firstName) {
+      errors.firstName = 'First name is required';
+    }
+
+    if (!formData.lastName) {
+      errors.lastName = 'Last name is required';
+    }
+
+    if (!formData.contact) {
+      errors.contact = 'Phone number is required';
+    } else if (!validatePhoneNumber(formData.contact)) {
+      errors.contact = 'Please enter a valid phone number';
+    }
+
+    if (!formData.timezone) {
+      errors.timezone = 'Timezone is required';
+    }
+
+    if (formData.userType === 3) {
+      // Clinician-specific validation
+      // Credential is optional
+      // NPI is only required if hasNpi is checked
+      if (formData.hasNpi && !formData.npiNo) {
+        errors.npiNo = 'NPI number is required when NPI is selected';
+      }
+      // CLIA is only required if hasClia is checked
+      if (formData.hasClia && !formData.cliacertification) {
+        errors.cliacertification = 'CLIA certification is required when selected';
+      }
+      if (!formData.affiliation) {
+        errors.affiliation = 'Affiliation is required';
+      }
+      if (!formData.referredBy) {
+        errors.referredBy = 'Referred By is required';
+      }
+      // Sales Representative is optional
+    }
+
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleNext = (): void => {
+    let isValid = false;
+
+    switch (activeStep) {
+      case 0:
+        isValid = validateStep1();
+        break;
+      case 1:
+        isValid = validateStep2();
+        break;
+      case 2:
+        isValid = validateStep3();
+        break;
+      default:
+        isValid = true;
+    }
+
+    if (isValid) {
+      setActiveStep((prev) => prev + 1);
+      setValidationErrors({});
+    }
+  };
+
+  const handleBack = (): void => {
+    setActiveStep((prev) => prev - 1);
+    setValidationErrors({});
+  };
+
+  const handleFormChange = (field: string, value: any): void => {
+    setFormData((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
+
+  const handlePasswordChange = (field: string, value: string): void => {
+    setPasswords((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
+
+  const handleSubmit = async (): Promise<void> => {
+    if (!validateStep3()) {
+      return;
+    }
+
+    const registrationData: any = {
+      email: formData.email,
+      password: passwords.password,
+      firstName: formData.firstName,
+      lastName: formData.lastName,
+      contact: formData.contact,
+      timezone: formData.timezone,
+      userType: formData.userType as 3 | 6,
+      ...(formData.userType === 3 && {
+        ...(formData.credential && { credential: formData.credential }),
+        ...(formData.hasNpi && { npiNo: formData.npiNo }),
+        ...(formData.hasClia && { cliacertification: formData.cliacertification }),
+        affiliation: formData.affiliation,
+        referredBy: formData.referredBy,
+        salesRep: formData.salesRep,
+      }),
+    };
+
+    dispatch(registerUser(registrationData));
+  };
+
+  const progressPercentage = ((activeStep + 1) / 4) * 100;
 
   return (
-    <React.Fragment>
-      <div className="home-btn d-none d-sm-block">
-        <Link to="/" className="text-dark">
-          <i className="bx bx-home h2" />
-        </Link>
-      </div>
-      <div className="account-pages my-5 pt-sm-5">
-        <Container>
-          <Row className="justify-content-center">
-            <Col md={8} lg={6} xl={5}>
-              <Card className="overflow-hidden">
-                <div className="bg-primary-subtle">
-                  <Row>
-                    <Col className="col-7">
-                      <div className="text-primary p-4">
-                        <h5 className="text-primary">Free Register</h5>
-                        <p>Get your free Skote account now.</p>
-                      </div>
-                    </Col>
-                    <Col className="col-5 align-self-end">
-                      <img src={profileImg} alt="" className="img-fluid" />
-                    </Col>
-                  </Row>
+    <div className="register-wrapper py-5">
+      <Container className="register-container">
+        <Row className="justify-content-center">
+          <Col lg="8" md="10" xs="12">
+            <Card className="register-card shadow-lg">
+              <CardBody className="p-4">
+                {/* Header */}
+                <div className="mb-4">
+                  <h2 className="fw-bold text-center mb-2">Create Your Account</h2>
+                  <p className="text-center text-muted mb-4">
+                    Step {activeStep + 1} of 4
+                  </p>
+
+                  {/* Progress Bar */}
+                  <div className="progress" style={{ height: '6px' }}>
+                    <div
+                      className="progress-bar"
+                      role="progressbar"
+                      style={{ width: `${progressPercentage}%` }}
+                      aria-valuenow={activeStep + 1}
+                      aria-valuemin={1}
+                      aria-valuemax={4}
+                    ></div>
+                  </div>
                 </div>
-                <CardBody className="pt-0">
-                  <div>
-                    <Link to="/">
-                      <div className="avatar-md profile-user-wid mb-4">
-                        <span className="avatar-title rounded-circle bg-light">
-                          <img
-                            src={logoImg}
-                            alt=""
-                            className="rounded-circle"
-                            height="34"
+
+                {/* Error Alert */}
+                {error && (
+                  <Alert color="danger" className="mb-4">
+                    {error}
+                  </Alert>
+                )}
+
+                {/* Success Alert */}
+                {success && (
+                  <Alert color="success" className="mb-4">
+                    Registration successful! Redirecting to email verification...
+                  </Alert>
+                )}
+
+                {/* Step 1: User Type Selection */}
+                {activeStep === 0 && (
+                  <div className="step-content">
+                    <h5 className="fw-bold mb-4">What type of user are you?</h5>
+
+                    <FormGroup className="mb-3">
+                      <div className="form-check">
+                        <Input
+                          type="radio"
+                          id="patient"
+                          name="userType"
+                          value={6}
+                          checked={formData.userType === 6}
+                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                            handleFormChange('userType', parseInt(e.target.value));
+                            // Reset clinician-specific fields
+                            handleFormChange('credential', '');
+                            handleFormChange('npiNo', '');
+                            handleFormChange('cliacertification', '');
+                            handleFormChange('affiliation', '');
+                          }}
+                          className="form-check-input"
+                        />
+                        <Label htmlFor="patient" className="form-check-label">
+                          Patient
+                        </Label>
+                      </div>
+                    </FormGroup>
+
+                    <FormGroup className="mb-4">
+                      <div className="form-check">
+                        <Input
+                          type="radio"
+                          id="provider"
+                          name="userType"
+                          value={3}
+                          checked={formData.userType === 3}
+                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                            handleFormChange('userType', parseInt(e.target.value));
+                            // Reset patient-specific fields
+                            handleFormChange('referredBy', '');
+                          }}
+                          className="form-check-input"
+                        />
+                        <Label htmlFor="provider" className="form-check-label">
+                          Clinician / Healthcare Provider
+                        </Label>
+                      </div>
+                    </FormGroup>
+
+                    {validationErrors.userType && (
+                      <FormText color="danger">{validationErrors.userType}</FormText>
+                    )}
+                  </div>
+                )}
+
+                {/* Step 2: Account Details */}
+                {activeStep === 1 && (
+                  <div className="step-content">
+                    <h5 className="fw-bold mb-4">Account Details</h5>
+
+                    {/* Email */}
+                    <FormGroup className="mb-3">
+                      <Label for="email" className="fw-bold">
+                        Email Address
+                      </Label>
+                      <Input
+                        type="email"
+                        name="email"
+                        id="email"
+                        placeholder="Enter your email"
+                        value={formData.email}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                          handleFormChange('email', e.target.value)
+                        }
+                        invalid={!!validationErrors.email}
+                      />
+                      {validationErrors.email && (
+                        <FormText color="danger">{validationErrors.email}</FormText>
+                      )}
+                    </FormGroup>
+
+                    {/* Password */}
+                    <FormGroup className="mb-3">
+                      <Label for="password" className="fw-bold">
+                        Password
+                      </Label>
+                      <Input
+                        type="password"
+                        name="password"
+                        id="password"
+                        placeholder="Enter your password"
+                        value={passwords.password}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                          handlePasswordChange('password', e.target.value)
+                        }
+                        invalid={!!validationErrors.password}
+                      />
+                      {validationErrors.password && (
+                        <FormText color="danger">{validationErrors.password}</FormText>
+                      )}
+                    </FormGroup>
+
+                    {/* Password Strength Indicator */}
+                    {passwords.password && (
+                      <div className="mb-3 p-3 bg-light rounded">
+                        <PasswordStrengthIndicator password={passwords.password} />
+                      </div>
+                    )}
+
+                    {/* Confirm Password */}
+                    <FormGroup className="mb-3">
+                      <Label for="confirmPassword" className="fw-bold">
+                        Confirm Password
+                      </Label>
+                      <Input
+                        type="password"
+                        name="confirmPassword"
+                        id="confirmPassword"
+                        placeholder="Confirm your password"
+                        value={passwords.confirmPassword}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                          handlePasswordChange('confirmPassword', e.target.value)
+                        }
+                        invalid={!!validationErrors.confirmPassword}
+                      />
+                      {validationErrors.confirmPassword && (
+                        <FormText color="danger">
+                          {validationErrors.confirmPassword}
+                        </FormText>
+                      )}
+                    </FormGroup>
+
+                    {/* Terms & Conditions */}
+                    <FormGroup className="mb-4">
+                      <div className="form-check">
+                        <Input
+                          type="checkbox"
+                          id="terms"
+                          checked={agreeToTerms}
+                          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                            setAgreeToTerms(e.target.checked)
+                          }
+                          className="form-check-input"
+                        />
+                        <Label htmlFor="terms" className="form-check-label">
+                          I agree to the Terms and Conditions
+                        </Label>
+                      </div>
+                      {validationErrors.terms && (
+                        <FormText color="danger">{validationErrors.terms}</FormText>
+                      )}
+                    </FormGroup>
+                  </div>
+                )}
+
+                {/* Step 3: Personal Information */}
+                {activeStep === 2 && (
+                  <div className="step-content">
+                    <h5 className="fw-bold mb-4">Personal Information</h5>
+
+                    <Row>
+                      {/* First Name */}
+                      <Col md="6" className="mb-3">
+                        <FormGroup>
+                          <Label for="firstName" className="fw-bold">
+                            First Name
+                          </Label>
+                          <Input
+                            type="text"
+                            name="firstName"
+                            id="firstName"
+                            placeholder="Enter first name"
+                            value={formData.firstName}
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                              handleFormChange('firstName', e.target.value)
+                            }
+                            invalid={!!validationErrors.firstName}
                           />
-                        </span>
-                      </div>
-                    </Link>
+                          {validationErrors.firstName && (
+                            <FormText color="danger">
+                              {validationErrors.firstName}
+                            </FormText>
+                          )}
+                        </FormGroup>
+                      </Col>
+
+                      {/* Last Name */}
+                      <Col md="6" className="mb-3">
+                        <FormGroup>
+                          <Label for="lastName" className="fw-bold">
+                            Last Name
+                          </Label>
+                          <Input
+                            type="text"
+                            name="lastName"
+                            id="lastName"
+                            placeholder="Enter last name"
+                            value={formData.lastName}
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                              handleFormChange('lastName', e.target.value)
+                            }
+                            invalid={!!validationErrors.lastName}
+                          />
+                          {validationErrors.lastName && (
+                            <FormText color="danger">
+                              {validationErrors.lastName}
+                            </FormText>
+                          )}
+                        </FormGroup>
+                      </Col>
+                    </Row>
+
+                    {/* Phone Number */}
+                    <FormGroup className="mb-3">
+                      <Label for="contact" className="fw-bold">
+                        Phone Number
+                      </Label>
+                      <Input
+                        type="tel"
+                        name="contact"
+                        id="contact"
+                        placeholder="Enter phone number"
+                        value={formData.contact}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                          handleFormChange('contact', e.target.value)
+                        }
+                        invalid={!!validationErrors.contact}
+                      />
+                      {validationErrors.contact && (
+                        <FormText color="danger">{validationErrors.contact}</FormText>
+                      )}
+                    </FormGroup>
+
+                    {/* Timezone */}
+                    <FormGroup className="mb-4">
+                      <Label for="timezone" className="fw-bold">
+                        Timezone
+                      </Label>
+                      <Input
+                        type="select"
+                        name="timezone"
+                        id="timezone"
+                        value={formData.timezone}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                          handleFormChange('timezone', e.target.value)
+                        }
+                        invalid={!!validationErrors.timezone}
+                        disabled={timezonesLoading}
+                      >
+                        {timezonesLoading && (
+                          <option value={formData.timezone}>
+                            Loading timezones...
+                          </option>
+                        )}
+                        {!timezonesLoading && timezones.length === 0 && (
+                          <option value={formData.timezone}>
+                            No timezones available
+                          </option>
+                        )}
+                        {timezones.map((tz) => (
+                          <option key={tz.nameOfTimeZone} value={tz.nameOfTimeZone}>
+                            {tz.nameOfTimeZone}
+                          </option>
+                        ))}
+                      </Input>
+                      {validationErrors.timezone && (
+                        <FormText color="danger">{validationErrors.timezone}</FormText>
+                      )}
+                    </FormGroup>
+
+                    {/* Clinician-Specific Fields */}
+                    {formData.userType === 3 && (
+                      <>
+                        <h6 className="fw-bold mb-3 mt-3">Healthcare Provider Details</h6>
+
+                        {/* Credential - Optional */}
+                        <FormGroup className="mb-3">
+                          <Label for="credential" className="fw-bold">
+                            Credential <span className="text-muted">(Optional)</span>
+                          </Label>
+                          <Input
+                            type="text"
+                            name="credential"
+                            id="credential"
+                            placeholder="e.g., MD, DO, PA, NP"
+                            value={formData.credential}
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                              handleFormChange('credential', e.target.value)
+                            }
+                          />
+                        </FormGroup>
+
+                        {/* NPI Number - Optional with Checkbox */}
+                        <FormGroup className="mb-3">
+                          <div className="form-check mb-2">
+                            <Input
+                              type="checkbox"
+                              id="hasNpi"
+                              checked={formData.hasNpi}
+                              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                                handleFormChange('hasNpi', e.target.checked)
+                              }
+                              className="form-check-input"
+                            />
+                            <Label htmlFor="hasNpi" className="form-check-label fw-bold">
+                              I have an NPI Number
+                            </Label>
+                          </div>
+                          {formData.hasNpi && (
+                            <>
+                              <Input
+                                type="text"
+                                name="npiNo"
+                                id="npiNo"
+                                placeholder="Enter your NPI number"
+                                value={formData.npiNo}
+                                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                                  handleFormChange('npiNo', e.target.value)
+                                }
+                                invalid={!!validationErrors.npiNo}
+                              />
+                              {validationErrors.npiNo && (
+                                <FormText color="danger">
+                                  {validationErrors.npiNo}
+                                </FormText>
+                              )}
+                            </>
+                          )}
+                        </FormGroup>
+
+                        {/* CLIA Certification - Optional with Checkbox */}
+                        <FormGroup className="mb-3">
+                          <div className="form-check mb-2">
+                            <Input
+                              type="checkbox"
+                              id="hasClia"
+                              checked={formData.hasClia}
+                              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                                handleFormChange('hasClia', e.target.checked)
+                              }
+                              className="form-check-input"
+                            />
+                            <Label htmlFor="hasClia" className="form-check-label fw-bold">
+                              I have CLIA Certification
+                            </Label>
+                          </div>
+                          {formData.hasClia && (
+                            <>
+                              <Input
+                                type="text"
+                                name="cliacertification"
+                                id="cliacertification"
+                                placeholder="Enter your CLIA certification number"
+                                value={formData.cliacertification}
+                                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                                  handleFormChange('cliacertification', e.target.value)
+                                }
+                                invalid={!!validationErrors.cliacertification}
+                              />
+                              {validationErrors.cliacertification && (
+                                <FormText color="danger">
+                                  {validationErrors.cliacertification}
+                                </FormText>
+                              )}
+                            </>
+                          )}
+                        </FormGroup>
+
+                        {/* Affiliation - Required Dropdown */}
+                        <FormGroup className="mb-3">
+                          <Label className="fw-bold">Affiliation</Label>
+                          <CreatableSelect
+                            options={affiliations.map((aff) => ({
+                              value: aff.affiliation,
+                              label: aff.affiliation,
+                            }))}
+                            value={
+                              formData.affiliation
+                                ? {
+                                    value: formData.affiliation,
+                                    label: formData.affiliation,
+                                  }
+                                : null
+                            }
+                            onChange={(option: any) =>
+                              handleFormChange(
+                                'affiliation',
+                                option?.value || ''
+                              )
+                            }
+                            placeholder="Select or type affiliation..."
+                            isClearable
+                            isSearchable
+                            className={
+                              validationErrors.affiliation
+                                ? 'select-error'
+                                : ''
+                            }
+                          />
+                          {validationErrors.affiliation && (
+                            <FormText color="danger">
+                              {validationErrors.affiliation}
+                            </FormText>
+                          )}
+                        </FormGroup>
+
+                        {/* Referred By - Required Dropdown */}
+                        <FormGroup className="mb-3">
+                          <Label className="fw-bold">Referred By</Label>
+                          <CreatableSelect
+                            options={referredByList.map((item) => ({
+                              value: item.referredBy,
+                              label: item.referredBy,
+                            }))}
+                            value={
+                              formData.referredBy
+                                ? {
+                                    value: formData.referredBy,
+                                    label: formData.referredBy,
+                                  }
+                                : null
+                            }
+                            onChange={(option: any) =>
+                              handleFormChange(
+                                'referredBy',
+                                option?.value || ''
+                              )
+                            }
+                            placeholder="Select or type referred by..."
+                            isClearable
+                            isSearchable
+                            className={
+                              validationErrors.referredBy
+                                ? 'select-error'
+                                : ''
+                            }
+                          />
+                          {validationErrors.referredBy && (
+                            <FormText color="danger">
+                              {validationErrors.referredBy}
+                            </FormText>
+                          )}
+                        </FormGroup>
+
+                        {/* Sales Representative - Optional Dropdown */}
+                        <FormGroup className="mb-3">
+                          <Label className="fw-bold">
+                            Sales Representative <span className="text-muted">(Optional)</span>
+                          </Label>
+                          <CreatableSelect
+                            options={salesRepList.map((rep) => ({
+                              value: rep.salesRep,
+                              label: rep.salesRep,
+                            }))}
+                            value={
+                              formData.salesRep
+                                ? {
+                                    value: formData.salesRep,
+                                    label: formData.salesRep,
+                                  }
+                                : null
+                            }
+                            onChange={(option: any) =>
+                              handleFormChange(
+                                'salesRep',
+                                option?.value || ''
+                              )
+                            }
+                            placeholder="Select or type sales representative..."
+                            isClearable
+                            isSearchable
+                            className={
+                              validationErrors.salesRep
+                                ? 'select-error'
+                                : ''
+                            }
+                          />
+                          {validationErrors.salesRep && (
+                            <FormText color="danger">
+                              {validationErrors.salesRep}
+                            </FormText>
+                          )}
+                        </FormGroup>
+                      </>
+                    )}
+
                   </div>
-                  <div className="p-2">
-                    <Form
-                      className="form-horizontal"
-                      onSubmit={(e) => {
-                        e.preventDefault();
-                        validation.handleSubmit();
-                        return false;
-                      }}
+                )}
+
+                {/* Step 4: Review & Confirm */}
+                {activeStep === 3 && (
+                  <div className="step-content">
+                    <h5 className="fw-bold mb-4">Review Your Information</h5>
+
+                    <Card className="bg-light mb-4">
+                      <CardBody>
+                        <h6 className="fw-bold mb-3">Account Information</h6>
+                        <Row>
+                          <Col md="6">
+                            <p className="text-muted mb-2">
+                              <small>Email</small>
+                            </p>
+                            <p className="fw-bold mb-3">{formData.email}</p>
+                          </Col>
+                          <Col md="6">
+                            <p className="text-muted mb-2">
+                              <small>User Type</small>
+                            </p>
+                            <p className="fw-bold mb-3">
+                              {formData.userType === 3
+                                ? 'Healthcare Provider'
+                                : 'Patient'}
+                            </p>
+                          </Col>
+                        </Row>
+
+                        <hr />
+
+                        <h6 className="fw-bold mb-3">Personal Information</h6>
+                        <Row>
+                          <Col md="6">
+                            <p className="text-muted mb-2">
+                              <small>Name</small>
+                            </p>
+                            <p className="fw-bold mb-3">
+                              {formData.firstName} {formData.lastName}
+                            </p>
+                          </Col>
+                          <Col md="6">
+                            <p className="text-muted mb-2">
+                              <small>Phone</small>
+                            </p>
+                            <p className="fw-bold mb-3">{formData.contact}</p>
+                          </Col>
+                        </Row>
+
+                        <Row>
+                          <Col md="6">
+                            <p className="text-muted mb-2">
+                              <small>Timezone</small>
+                            </p>
+                            <p className="fw-bold mb-3">{formData.timezone}</p>
+                          </Col>
+                        </Row>
+
+                        {/* Clinician-Specific Review */}
+                        {formData.userType === 3 && (
+                          <>
+                            <hr />
+                            <h6 className="fw-bold mb-3">Healthcare Provider Details</h6>
+                            <Row>
+                              <Col md="6">
+                                <p className="text-muted mb-2">
+                                  <small>Affiliation</small>
+                                </p>
+                                <p className="fw-bold mb-3">{formData.affiliation}</p>
+                              </Col>
+                              {formData.credential && (
+                                <Col md="6">
+                                  <p className="text-muted mb-2">
+                                    <small>Credential</small>
+                                  </p>
+                                  <p className="fw-bold mb-3">{formData.credential}</p>
+                                </Col>
+                              )}
+                            </Row>
+                            <Row>
+                              <Col md="6">
+                                <p className="text-muted mb-2">
+                                  <small>Referred By</small>
+                                </p>
+                                <p className="fw-bold mb-3">{formData.referredBy}</p>
+                              </Col>
+                              <Col md="6">
+                                <p className="text-muted mb-2">
+                                  <small>Sales Representative</small>
+                                </p>
+                                <p className="fw-bold mb-3">{formData.salesRep}</p>
+                              </Col>
+                            </Row>
+                            {formData.hasNpi && (
+                              <Row>
+                                <Col md="6">
+                                  <p className="text-muted mb-2">
+                                    <small>NPI Number</small>
+                                  </p>
+                                  <p className="fw-bold mb-3">{formData.npiNo}</p>
+                                </Col>
+                              </Row>
+                            )}
+                            {formData.hasClia && (
+                              <Row>
+                                <Col md="6">
+                                  <p className="text-muted mb-2">
+                                    <small>CLIA Certification</small>
+                                  </p>
+                                  <p className="fw-bold mb-3">
+                                    {formData.cliacertification}
+                                  </p>
+                                </Col>
+                              </Row>
+                            )}
+                          </>
+                        )}
+
+                        {/* Patient-Specific Review */}
+                        {formData.userType === 6 && (
+                          <>
+                            <hr />
+                            <h6 className="fw-bold mb-3">Additional Information</h6>
+                            <Row>
+                              <Col md="6">
+                                <p className="text-muted mb-2">
+                                  <small>Referred By</small>
+                                </p>
+                                <p className="fw-bold mb-3">{formData.referredBy}</p>
+                              </Col>
+                            </Row>
+                          </>
+                        )}
+                      </CardBody>
+                    </Card>
+
+                    <Alert color="info">
+                      <small>
+                        Please review your information carefully before submitting. You
+                        will need to verify your email address after registration.
+                      </small>
+                    </Alert>
+                  </div>
+                )}
+
+                {/* Navigation Buttons */}
+                <div className="d-flex justify-content-between mt-4">
+                  <Button
+                    outline
+                    color="secondary"
+                    onClick={handleBack}
+                    disabled={activeStep === 0 || loading}
+                  >
+                    Back
+                  </Button>
+
+                  {activeStep < 3 ? (
+                    <Button
+                      color="primary"
+                      onClick={handleNext}
+                      disabled={loading}
                     >
-                      {user && user ? (
-                        <Alert color="success">
-                          Register User Successfully
-                        </Alert>
-                      ) : null}
+                      Next
+                    </Button>
+                  ) : (
+                    <Button
+                      color="success"
+                      onClick={handleSubmit}
+                      disabled={loading}
+                    >
+                      {loading ? 'Creating Account...' : 'Create Account'}
+                    </Button>
+                  )}
+                </div>
 
-                      {registrationError && registrationError ? (
-                        <Alert color="danger">{registrationError}</Alert>
-                      ) : null}
-
-                      <div className="mb-3">
-                        <Label className="form-label">Email</Label>
-                        <Input
-                          id="email"
-                          name="email"
-                          className="form-control"
-                          placeholder="Enter email"
-                          type="email"
-                          onChange={validation.handleChange}
-                          onBlur={validation.handleBlur}
-                          value={validation.values.email || ""}
-                          invalid={
-                            validation.touched.email && validation.errors.email ? true : false
-                          }
-                        />
-                        {validation.touched.email && validation.errors.email ? (
-                          <FormFeedback type="invalid">{validation.errors.email}</FormFeedback>
-                        ) : null}
-                      </div>
-
-                      <div className="mb-3">
-                        <Label className="form-label">Username</Label>
-                        <Input
-                          name="username"
-                          type="text"
-                          placeholder="Enter username"
-                          onChange={validation.handleChange}
-                          onBlur={validation.handleBlur}
-                          value={validation.values.username || ""}
-                          invalid={
-                            validation.touched.username && validation.errors.username ? true : false
-                          }
-                        />
-                        {validation.touched.username && validation.errors.username ? (
-                          <FormFeedback type="invalid">{validation.errors.username}</FormFeedback>
-                        ) : null}
-                      </div>
-                      <div className="mb-3">
-                        <Label className="form-label">Password</Label>
-                        <Input
-                          name="password"
-                          type="password"
-                          placeholder="Enter Password"
-                          onChange={validation.handleChange}
-                          onBlur={validation.handleBlur}
-                          value={validation.values.password || ""}
-                          invalid={
-                            validation.touched.password && validation.errors.password ? true : false
-                          }
-                        />
-                        {validation.touched.password && validation.errors.password ? (
-                          <FormFeedback type="invalid">{validation.errors.password}</FormFeedback>
-                        ) : null}
-                      </div>
-
-                      <div className="mt-4">
-                        <button
-                          className="btn btn-primary btn-block "
-                          type="submit"
-                        >
-                          Register
-                        </button>
-                      </div>
-
-                      <div className="mt-4 text-center">
-                        <p className="mb-0">
-                          By registering you agree to the Skote{" "}
-                          <Link to="#" className="text-primary">
-                            Terms of Use
-                          </Link>
-                        </p>
-                      </div>
-                    </Form>
-                  </div>
-                </CardBody>
-              </Card>
-              <div className="mt-5 text-center">
-                <p>
-                  Already have an account ?{" "}
-                  <Link to="/login" className="font-weight-medium text-primary">
-                    {" "}
-                    Login
-                  </Link>{" "}
+                {/* Login Link */}
+                <p className="text-center text-muted mt-4 mb-0">
+                  Already have an account?{' '}
+                  <a href="/login" className="text-primary fw-bold">
+                    Login here
+                  </a>
                 </p>
-                <p>
-                  © {new Date().getFullYear()} Skote. Crafted with{" "}
-                  <i className="mdi mdi-heart text-danger" /> by Themesbrand
-                </p>
-              </div>
-            </Col>
-          </Row>
-        </Container>
-      </div>
-    </React.Fragment>
+              </CardBody>
+            </Card>
+          </Col>
+        </Row>
+      </Container>
+    </div>
   );
 };
 
