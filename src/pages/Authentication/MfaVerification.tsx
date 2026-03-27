@@ -6,7 +6,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Container, Row, Col, Form, FormGroup, Label, Input, Button, Alert, Card, CardBody } from 'reactstrap';
-import { useAuthStore } from '@/store/useAuthStore';
+//import { useAuthStore } from '@/store/useAuthStore';
 import { authService } from '@/services/authService';
 import { getErrorMessage } from '@/types/errors';
 
@@ -22,10 +22,11 @@ const MfaVerification: React.FC = () => {
   const [timeRemaining, setTimeRemaining] = useState(300); // 5 minutes
   const [trustDevice, setTrustDevice] = useState(false);
   const [trustDays, setTrustDays] = useState(30); // Default: trust for 30 days
-  const inputRefs = React.useRef<(HTMLInputElement | null)[]>([]);
+  //const inputRefs = React.useRef<(HTMLInputElement | null)[]>([]);
+  const inputRefs = React.useRef<(HTMLInputElement | HTMLTextAreaElement | null)[]>([]);
 
   const userId = searchParams.get('userId');
-  const source = searchParams.get('source') || 'login';
+  //const source = searchParams.get('source') || 'login';
 
   // Validate userId on mount
   useEffect(() => {

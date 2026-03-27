@@ -6,7 +6,8 @@
 
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Container, Row, Col, Spinner, Alert } from 'reactstrap';
+//import { Container, Row, Col, Spinner, Alert } from 'reactstrap';
+import { Container, Row, Col, Alert } from 'reactstrap';
 import { useAuthStore } from '@/store/useAuthStore';
 import { authService } from '@/services/authService';
 import { getErrorMessage } from '@/types/errors';
@@ -15,7 +16,7 @@ const OAuthCallback: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
-  const [loading, setLoading] = useState(true);
+  const [_loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [progress, setProgress] = useState(0);
   const [message, setMessage] = useState('Processing your login...');
@@ -77,7 +78,8 @@ const OAuthCallback: React.FC = () => {
         if (response.status === 'RequiresMfa' || response.Status === 'RequiresMfa') {
           console.warn('[OAuthCallback] MFA required from callback (unexpected)');
           const authStore = useAuthStore.getState();
-          authStore.setMfaRequired(response.userId || response.UserId);
+          const userId = response.userId ?? response.UserId ?? "";
+          authStore.setMfaRequired(userId);
           navigate(`/mfa-verification?userId=${response.userId || response.UserId}`);
           return;
         }

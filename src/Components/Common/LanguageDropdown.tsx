@@ -16,7 +16,7 @@ import languages from "../../common/languages";
 //img
 import usflag from "assets/images/flags/us.jpg";
 
-const LanguageDropdown = (props: any) => {
+const LanguageDropdown = (_props: any) => {
   // Declare a new state variable, which we'll call "menu"
   const [selectedLang, setSelectedLang] = useState<string>("");
   const [menu, setMenu] = useState<boolean>(false);

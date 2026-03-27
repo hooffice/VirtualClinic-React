@@ -89,7 +89,7 @@ const SidebarContent = (props: any) => {
     return false;
   }, []);
 
-  const removeActivation = (items) => {
+  const removeActivation = (items: any[]) => {
     for (var i = 0; i < items.length; ++i) {
       var item = items[i];
       const parent = items[i].parentElement;

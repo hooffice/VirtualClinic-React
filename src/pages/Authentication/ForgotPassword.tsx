@@ -19,7 +19,7 @@ import profile from "../../assets/images/profile-img.png";
 import logo from "../../assets/images/logo.svg";
 import { createSelector } from 'reselect';
 
-const ForgetPasswordPage = (props) => {
+const ForgetPasswordPage = (props: any) => {
 
     //meta title
     document.title = "Forget Password | Virtual Clinic";

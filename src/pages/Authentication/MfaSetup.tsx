@@ -12,7 +12,7 @@ import {
   Col,
   Form,
   FormGroup,
-  Label,
+  //Label,
   Input,
   Button,
   Alert,
@@ -35,10 +35,10 @@ const MfaSetup: React.FC = () => {
   const [code, setCode] = useState('');
   const [secretKey, setSecretKey] = useState('');
   const [qrCodeUrl, setQrCodeUrl] = useState('');
-  const [showSecret, setShowSecret] = useState(false);
+  //const [showSecret, setShowSecret] = useState(false);
 
   const userId = searchParams.get('userId');
-  const fromLogin = searchParams.get('fromLogin') === 'true';
+  //const fromLogin = searchParams.get('fromLogin') === 'true';
 
   // Initialize MFA setup
   useEffect(() => {

@@ -179,6 +179,16 @@ export interface MfaVerifyRequest {
 }
 
 export interface MfaVerifyResponse {
+  //
+  code?: string;
+  Code?: string;
+  status?: string;
+  Status?: string;
+  state?: string;
+  State?: string;
+  userId?: string;
+  UserId?: string;
+  //
   success: boolean;
   message: string;
   accessToken?: string;

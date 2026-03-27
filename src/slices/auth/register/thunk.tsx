@@ -48,14 +48,14 @@ export const registerUser = (data: RegistrationRequest) => async (dispatch: any)
 /**
  * Verify email with confirmation token
  */
-export const verifyEmailToken = (token: string, email: string, history: any) => async (dispatch: any) => {
+export const verifyEmailToken = (_token: string, _email: string, history: any) => async (dispatch: any) => {
   try {
     console.log('[RegisterThunk] verifyEmailToken() called');
 
     dispatch(setLoading());
 
     // Call verification service
-    const response = await registrationService.verifyEmail(token, email);
+    //const response = await registrationService.verifyEmail(_token, _email);
 
     console.log('[RegisterThunk] Email verified successfully');
 

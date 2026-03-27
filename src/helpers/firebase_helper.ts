@@ -28,7 +28,7 @@ class FirebaseAuthBackend {
         .auth()
         .createUserWithEmailAndPassword(email, password)
         .then(
-          (user: any) => {
+          (_user: any) => {
             resolve(firebase.auth().currentUser);
           },
           (error: any) => {
@@ -59,7 +59,7 @@ class FirebaseAuthBackend {
   //   });
   // };
 
-  editProfileAPI = (username, idx) => {
+  editProfileAPI = (username: string, _idx: any) => {
     return new Promise((resolve, reject) => {
       const currentUser = firebase.auth().currentUser;
       if (currentUser) {
@@ -70,7 +70,7 @@ class FirebaseAuthBackend {
           .then(() => {
             resolve(currentUser);
           })
-          .catch((error) => {
+          .catch((error: any) => {
             reject(error);
           });
       } else {
@@ -89,7 +89,7 @@ class FirebaseAuthBackend {
         .auth()
         .signInWithEmailAndPassword(email, password)
         .then(
-          (user: any) => {
+          (_user: any) => {
             resolve(firebase.auth().currentUser);
           },
           (error: any) => {

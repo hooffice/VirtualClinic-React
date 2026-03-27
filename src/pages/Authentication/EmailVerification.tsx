@@ -5,7 +5,8 @@
 
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
+//import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import { Container, Row, Col, Card, CardBody, Button, Alert, Spinner } from 'reactstrap';
 import { verifyEmailToken, resendVerificationEmail } from '@/slices/auth/register/thunk';
 
@@ -15,7 +16,8 @@ const EmailVerification: React.FC = () => {
   const [searchParams] = useSearchParams();
 
   const [loading, setLoading] = useState(false);
-  const [verified, setVerified] = useState(false);
+  //const [verified, setVerified] = useState(false);
+  const [verified] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [resendLoading, setResendLoading] = useState(false);
   const [resendSuccess, setResendSuccess] = useState(false);

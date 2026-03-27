@@ -12,7 +12,7 @@ import {
   LAYOUT_TYPES,
 } from "./Components/constants/layout";
 
-import fakeBackend from "./helpers/AuthType/fakeBackend";
+//import fakeBackend from "./helpers/AuthType/fakeBackend";
 import { useSelector } from "react-redux";
 import { createSelector } from 'reselect';
 import AuthProtected from "./Routes/AuthProtected";
@@ -35,7 +35,7 @@ import AuthProtected from "./Routes/AuthProtected";
 // initFirebaseBackend(firebaseConfig);
 
 // Activating fake backend
-fakeBackend();
+//fakeBackend();
 
 const getLayout = (layoutType: any) => {
   let Layout = VerticalLayout;
