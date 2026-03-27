@@ -1,11 +1,11 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { Dropdown, DropdownToggle, DropdownMenu, Row, Col } from "reactstrap";
-import SimpleBar from "simplebar-react";
+//import SimpleBar from "simplebar-react";
 
 //Import images
-import avatar3 from "../../assets/images/users/avatar-3.jpg"
-import avatar4 from "../../assets/images/users/avatar-4.jpg";
+//import avatar3 from "../../assets/images/users/avatar-3.jpg"
+//import avatar4 from "../../assets/images/users/avatar-4.jpg";
 
 //i18n
 import { withTranslation } from "react-i18next";
@@ -28,7 +28,7 @@ const NotificationDropdown = (props: any) => {
           id="page-header-notifications-dropdown"
         >
           <i className="bx bx-bell bx-tada" />
-          <span className="badge bg-danger rounded-pill">3</span>
+          <span className="badge bg-danger rounded-pill">0</span>
         </DropdownToggle>
 
         <DropdownMenu className="dropdown-menu dropdown-menu-lg dropdown-menu-end p-0">
@@ -45,8 +45,8 @@ const NotificationDropdown = (props: any) => {
               </div>
             </Row>
           </div>
-
-          <SimpleBar style={{ height: "230px" }}>
+          {/* For Notification */}
+          {/* <SimpleBar style={{ height: "230px" }}>
             <Link to="" className="text-reset notification-item">
               <div className="d-flex">
                 <div className="avatar-xs me-3">
@@ -138,7 +138,7 @@ const NotificationDropdown = (props: any) => {
                 </div>
               </div>
             </Link>
-          </SimpleBar>
+          </SimpleBar> */}
           <div className="p-2 border-top d-grid">
             <Link
               className="btn btn-sm btn-link font-size-14 text-center"
