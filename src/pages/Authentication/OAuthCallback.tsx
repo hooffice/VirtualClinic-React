@@ -136,7 +136,7 @@ const OAuthCallback: React.FC = () => {
   if (error) {
     return (
       <React.Fragment>
-        <div className="account-pages my-5 pt-sm-5">
+        <div className="my-5 pt-sm-5">
           <Container>
             <Row className="justify-content-center">
               <Col md={8} lg={6} xl={5}>
@@ -175,7 +175,7 @@ const OAuthCallback: React.FC = () => {
   // Loading state
   return (
     <React.Fragment>
-      <div className="account-pages my-5 pt-sm-5">
+      <div className="my-5 pt-sm-5">
         <Container>
           <Row className="justify-content-center">
             <Col md={8} lg={6} xl={5}>

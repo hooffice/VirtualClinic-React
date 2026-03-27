@@ -385,7 +385,7 @@ const Header = (_props: any) => {
               <button
                 type="button"
                 className="btn header-item noti-icon right-bar-toggle"
-                onClick={props.toggleCanvas}
+                onClick={_props.toggleCanvas}
               >
                 <i className="bx bx-cog bx-spin" />
               </button>

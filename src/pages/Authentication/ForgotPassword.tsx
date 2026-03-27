@@ -58,7 +58,7 @@ const ForgetPasswordPage = (props: any) => {
                     <i className="bx bx-home h2" />
                 </Link>
             </div>
-            <div className="account-pages my-5 pt-sm-5">
+            <div className="my-5 pt-sm-5">
                 <Container>
                     <Row className="justify-content-center">
                         <Col md={8} lg={6} xl={5}>

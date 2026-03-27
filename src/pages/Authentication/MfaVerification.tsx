@@ -193,7 +193,7 @@ const MfaVerification: React.FC = () => {
   if (error && attempts >= 3) {
     return (
       <React.Fragment>
-        <div className="account-pages my-5 pt-sm-5">
+        <div className="my-5 pt-sm-5">
           <Container>
             <Row className="justify-content-center">
               <Col md={8} lg={6} xl={5}>
@@ -227,7 +227,7 @@ const MfaVerification: React.FC = () => {
 
   return (
     <React.Fragment>
-      <div className="account-pages my-5 pt-sm-5">
+      <div className="my-5 pt-sm-5">
         <Container>
           <Row className="justify-content-center">
             <Col md={8} lg={6} xl={5}>

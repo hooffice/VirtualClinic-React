@@ -11,7 +11,7 @@ import { useSelector, useDispatch } from "react-redux";
 
 // import images
 import profile from "../../assets/images/profile-img.png";
-import logo from "../../assets/images/logo.svg";
+import logo from "../../assets/images/vclogo.png";
 import lightlogo from "../../assets/images/logo-light.svg";
 
 //import thunk
@@ -79,7 +79,7 @@ const Login = (props: any) => {
 
   return (
     <React.Fragment>
-      <div className="account-pages my-5 pt-sm-5">
+      <div className="my-5 pt-sm-5">
         <Container>
           <Row className="justify-content-center">
             <Col md={8} lg={6} xl={5}>
@@ -117,8 +117,8 @@ const Login = (props: any) => {
                           <img
                             src={logo}
                             alt=""
-                            className="rounded-circle"
-                            height="34"
+                            //className="rounded-circle"
+                            height="50"
                           />
                         </span>
                       </div>
