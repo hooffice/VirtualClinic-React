@@ -42,7 +42,7 @@ const ForgetPasswordPage = (props: any) => {
         }
     });
 
-   const selectProperties = createSelector(
+    const selectProperties = createSelector(
         (state: any) => state.ForgetPassword,
         (forgetPassword) => ({
             forgetError: forgetPassword.forgetError,
@@ -138,21 +138,21 @@ const ForgetPasswordPage = (props: any) => {
                                                 </Col>
                                             </Row>
                                         </Form>
+                                        <div className="mt-5 text-center">
+                                            <p>
+                                                Go back to{" "}
+                                                <Link to="/login" className="font-weight-medium text-primary">
+                                                    Login
+                                                </Link>{" "}
+                                            </p>
+                                            <p>
+                                                © {new Date().getFullYear()} Virtual Clinic.
+                                            </p>
+                                        </div>
                                     </div>
                                 </CardBody>
                             </Card>
-                            <div className="mt-5 text-center">
-                                <p>
-                                    Go back to{" "}
-                                    <Link to="/login" className="font-weight-medium text-primary">
-                                        Login
-                                    </Link>{" "}
-                                </p>
-                                <p>
-                                    © {new Date().getFullYear()} Skote. Crafted with{" "}
-                                    <i className="mdi mdi-heart text-danger" /> by Themesbrand
-                                </p>
-                            </div>
+
                         </Col>
                     </Row>
                 </Container>

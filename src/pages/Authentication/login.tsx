@@ -101,14 +101,13 @@ const Login = (props: any) => {
                 <CardBody className="pt-0">
                   <div className="auth-logo">
                     <Link to="/" className="auth-logo-dark">
-                    <div className="mb-4">
-                        <span className="">
+                      <div className="mb-4">
                           <img
                             src={logo}
-                            alt="Virtual Clinic Logo"                         
+                            alt="Virtual Clinic"
+                            style={{ height: '80px' }}
                           />
-                        </span>                      
-                    </div>
+                      </div>
                     </Link>
                     {/* <Link to="/" className="auth-logo-light">
                       <div className="avatar-md profile-user-wid mb-4">
@@ -197,22 +196,22 @@ const Login = (props: any) => {
                       </div>
 
 
-                        <div className="form-check d-none">
-                          <input
-                            type="checkbox"
-                            className="form-check-input"
-                            id="customControlInline"
-                          />
-                          <label
-                            className="form-check-label"
-                            htmlFor="customControlInline"
-                          >
-                            Remember me
-                          </label>
-                        </div>
+                      <div className="form-check d-none">
+                        <input
+                          type="checkbox"
+                          className="form-check-input"
+                          id="customControlInline"
+                        />
+                        <label
+                          className="form-check-label"
+                          htmlFor="customControlInline"
+                        >
+                          Remember me
+                        </label>
+                      </div>
 
 
-                      <div className="mt-3 d-grid">
+                      <div className="mt-2 d-grid">
                         <button
                           className="btn btn-primary btn-block"
                           type="submit"
@@ -271,31 +270,32 @@ const Login = (props: any) => {
                       </div>
 
 
-                      <div className="mt-4 text-center">
+                      <div className="mt-2 text-center">
                         <Link to="/forgot-password" className="text-muted">
                           <i className="mdi mdi-lock me-1" /> Forgot your
                           password?
                         </Link>
                       </div>
+                      <div className="mt-3 text-center">
+                        <p>
+                          Don&apos;t have an account ?{" "}
+                          <Link
+                            to="/register"
+                            className="fw-medium text-primary"
+                          >
+                            {" "}
+                            Signup now{" "}
+                          </Link>{" "}
+                        </p>
+                        <p>
+                          © {new Date().getFullYear()} Virtual Clinic.
+                        </p>
+                      </div>
                     </Form>
                   </div>
                 </CardBody>
               </Card>
-              <div className="mt-5 text-center">
-                <p>
-                  Don&apos;t have an account ?{" "}
-                  <Link
-                    to="/register"
-                    className="fw-medium text-primary"
-                  >
-                    {" "}
-                    Signup now{" "}
-                  </Link>{" "}
-                </p>
-                <p>
-                  © {new Date().getFullYear()} Virtual Clinic. 
-                </p>
-              </div>
+
             </Col>
           </Row>
         </Container>
