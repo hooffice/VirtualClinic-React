@@ -1,7 +1,6 @@
 /* Login Page Styling */
-html,
-body {
-  background-image: url('../../assets/images/background.jpg');
+.account-pages {
+  background-image: url('./../../assets/images/background.jpg');
   background-size: cover;
   background-position: center;
   background-attachment: fixed;
@@ -9,23 +8,16 @@ body {
   background-color: #667eea;
   height: 100vh;
   width: 100vw;
-  margin: 0;
-  padding: 0;
-  overflow: hidden;
-}
-
-.account-pages {
-  background: transparent;
-  height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
-  width: 100%;
   overflow: hidden;
+  margin: 0;
+  padding: 0;
 }
 
-/* Optional: Add overlay for better text readability */
+/* Overlay for better text readability - Optional */
 .account-pages::before {
   content: '';
   position: absolute;
@@ -33,7 +25,7 @@ body {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.3);
+  background: rgba(0, 0, 0, 0.2);
   z-index: 0;
 }
 

@@ -11,6 +11,7 @@ import { Container, Row, Col, Alert } from 'reactstrap';
 import { useAuthStore } from '@/store/useAuthStore';
 import { authService } from '@/services/authService';
 import { getErrorMessage } from '@/types/errors';
+import logo from "../../assets/images/vclogo-with-name.png";
 
 const OAuthCallback: React.FC = () => {
   const navigate = useNavigate();
@@ -143,7 +144,12 @@ const OAuthCallback: React.FC = () => {
                 <div className="text-center mb-4">
                   {/* Company Logo - Replace with your actual logo */}
                   <div className="mb-3">
-                    <h2 className="text-primary">Virtual Clinic</h2>
+                    {/* <h2 className="text-primary">Virtual Clinic</h2> */}
+                          <img
+                            src={logo}
+                            alt="Virtual Clinic"
+                            style={{ height: '70px' }}
+                          />                    
                   </div>
                 </div>
 
@@ -180,9 +186,13 @@ const OAuthCallback: React.FC = () => {
           <Row className="justify-content-center">
             <Col md={8} lg={6} xl={5}>
               <div className="text-center">
-                {/* Company Logo - Replace with your actual logo */}
                 <div className="mb-4">
-                  <h2 className="text-primary fw-bold">Virtual Clinic</h2>
+                  {/* <h2 className="text-primary fw-bold">Virtual Clinic</h2> */}
+                          <img
+                            src={logo}
+                            alt="Virtual Clinic"
+                            style={{ height: '100px' }}
+                          />                    
                 </div>
 
                 {/* Spinner */}
@@ -213,13 +223,13 @@ const OAuthCallback: React.FC = () => {
                 </div>
 
                 {/* Status */}
-                <p className="text-muted small">
+                {/* <p className="text-muted small">
                   {progress === 0 && 'Initializing...'}
                   {progress === 20 && '✓ Request received'}
                   {progress === 60 && '✓ Request received • ✓ Token validated'}
                   {progress === 80 && '✓ Request received • ✓ Token validated • ✓ Session created'}
                   {progress === 100 && '✓ Complete'}
-                </p>
+                </p> */}
               </div>
             </Col>
           </Row>

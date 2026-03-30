@@ -54,12 +54,13 @@ const ForgetPasswordPage = (props: any) => {
 
     return (
         <React.Fragment>
+            <div className="account-pages">
             <div className="home-btn d-none d-sm-block">
                 <Link to="/" className="text-dark">
                     <i className="bx bx-home h2" />
                 </Link>
             </div>
-            <div className="account-pages my-5 pt-sm-5">
+            <div className="my-5 pt-sm-5">
                 <Container>
                     <Row className="justify-content-center">
                         <Col md={8} lg={6} xl={5}>
@@ -145,9 +146,6 @@ const ForgetPasswordPage = (props: any) => {
                                                     Login
                                                 </Link>{" "}
                                             </p>
-                                            <p>
-                                                © {new Date().getFullYear()} Virtual Clinic.
-                                            </p>
                                         </div>
                                     </div>
                                 </CardBody>
@@ -156,6 +154,12 @@ const ForgetPasswordPage = (props: any) => {
                         </Col>
                     </Row>
                 </Container>
+                <div className="text-center">
+                <p>
+                    © {new Date().getFullYear()} Virtual Clinic.
+                </p>          
+                </div>                
+            </div>
             </div>
         </React.Fragment>
     );
