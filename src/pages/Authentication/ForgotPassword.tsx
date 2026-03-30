@@ -16,8 +16,9 @@ import { userForgetPassword } from "../../slices/thunk";
 
 // import images
 import profile from "../../assets/images/profile-img.png";
-import logo from "../../assets/images/logo.svg";
+import logo from "../../assets/images/vclogo-with-name.png";
 import { createSelector } from 'reselect';
+import "./forgotpassword.css";
 
 const ForgetPasswordPage = (props: any) => {
 
@@ -58,17 +59,28 @@ const ForgetPasswordPage = (props: any) => {
                     <i className="bx bx-home h2" />
                 </Link>
             </div>
-            <div className="my-5 pt-sm-5">
+            <div className="account-pages my-5 pt-sm-5">
                 <Container>
                     <Row className="justify-content-center">
                         <Col md={8} lg={6} xl={5}>
                             <Card className="overflow-hidden">
-                                <div className="bg-primary bg-softbg-soft-primary">
+                                <div className="bg-primary-subtle">
                                     <Row>
-                                        <Col xs={7}>
+                                        <Col className="col-7">
                                             <div className="text-primary p-4">
-                                                <h5 className="text-primary">Welcome Back !</h5>
-                                                <p>Sign in to continue to Skote.</p>
+                                                <p></p>
+                                                <div className="auth-logo">
+                                                    <Link to="/" className="auth-logo-dark">
+                                                        <div className="mb-4">
+                                                            <span className="">
+                                                                <img
+                                                                    src={logo}
+                                                                    alt="Virtual Clinic Logo"
+                                                                />
+                                                            </span>
+                                                        </div>
+                                                    </Link>
+                                                </div>
                                             </div>
                                         </Col>
                                         <Col className="col-5 align-self-end">
@@ -77,20 +89,6 @@ const ForgetPasswordPage = (props: any) => {
                                     </Row>
                                 </div>
                                 <CardBody className="pt-0">
-                                    <div>
-                                        <Link to="/">
-                                            <div className="avatar-md profile-user-wid mb-4">
-                                                <span className="avatar-title rounded-circle bg-light">
-                                                    <img
-                                                        src={logo}
-                                                        alt=""
-                                                        className="rounded-circle"
-                                                        height="34"
-                                                    />
-                                                </span>
-                                            </div>
-                                        </Link>
-                                    </div>
                                     <div className="p-2">
                                         {forgetError && forgetError ? (
                                             <Alert color="danger" style={{ marginTop: "13px" }}>

@@ -11,14 +11,15 @@ import { useSelector, useDispatch } from "react-redux";
 
 // import images
 import profile from "../../assets/images/profile-img.png";
-import logo from "../../assets/images/vclogo.png";
-import lightlogo from "../../assets/images/logo-light.svg";
+import logo from "../../assets/images/vclogo-with-name.png";
+//import lightlogo from "../../assets/images/logo-light.svg";
 
 //import thunk
 import { loginuser, resetLoginMsgFlag, socialLogin } from "slices/auth/login/thunk";
 
 import withRouter from "Components/Common/withRouter";
 import { createSelector } from 'reselect';
+import "./login.css";
 
 const Login = (props: any) => {
   const [show, setShow] = useState(false);
@@ -99,7 +100,17 @@ const Login = (props: any) => {
                 </div>
                 <CardBody className="pt-0">
                   <div className="auth-logo">
-                    <Link to="/" className="auth-logo-light">
+                    <Link to="/" className="auth-logo-dark">
+                    <div className="mb-4">
+                        <span className="">
+                          <img
+                            src={logo}
+                            alt="Virtual Clinic Logo"                         
+                          />
+                        </span>                      
+                    </div>
+                    </Link>
+                    {/* <Link to="/" className="auth-logo-light">
                       <div className="avatar-md profile-user-wid mb-4">
                         <span className="avatar-title rounded-circle bg-light">
                           <img
@@ -118,11 +129,11 @@ const Login = (props: any) => {
                             src={logo}
                             alt=""
                             //className="rounded-circle"
-                            height="50"
+                            height="15"
                           />
                         </span>
                       </div>
-                    </Link>
+                    </Link> */}
                   </div>
                   <div className="p-2">
                     <Form className="form-horizontal"

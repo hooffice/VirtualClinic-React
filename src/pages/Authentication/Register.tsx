@@ -36,11 +36,12 @@ interface FormData {
   credential: string;
   hasNpi: boolean;
   npiNo: string;
-  hasClia: boolean;
-  cliacertification: string;
+  cliaCertification: boolean;
+  cliaCertificationNo: string;
   affiliation: string;
-  referredBy: string; // Clinician only
-  salesRep: string; // Clinician only
+  referredBy: number | null; // Clinician only
+  referredbyOther: string; // if referredBy = other - id: 8
+  salesRep: number | null; // Clinician only
 }
 
 interface ValidationErrors {
@@ -65,11 +66,12 @@ const Register: React.FC = () => {
     credential: '',
     hasNpi: false,
     npiNo: '',
-    hasClia: false,
-    cliacertification: '',
+    cliaCertification: false,
+    cliaCertificationNo: '',
     affiliation: 'None',
-    referredBy: '',
-    salesRep: '',
+    referredBy: null,
+    referredbyOther: '',
+    salesRep: null,
   });
 
   const [passwords, setPasswords] = useState({
@@ -243,9 +245,9 @@ const Register: React.FC = () => {
       if (formData.hasNpi && !formData.npiNo) {
         errors.npiNo = 'NPI number is required when NPI is selected';
       }
-      // CLIA is only required if hasClia is checked
-      if (formData.hasClia && !formData.cliacertification) {
-        errors.cliacertification = 'CLIA certification is required when selected';
+      // CLIA is only required if cliaCertification is checked
+      if (formData.cliaCertification && !formData.cliaCertificationNo) {
+        errors.cliaCertificationNo = 'CLIA certification is required when selected';
       }
       if (!formData.affiliation) {
         errors.affiliation = 'Affiliation is required';
@@ -318,10 +320,11 @@ const Register: React.FC = () => {
       ...(formData.userType === 3 && {
         ...(formData.credential && { credential: formData.credential }),
         ...(formData.hasNpi && { npiNo: formData.npiNo }),
-        ...(formData.hasClia && { cliacertification: formData.cliacertification }),
+        ...(formData.cliaCertification && { cliaCertificationNo: formData.cliaCertificationNo }),
         affiliation: formData.affiliation,
         referredBy: formData.referredBy,
-        salesRep: formData.salesRep,
+        ...(formData.referredbyOther && { referredbyOther: formData.referredbyOther }),
+        ...(formData.salesRep && { salesRep: formData.salesRep }),
       }),
     };
 
@@ -389,7 +392,7 @@ const Register: React.FC = () => {
                             // Reset clinician-specific fields
                             handleFormChange('credential', '');
                             handleFormChange('npiNo', '');
-                            handleFormChange('cliacertification', '');
+                            handleFormChange('cliaCertificationNo', '');
                             handleFormChange('affiliation', '');
                           }}
                           className="form-check-input"
@@ -745,33 +748,33 @@ const Register: React.FC = () => {
                           <div className="form-check mb-2">
                             <Input
                               type="checkbox"
-                              id="hasClia"
-                              checked={formData.hasClia}
+                              id="cliaCertification"
+                              checked={formData.cliaCertification}
                               onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                                handleFormChange('hasClia', e.target.checked)
+                                handleFormChange('cliaCertification', e.target.checked)
                               }
                               className="form-check-input"
                             />
-                            <Label htmlFor="hasClia" className="form-check-label fw-bold">
+                            <Label htmlFor="cliaCertification" className="form-check-label fw-bold">
                               I have CLIA Certification
                             </Label>
                           </div>
-                          {formData.hasClia && (
+                          {formData.cliaCertification && (
                             <>
                               <Input
                                 type="text"
-                                name="cliacertification"
-                                id="cliacertification"
+                                name="cliaCertificationNo"
+                                id="cliaCertificationNo"
                                 placeholder="Enter your CLIA certification number"
-                                value={formData.cliacertification}
+                                value={formData.cliaCertificationNo}
                                 onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                                  handleFormChange('cliacertification', e.target.value)
+                                  handleFormChange('cliaCertificationNo', e.target.value)
                                 }
-                                invalid={!!validationErrors.cliacertification}
+                                invalid={!!validationErrors.cliaCertificationNo}
                               />
-                              {validationErrors.cliacertification && (
+                              {validationErrors.cliaCertificationNo && (
                                 <FormText color="danger">
-                                  {validationErrors.cliacertification}
+                                  {validationErrors.cliaCertificationNo}
                                 </FormText>
                               )}
                             </>
@@ -816,83 +819,112 @@ const Register: React.FC = () => {
                           )}
                         </FormGroup>
 
-                        {/* Referred By - Required Dropdown */}
-                        <FormGroup className="mb-3">
-                          <Label className="fw-bold">Referred By</Label>
-                          <CreatableSelect
-                            options={referredByList.map((item) => ({
-                              value: item.referredBy,
-                              label: item.referredBy,
-                            }))}
-                            value={
-                              formData.referredBy
-                                ? {
-                                    value: formData.referredBy,
-                                    label: formData.referredBy,
-                                  }
-                                : null
-                            }
-                            onChange={(option: any) =>
-                              handleFormChange(
-                                'referredBy',
-                                option?.value || ''
-                              )
-                            }
-                            placeholder="Select or type referred by..."
-                            isClearable
-                            isSearchable
-                            className={
-                              validationErrors.referredBy
-                                ? 'select-error'
-                                : ''
-                            }
-                          />
-                          {validationErrors.referredBy && (
-                            <FormText color="danger">
-                              {validationErrors.referredBy}
-                            </FormText>
-                          )}
-                        </FormGroup>
+                        {/* Referred By - Clinician Only */}
+                        {formData.userType === 3 && (
+                          <>
+                            <FormGroup className="mb-3">
+                              <Label className="fw-bold">Referred By</Label>
+                              <CreatableSelect
+                                options={referredByList.map((item) => ({
+                                  value: item.id,
+                                  label: item.referredBy,
+                                }))}
+                                value={
+                                  formData.referredBy
+                                    ? {
+                                        value: formData.referredBy,
+                                        label:
+                                          referredByList.find(
+                                            (item) => item.id === formData.referredBy
+                                          )?.referredBy || formData.referredBy,
+                                      }
+                                    : null
+                                }
+                                onChange={(option: any) =>
+                                  handleFormChange(
+                                    'referredBy',
+                                    option?.value || ''
+                                  )
+                                }
+                                placeholder="Select or type referred by..."
+                                isClearable
+                                isSearchable
+                                className={
+                                  validationErrors.referredBy
+                                    ? 'select-error'
+                                    : ''
+                                }
+                              />
+                              {validationErrors.referredBy && (
+                                <FormText color="danger">
+                                  {validationErrors.referredBy}
+                                </FormText>
+                              )}
+                            </FormGroup>
 
-                        {/* Sales Representative - Optional Dropdown */}
-                        <FormGroup className="mb-3">
-                          <Label className="fw-bold">
-                            Sales Representative <span className="text-muted">(Optional)</span>
-                          </Label>
-                          <CreatableSelect
-                            options={salesRepList.map((rep) => ({
-                              value: rep.salesRep,
-                              label: rep.salesRep,
-                            }))}
-                            value={
-                              formData.salesRep
-                                ? {
-                                    value: formData.salesRep,
-                                    label: formData.salesRep,
+                            {/* Referred By Other - Conditional Textbox */}
+                            {formData.referredBy === 8 && (
+                              <FormGroup className="mb-3">
+                                <Label for="referredbyOther" className="fw-bold">
+                                  Please Specify <span className="text-muted">(Optional)</span>
+                                </Label>
+                                <Input
+                                  type="text"
+                                  name="referredbyOther"
+                                  id="referredbyOther"
+                                  placeholder="Please specify who referred you..."
+                                  value={formData.referredbyOther}
+                                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                                    handleFormChange('referredbyOther', e.target.value)
                                   }
-                                : null
-                            }
-                            onChange={(option: any) =>
-                              handleFormChange(
-                                'salesRep',
-                                option?.value || ''
-                              )
-                            }
-                            placeholder="Select or type sales representative..."
-                            isClearable
-                            isSearchable
-                            className={
-                              validationErrors.salesRep
-                                ? 'select-error'
-                                : ''
-                            }
-                          />
-                          {validationErrors.salesRep && (
-                            <FormText color="danger">
-                              {validationErrors.salesRep}
-                            </FormText>
-                          )}
-                        </FormGroup>
+                                />
+                              </FormGroup>
+                            )}
+
+                            {/* Sales Representative - Optional Dropdown */}
+                            <FormGroup className="mb-3">
+                              <Label className="fw-bold">
+                                Sales Representative <span className="text-muted">(Optional)</span>
+                              </Label>
+                              <CreatableSelect
+                                options={salesRepList.map((rep) => ({
+                                  value: rep.id,
+                                  label: rep.salesRep,
+                                }))}
+                                value={
+                                  formData.salesRep
+                                    ? {
+                                        value: formData.salesRep,
+                                        label:
+                                          salesRepList.find(
+                                            (item) => item.id === formData.salesRep
+                                          )?.salesRep || formData.salesRep,
+                                      }
+                                    : null
+                                }
+                                onChange={(option: any) =>
+                                  handleFormChange(
+                                    'salesRep',
+                                    option?.value || ''
+                                  )
+                                }
+                                placeholder="Select or type sales representative..."
+                                isClearable
+                                isSearchable
+                                className={
+                                  validationErrors.salesRep
+                                    ? 'select-error'
+                                    : ''
+                                }
+                              />
+                              {validationErrors.salesRep && (
+                                <FormText color="danger">
+                                  {validationErrors.salesRep}
+                                </FormText>
+                              )}
+                            </FormGroup>
+                          </>
+                        )}
                       </>
                     )}
 
@@ -920,7 +952,7 @@ const Register: React.FC = () => {
                             </p>
                             <p className="fw-bold mb-3">
                               {formData.userType === 3
-                                ? 'Healthcare Provider'
+                                ? 'Clinician'
                                 : 'Patient'}
                             </p>
                           </Col>
@@ -981,15 +1013,31 @@ const Register: React.FC = () => {
                                 <p className="text-muted mb-2">
                                   <small>Referred By</small>
                                 </p>
-                                <p className="fw-bold mb-3">{formData.referredBy}</p>
+                                <p className="fw-bold mb-3">
+                                  {referredByList.find((item) => item.id === formData.referredBy)
+                                    ?.referredBy || formData.referredBy}
+                                </p>
                               </Col>
                               <Col md="6">
                                 <p className="text-muted mb-2">
                                   <small>Sales Representative</small>
                                 </p>
-                                <p className="fw-bold mb-3">{formData.salesRep}</p>
+                                <p className="fw-bold mb-3">
+                                  {salesRepList.find((item) => item.id === formData.salesRep)
+                                    ?.salesRep || 'Not specified'}
+                                </p>
                               </Col>
                             </Row>
+                            {formData.referredbyOther && (
+                              <Row>
+                                <Col md="6">
+                                  <p className="text-muted mb-2">
+                                    <small>Referred By Other</small>
+                                  </p>
+                                  <p className="fw-bold mb-3">{formData.referredbyOther}</p>
+                                </Col>
+                              </Row>
+                            )}
                             {formData.hasNpi && (
                               <Row>
                                 <Col md="6">
@@ -1000,14 +1048,14 @@ const Register: React.FC = () => {
                                 </Col>
                               </Row>
                             )}
-                            {formData.hasClia && (
+                            {formData.cliaCertification && (
                               <Row>
                                 <Col md="6">
                                   <p className="text-muted mb-2">
                                     <small>CLIA Certification</small>
                                   </p>
                                   <p className="fw-bold mb-3">
-                                    {formData.cliacertification}
+                                    {formData.cliaCertificationNo}
                                   </p>
                                 </Col>
                               </Row>
@@ -1015,21 +1063,6 @@ const Register: React.FC = () => {
                           </>
                         )}
 
-                        {/* Patient-Specific Review */}
-                        {formData.userType === 6 && (
-                          <>
-                            <hr />
-                            <h6 className="fw-bold mb-3">Additional Information</h6>
-                            <Row>
-                              <Col md="6">
-                                <p className="text-muted mb-2">
-                                  <small>Referred By</small>
-                                </p>
-                                <p className="fw-bold mb-3">{formData.referredBy}</p>
-                              </Col>
-                            </Row>
-                          </>
-                        )}
                       </CardBody>
                     </Card>
 
