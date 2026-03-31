@@ -367,19 +367,6 @@ const RightSidebar = ({ toggleCanvas, show }: sidebar) => {
                           }}
                         />
                         <label htmlFor="leftsidebarThemesgreatwhale" className="gradient-strong-great-whale rounded-circle wh-30 me-1"></label>
-                        <input
-                          type="radio"
-                          id="leftsidebarThemeold"
-                          name="leftsidebarTheme"
-                          value={LEFT_SIDEBAR_THEME_TYPES.OLD}
-                          checked={leftSidebarThemeType === LEFT_SIDEBAR_THEME_TYPES.OLD}
-                          onChange={e => {
-                            if (e.target.checked) {
-                              dispatch(changeLeftSidebarTheme(e.target.value));
-                            }
-                          }}
-                        />
-                        <label htmlFor="leftsidebarThemeold" className="bg-old rounded-circle wh-30 me-1"></label>
                       </div>
                     </div>
                   </div>
