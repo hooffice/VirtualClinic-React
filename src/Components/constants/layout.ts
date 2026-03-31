@@ -35,6 +35,9 @@ enum LEFT_SIDEBAR_THEME_TYPES {
   PLUMPLATE = "plumplate",
   STRONGBLISS = "strongbliss",
   GREATWHALE = "greatwhale",
+  VC1 = "vc1",
+  VC2 = "vc2",
+  VC3 = "vc3",
 }
 
 enum LEFTBAR_THEME_IMAGES_TYPES {

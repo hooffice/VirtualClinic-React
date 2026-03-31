@@ -367,6 +367,45 @@ const RightSidebar = ({ toggleCanvas, show }: sidebar) => {
                           }}
                         />
                         <label htmlFor="leftsidebarThemesgreatwhale" className="gradient-strong-great-whale rounded-circle wh-30 me-1"></label>
+                        <input
+                          type="radio"
+                          id="leftsidebarThemevc1"
+                          name="leftsidebarTheme"
+                          value={LEFT_SIDEBAR_THEME_TYPES.VC1}
+                          checked={leftSidebarThemeType === LEFT_SIDEBAR_THEME_TYPES.VC1}
+                          onChange={e => {
+                            if (e.target.checked) {
+                              dispatch(changeLeftSidebarTheme(e.target.value));
+                            }
+                          }}
+                        />
+                        <label htmlFor="leftsidebarThemevc1" className="bg-vc1 rounded-circle wh-30 me-1"></label>
+                        <input
+                          type="radio"
+                          id="leftsidebarThemevc2"
+                          name="leftsidebarTheme"
+                          value={LEFT_SIDEBAR_THEME_TYPES.VC2}
+                          checked={leftSidebarThemeType === LEFT_SIDEBAR_THEME_TYPES.VC2}
+                          onChange={e => {
+                            if (e.target.checked) {
+                              dispatch(changeLeftSidebarTheme(e.target.value));
+                            }
+                          }}
+                        />
+                        <label htmlFor="leftsidebarThemevc2" className="bg-vc2 rounded-circle wh-30 me-1"></label>
+                        <input
+                          type="radio"
+                          id="leftsidebarThemevc3"
+                          name="leftsidebarTheme"
+                          value={LEFT_SIDEBAR_THEME_TYPES.VC3}
+                          checked={leftSidebarThemeType === LEFT_SIDEBAR_THEME_TYPES.VC3}
+                          onChange={e => {
+                            if (e.target.checked) {
+                              dispatch(changeLeftSidebarTheme(e.target.value));
+                            }
+                          }}
+                        />
+                        <label htmlFor="leftsidebarThemevc3" className="bg-vc3 rounded-circle wh-30 me-1"></label>
                       </div>
                     </div>
                   </div>

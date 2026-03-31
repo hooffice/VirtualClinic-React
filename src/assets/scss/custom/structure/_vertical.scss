@@ -601,7 +601,10 @@ body[data-sidebar="winter"],
 body[data-sidebar="ladylip"],
 body[data-sidebar="plumplate"],
 body[data-sidebar="strongbliss"],
-body[data-sidebar="greatwhale"] {
+body[data-sidebar="greatwhale"],
+body[data-sidebar="vc1"],
+body[data-sidebar="vc2"],
+body[data-sidebar="vc3"] {
   .navbar-brand-box {
     .logo-dark {
       display: none;
@@ -718,6 +721,22 @@ body[data-sidebar="greatwhale"] {
 .bg-colored {
   background-color: $primary !important;
 }
+
+// VC1 sidebar color preview
+.bg-vc1 {
+  background-color: #01a5d6 !important;
+}
+
+// VC2 sidebar color preview
+.bg-vc2 {
+  background-color: #22c3f2 !important;
+}
+
+// VC3 sidebar color preview
+.bg-vc3 {
+  background-color: #11af19 !important;
+}
+
 body[data-sidebar="colored"] {
   .vertical-menu {
     background-color: $primary;
@@ -746,6 +765,117 @@ body[data-sidebar="colored"] {
       }
     }
   }
+  &[data-sidebar-size="small"] {
+    .menu-title {
+      background: transparent;
+    }
+  }
+}
+
+// VC1 sidebar (Cyan - #01a5d6)
+body[data-sidebar="vc1"] {
+  .vertical-menu {
+    background-color: #01a5d6;
+  }
+
+  @media (max-width: 991.98px) {
+    .navbar-brand-box {
+      background-color: lighten(#01a5d6, 2%);
+      background-repeat: repeat-x;
+    }
+  }
+
+  &.vertical-collpsed {
+    .vertical-menu {
+      .navbar-brand-box {
+        background-color: #01a5d6;
+      }
+      #sidebar-menu {
+        > ul {
+          > li {
+            &:hover > a {
+              background-color: lighten(#01a5d6, 2%);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  &[data-sidebar-size="small"] {
+    .menu-title {
+      background: transparent;
+    }
+  }
+}
+
+// VC2 sidebar (Cyan - #22c3f2)
+body[data-sidebar="vc2"] {
+  .vertical-menu {
+    background-color: #22c3f2;
+  }
+
+  @media (max-width: 991.98px) {
+    .navbar-brand-box {
+      background-color: lighten(#22c3f2, 2%);
+      background-repeat: repeat-x;
+    }
+  }
+
+  &.vertical-collpsed {
+    .vertical-menu {
+      .navbar-brand-box {
+        background-color: #22c3f2;
+      }
+      #sidebar-menu {
+        > ul {
+          > li {
+            &:hover > a {
+              background-color: lighten(#22c3f2, 2%);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  &[data-sidebar-size="small"] {
+    .menu-title {
+      background: transparent;
+    }
+  }
+}
+
+// VC3 sidebar (Green - #11af19)
+body[data-sidebar="vc3"] {
+  .vertical-menu {
+    background-color: #11af19;
+  }
+
+  @media (max-width: 991.98px) {
+    .navbar-brand-box {
+      background-color: lighten(#11af19, 2%);
+      background-repeat: repeat-x;
+    }
+  }
+
+  &.vertical-collpsed {
+    .vertical-menu {
+      .navbar-brand-box {
+        background-color: #11af19;
+      }
+      #sidebar-menu {
+        > ul {
+          > li {
+            &:hover > a {
+              background-color: lighten(#11af19, 2%);
+            }
+          }
+        }
+      }
+    }
+  }
+
   &[data-sidebar-size="small"] {
     .menu-title {
       background: transparent;
