@@ -19,6 +19,8 @@ const ProfileMenu = (props: any) => {
   const [menu, setMenu] = useState(false);
 
   const [username, setUsername] = useState("Admin");
+  const [avatarUrl, setAvatarUrl] = useState(user1);
+  const [userInitials, setUserInitials] = useState("A");
 
   const selectProfileProperties = createSelector(
     (state: any) => state.Profile,
@@ -31,18 +33,53 @@ const ProfileMenu = (props: any) => {
 
 
   useEffect(() => {
-    if (localStorage.getItem("authUser")) {
-      if (ENV.REACT_APP_DEFAULTAUTH === "firebase") {
-        const obj = JSON.parse(localStorage.getItem("authUser") || "");
-        setUsername(obj.displayName);
-      } else if (
-        ENV.REACT_APP_DEFAULTAUTH === "fake" ||
-        ENV.REACT_APP_DEFAULTAUTH === "jwt"
-      ) {
-        setUsername(user?.username);
+    const authUserStr = localStorage.getItem("authUser");
+    const userProfileStr = localStorage.getItem("userProfile");
+
+    if (authUserStr) {
+      try {
+        const authUser = JSON.parse(authUserStr);
+        let displayEmail = "";
+
+        // Display email from authUser
+        if (authUser.email) {
+          setUsername(authUser.email);
+          displayEmail = authUser.email;
+        } else if (authUser.displayName) {
+          setUsername(authUser.displayName);
+          displayEmail = authUser.displayName;
+        } else if (authUser.username) {
+          setUsername(authUser.username);
+          displayEmail = authUser.username;
+        }
+
+        // Generate initials from email/name
+        if (displayEmail) {
+          const initial = displayEmail.charAt(0).toUpperCase();
+          setUserInitials(initial);
+        }
+
+        // Check for profile picture in authUser
+        if (authUser.profilePicture || authUser.profilePictureUrl || authUser.avatar) {
+          setAvatarUrl(authUser.profilePicture || authUser.profilePictureUrl || authUser.avatar);
+        }
+      } catch (error) {
+        console.error('[ProfileMenu] Error parsing authUser:', error);
       }
     }
-  }, [user]);
+
+    // Also check userProfile for additional avatar info
+    if (userProfileStr) {
+      try {
+        const userProfile = JSON.parse(userProfileStr);
+        if (userProfile.profilePicture || userProfile.profilePictureUrl || userProfile.avatar) {
+          setAvatarUrl(userProfile.profilePicture || userProfile.profilePictureUrl || userProfile.avatar);
+        }
+      } catch (error) {
+        console.error('[ProfileMenu] Error parsing userProfile:', error);
+      }
+    }
+  }, []);
 
   return (
     <React.Fragment>
@@ -52,17 +89,52 @@ const ProfileMenu = (props: any) => {
         className="d-inline-block"
       >
         <DropdownToggle
-          className="btn header-item "
+          className="btn header-item"
           id="page-header-user-dropdown"
           tag="button"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "8px",
+          }}
         >
-          <img
-            className="rounded-circle header-profile-user"
-            src={user1}
-            alt="Header Avatar"
-          />
-          <span className="d-none d-xl-inline-block ms-2 me-1">{username || "admin"}</span>
-          <i className="mdi mdi-chevron-down d-none d-xl-inline-block" />
+          {avatarUrl && avatarUrl !== user1 ? (
+            <img
+              className="rounded-circle header-profile-user"
+              src={avatarUrl}
+              alt="User Avatar"
+              style={{
+                width: "32px",
+                height: "32px",
+                flexShrink: 0,
+              }}
+              onError={(e) => {
+                // Fallback to default if image fails to load
+                e.currentTarget.src = user1;
+              }}
+            />
+          ) : (
+            <div
+              className="rounded-circle header-profile-user d-flex align-items-center justify-content-center"
+              style={{
+                width: "32px",
+                height: "32px",
+                minWidth: "32px",
+                backgroundColor: "#667eea",
+                color: "white",
+                fontWeight: "bold",
+                fontSize: "14px",
+                flexShrink: 0,
+              }}
+            >
+              {userInitials}
+            </div>
+          )}
+          <span className="d-none d-xl-inline-block ms-0" style={{ whiteSpace: "nowrap" }}>
+            {username || "admin"}
+          </span>
+          <i className="mdi mdi-chevron-down d-none d-xl-inline-block" style={{ marginLeft: "4px" }} />
         </DropdownToggle>
         <DropdownMenu className="dropdown-menu-end">
           <DropdownItem tag="a" href={ENV.PUBLIC_URL + "/profile"}>

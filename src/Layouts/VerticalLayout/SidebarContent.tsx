@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useCallback } from "react";
+import React, { useEffect, useRef, useCallback, useState } from "react";
 //Import Scrollbar
 import SimpleBar from "simplebar-react";
 
@@ -9,8 +9,6 @@ import MetisMenu from "metismenujs";
 import { withTranslation } from "react-i18next";
 import withRouter from "../../Components/Common/withRouter";
 import { ENV } from "config/env";
-import { useSelector } from "react-redux";
-import { createSelector } from "reselect";
 
 // Role-based Menu Components
 import AdminMenu from "./Roles/AdminMenu";
@@ -21,32 +19,43 @@ import SubAdminMenu from "./Roles/SubAdminMenu";
 
 const SidebarContent = (props: any) => {
   const ref = useRef<any>();
+  const [userType, setUserType] = useState<number | null>(null);
 
-  // Get user role from Redux
-  const selectRoleProperties = createSelector(
-    (state: any) => state.role,
-    (role) => ({
-      role: role?.role || "admin", // Default to admin if not set
-    })
-  );
+  // Get user type from localStorage userProfile
+  useEffect(() => {
+    const userProfileStr = localStorage.getItem('userProfile');
+    if (userProfileStr) {
+      try {
+        const userProfile = JSON.parse(userProfileStr);
+        setUserType(userProfile.usertype || userProfile.utype);
+      } catch (error) {
+        console.error('[SidebarContent] Error parsing userProfile:', error);
+        setUserType(null);
+      }
+    }
+  }, []);
 
-  const { role } = useSelector(selectRoleProperties);
-
-  // Function to render menu based on role
+  // Function to render menu based on usertype from localStorage
   const renderMenuByRole = () => {
     const menuProps = { t: props.t };
-    switch (role) {
-      case "clinician":
+
+    switch (userType) {
+      case 3:
+        // Clinician Menu
         return <ClinicianMenu {...menuProps} />;
-      case "patient":
+      case 6:
+        // Patient Menu
         return <PatientMenu {...menuProps} />;
-      case "ancillary":
+      case 7:
+        // Ancillary Staff Menu
         return <AncillaryMenu {...menuProps} />;
-      case "subadmin":
-        return <SubAdminMenu {...menuProps} />;
-      case "admin":
-      default:
+      case 1:
+      case 4:
+        // Admin Menu (for usertype 1 and 4)
         return <AdminMenu {...menuProps} />;
+      default:
+        // Default to SubAdminMenu or AdminMenu
+        return <SubAdminMenu {...menuProps} />;
     }
   };
 
@@ -156,11 +165,11 @@ const SidebarContent = (props: any) => {
     if (ref.current) {
       ref.current.recalculate();
     }
-  }, [role]); // Re-calculate when role changes
+  }, [userType]); // Re-calculate when userType changes
 
   useEffect(() => {
     new MetisMenu("#side-menu");
-  }, [role]); // Re-initialize menu when role changes
+  }, [userType]); // Re-initialize menu when userType changes
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });

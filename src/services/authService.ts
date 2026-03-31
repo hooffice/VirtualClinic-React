@@ -87,6 +87,8 @@ class AuthService {
       RefreshToken: response.RefreshToken || response.refreshToken,
       user: response.User || response.user,
       User: response.User || response.user,
+      profileInfo: response.ProfileInfo || response.profileInfo,
+      ProfileInfo: response.ProfileInfo || response.profileInfo,      
       status: normalizedStatus,
       Status: normalizedStatus,
       userId: response.UserId || response.userId,
@@ -190,9 +192,16 @@ class AuthService {
 
       // Store user in localStorage if present
       const userToStore = normalizedResponse?.user || normalizedResponse?.User;
+      const userProfile = normalizedResponse?.profileInfo || normalizedResponse?.ProfileInfo;
       if (userToStore) {
         console.log('[AuthService] Storing user in localStorage');
         localStorage.setItem('authUser', JSON.stringify(userToStore));
+
+        // Only store userProfile if it exists
+        if (userProfile) {
+          console.log('[AuthService] Storing userProfile in localStorage');
+          localStorage.setItem('userProfile', JSON.stringify(userProfile));
+        }
       }
 
       return normalizedResponse;
@@ -259,6 +268,7 @@ class AuthService {
       // Always clear local state
       authStore.logout();
       localStorage.removeItem('authUser');
+      localStorage.removeItem('userProfile');
       clearDeviceId();
       console.log('[AuthService] ✅ Local state cleared, user logged out');
     } catch (error) {
@@ -267,6 +277,7 @@ class AuthService {
       const authStore = useAuthStore.getState();
       authStore.logout();
       localStorage.removeItem('authUser');
+      localStorage.removeItem('userProfile');
       clearDeviceId();
     }
   }
