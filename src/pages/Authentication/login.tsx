@@ -86,11 +86,11 @@ const Login = (props: any) => {
             <Row className="justify-content-center">
               <Col md={8} lg={6} xl={5}>
                 <Card className="overflow-hidden">
-                  <div className="bg-primary-subtle">
+                  <div className="custom-login-header-1">
                     <Row>
                       <Col className="col-7">
-                        <div className="text-primary p-4">
-                          <h5 className="text-primary">Welcome Back !</h5>
+                        <div className="text-header p-4">
+                          <h5 className="text-header">Welcome Back !</h5>
                           <p>Sign in to Virtual Clinic.</p>
                         </div>
                       </Col>
@@ -214,7 +214,7 @@ const Login = (props: any) => {
 
                         <div className="mt-2 d-grid">
                           <button
-                            className="btn btn-primary btn-block"
+                            className="btn btn-vc1 btn-block"
                             type="submit"
                             disabled={loading}
                           >

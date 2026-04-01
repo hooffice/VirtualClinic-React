@@ -6,12 +6,12 @@ import { withTranslation } from "react-i18next";
 // Redux
 import { Link } from "react-router-dom";
 import withRouter from "../../Common/withRouter";
-import { createSelector } from 'reselect';
+//import { createSelector } from 'reselect';
 
 // users
 import user1 from "../../../assets/images/users/avatar-1.jpg";
 
-import { useSelector } from "react-redux";
+//import { useSelector } from "react-redux";
 import { ENV } from "config/env";
 
 const ProfileMenu = (props: any) => {
@@ -22,14 +22,14 @@ const ProfileMenu = (props: any) => {
   const [avatarUrl, setAvatarUrl] = useState(user1);
   const [userInitials, setUserInitials] = useState("A");
 
-  const selectProfileProperties = createSelector(
-    (state: any) => state.Profile,
-    (profile) => ({
-      user: profile.user,
-    })
-  );
+  // const selectProfileProperties = createSelector(
+  //   (state: any) => state.Profile,
+  //   (profile) => ({
+  //     user: profile.user,
+  //   })
+  // );
 
-  const { user } = useSelector(selectProfileProperties);
+  // const { user } = useSelector(selectProfileProperties);
 
 
   useEffect(() => {
@@ -42,15 +42,9 @@ const ProfileMenu = (props: any) => {
         let displayEmail = "";
 
         // Display email from authUser
-        if (authUser.email) {
-          setUsername(authUser.email);
-          displayEmail = authUser.email;
-        } else if (authUser.displayName) {
-          setUsername(authUser.displayName);
-          displayEmail = authUser.displayName;
-        } else if (authUser.username) {
-          setUsername(authUser.username);
-          displayEmail = authUser.username;
+        if (authUser.userName) {
+          setUsername(authUser.userName);
+          displayEmail = authUser.userName;
         }
 
         // Generate initials from email/name

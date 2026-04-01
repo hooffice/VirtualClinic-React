@@ -360,3 +360,34 @@ a:hover {
   background-color: #ffffff !important;
   color: #2c3e50;
 }
+
+.custom-login-header-1 {
+  background-color: #01a5d6!important;
+}
+
+.custom-login-header-2 {
+  background-color: #22c3f2!important;
+}
+
+.custom-login-header-3 {
+  background-color: #364452!important;
+}
+
+.custom-login-header-4 {
+  background-color: #464b4f!important;
+}
+.text-header {
+  color: white;
+}
+
+.btn-vc1 {
+  background-color: #01a5d6 !important;
+  border-color: #01a5d6 !important;
+  color: white !important;
+
+  &:hover {
+    background-color: lighten(#01a5d6, 5%) !important;
+    border-color: lighten(#01a5d6, 5%) !important;
+    color: white !important;
+  }
+}

@@ -57,7 +57,7 @@ const Register: React.FC = () => {
 
   const [activeStep, setActiveStep] = useState(0);
   const [formData, setFormData] = useState<FormData>({
-    userType: null,
+    userType: 3,
     email: '',
     firstName: '',
     lastName: '',
@@ -334,7 +334,7 @@ const Register: React.FC = () => {
   const progressPercentage = ((activeStep + 1) / 4) * 100;
 
   return (
-    <div className="register-wrapper py-5">
+    <div className="account-pages py-5">
       <Container className="register-container">
         <Row className="justify-content-center">
           <Col lg="8" md="10" xs="12">
@@ -379,7 +379,7 @@ const Register: React.FC = () => {
                   <div className="step-content">
                     <h5 className="fw-bold mb-4">What type of user are you?</h5>
 
-                    <FormGroup className="mb-3">
+                    <FormGroup className="mb-3 d-none">
                       <div className="form-check">
                         <Input
                           type="radio"

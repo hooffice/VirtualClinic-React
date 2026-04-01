@@ -26,7 +26,7 @@ export const initialState: LayoutState = {
   layoutWidthTypes: LAYOUT_WIDTH_TYPES.FLUID,
   topbarThemeTypes: TOPBAR_THEME_TYPES.LIGHT,
   leftSidebarTypes: LEFT_SIDEBAR_TYPES.ICON,
-  leftSideBarThemeTypes: LEFT_SIDEBAR_THEME_TYPES.COLORED,
+  leftSideBarThemeTypes: LEFT_SIDEBAR_THEME_TYPES.VC1,
   leftSidebarImageTypes: LEFTBAR_THEME_IMAGES_TYPES.NONE
 };
 
