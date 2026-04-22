@@ -7,18 +7,16 @@
  */
 
 import axios from 'axios';
+//import type { AxiosInstance, AxiosError, InternalAxiosRequestConfig } from 'axios';
 import { useAuthStore } from '@/store/useAuthStore';
-import { ApiError, axiosErrorToApiError } from '@/types/errors';
+import { axiosErrorToApiError } from '@/types/errors';
 
-// @ts-ignore - Vite env type issue
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL as string) || 'http://localhost:7202';
-
-console.log('[AxiosInstance] Initializing with baseURL:', API_BASE_URL);
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:7202';
 
 /**
  * Create Axios Instance
  */
-const instance: any = axios.create({
+const instance: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
   timeout: 30000,
   withCredentials: true,
@@ -34,10 +32,10 @@ const instance: any = axios.create({
 let isRefreshing = false;
 let failedQueue: Array<{
   onSuccess: (token: string) => void;
-  onFailed: (error: any) => void;
+  onFailed: (error: AxiosError) => void;
 }> = [];
 
-const processQueue = (error: any | null, token: string | null = null) => {
+const processQueue = (error: AxiosError | null, token: string | null = null) => {
   failedQueue.forEach((prom) => {
     if (error) {
       prom.onFailed(error);
@@ -52,7 +50,7 @@ const processQueue = (error: any | null, token: string | null = null) => {
  * Request Interceptor - Inject JWT Token
  */
 instance.interceptors.request.use(
-  (config: any) => {
+  (config) => {
     const token = useAuthStore.getState().jwt;
 
     if (token) {
@@ -61,7 +59,7 @@ instance.interceptors.request.use(
 
     return config;
   },
-  (error: any) => {
+  (error) => {
     console.error('[AxiosInstance] Request error:', error.message);
     return Promise.reject(error);
   }
@@ -71,15 +69,9 @@ instance.interceptors.request.use(
  * Response Interceptor - Handle Token Refresh & Errors
  */
 instance.interceptors.response.use(
-  (response: any) => {
-    console.log('[AxiosInstance] Response success:', {
-      status: response.status,
-      url: response.config.url,
-    });
-    return response;
-  },
-  async (error: any) => {
-    const originalRequest = error.config as any;
+  (response) => response,
+  async (error: AxiosError) => {
+    const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
 
     console.error('[AxiosInstance] Response error:', {
       status: error.response?.status,
@@ -88,7 +80,7 @@ instance.interceptors.response.use(
     });
 
     // Handle 401 - Token expired or invalid
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    if (error.response?.status === 401 && !originalRequest?._retry) {
       if (isRefreshing) {
         return new Promise((onSuccess, onFailed) => {
           failedQueue.push({ onSuccess, onFailed });
@@ -139,11 +131,12 @@ instance.interceptors.response.use(
       }
     }
 
-    // Handle 403 - Forbidden (no refresh, just logout)
+    // Handle 403 - Forbidden — clear session and redirect to login
     if (error.response?.status === 403) {
-      console.warn('[AxiosInstance] 403 Forbidden - logging out');
-      const authStore = useAuthStore.getState();
-      authStore.logout();
+      useAuthStore.getState().logout();
+      localStorage.removeItem('authUser');
+      localStorage.removeItem('userProfile');
+      window.location.href = '/login';
     }
 
     // Convert to ApiError
@@ -151,12 +144,5 @@ instance.interceptors.response.use(
     return Promise.reject(apiError);
   }
 );
-
-/**
- * Export singleton instance
- */
-export const getany = (): any => {
-  return instance;
-};
 
 export default instance;
