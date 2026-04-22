@@ -12,3 +12,6 @@ export * from "./auth/register/thunk";
 
 // Forget Password
 export * from "./auth/forgetpwd/thunk";
+
+//Admin Module
+export * from "./admin/organization/thunk"; //Organzation

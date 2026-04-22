@@ -8,6 +8,8 @@ import ForgotPasswordReducer from "./auth/forgetpwd/reducer";
 import AccountReducer from "./auth/register/reducer";
 import RoleReducer from "./auth/role/reducer";
 import RegisterReducer from "./auth/register/reducer";
+//Admin Module
+import OrganizationReducer from "./admin/organization/reducer";
 
 const rootReducer = combineReducers({
     Layout: LayoutReducer,
@@ -17,6 +19,7 @@ const rootReducer = combineReducers({
     Account: AccountReducer,
     register: RegisterReducer,
     role: RoleReducer,
+    Organization: OrganizationReducer
 });
 
 export default rootReducer;

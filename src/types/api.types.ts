@@ -240,3 +240,12 @@ export interface SearchParams extends PaginationParams, SortParams {
   search?: string;
   filter?: Record<string, any>;
 }
+
+// =====================================================
+// SAVE RESONSE
+// =====================================================
+
+export interface SaveResponse {
+  message: string;
+  success: boolean;
+}

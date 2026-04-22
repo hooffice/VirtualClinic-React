@@ -1,4 +1,5 @@
 import axiosInstance from '@/config/axiosInstance';
+import { SaveResponse } from '@/types/api.types';
 import { axiosErrorToApiError } from '@/types/errors';
 
 const BASE = "/api/organization";
@@ -44,10 +45,6 @@ interface ListResponse {
   success: boolean;
 }
 
-interface SaveResponse {
-  message: string;
-  success: boolean;
-}
 
 class OrganizationService {
 
@@ -89,3 +86,4 @@ class OrganizationService {
 }
 
 export const organizationService = new OrganizationService();
+export default organizationService;
