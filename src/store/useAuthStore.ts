@@ -12,7 +12,6 @@ export interface User {
 export interface AuthState {
   // Authentication State
   jwt: string | null;
-  refreshToken: string | null;
   user: User | null;
   isAuthenticated: boolean;
 
@@ -22,23 +21,20 @@ export interface AuthState {
 
   // Actions
   setAuth: (jwt: string, user: User) => void;
-  setTokens: (accessToken: string, refreshToken: string) => void;
+  setTokens: (accessToken: string) => void;
   setJwt: (jwt: string) => void;
-  setRefreshToken: (refreshToken: string) => void;
   setUser: (user: User) => void;
   setMfaRequired: (userId: string) => void;
   clearMfaRequired: () => void;
   logout: () => void;
   clearAuth: () => void;
   getToken: () => string | null;
-  getRefreshToken: () => string | null;
   getUser: () => User | null;
 }
 
 export const useAuthStore = create<AuthState>((set, get) => ({
   // Initial state
   jwt: null,
-  refreshToken: null,
   user: null,
   isAuthenticated: false,
   mfaRequired: false,
@@ -55,20 +51,16 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     });
   },
 
-  setTokens: (accessToken: string, refreshToken: string) => {
+  // refreshToken intentionally omitted — managed by HttpOnly cookie (ASP.NET)
+  setTokens: (accessToken: string) => {
     set({
       jwt: accessToken,
-      refreshToken,
       isAuthenticated: true,
     });
   },
 
   setJwt: (jwt: string) => {
     set({ jwt, isAuthenticated: !!jwt });
-  },
-
-  setRefreshToken: (refreshToken: string) => {
-    set({ refreshToken });
   },
 
   setUser: (user: User) => {
@@ -94,7 +86,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   logout: () => {
     set({
       jwt: null,
-      refreshToken: null,
       user: null,
       isAuthenticated: false,
       mfaRequired: false,
@@ -105,7 +96,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   clearAuth: () => {
     set({
       jwt: null,
-      refreshToken: null,
       user: null,
       isAuthenticated: false,
       mfaRequired: false,
@@ -114,8 +104,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   getToken: () => get().jwt,
-
-  getRefreshToken: () => get().refreshToken,
 
   getUser: () => get().user,
 }));

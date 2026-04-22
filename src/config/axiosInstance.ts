@@ -53,28 +53,10 @@ const processQueue = (error: any | null, token: string | null = null) => {
  */
 instance.interceptors.request.use(
   (config: any) => {
-    const authStore = useAuthStore.getState();
-    const token = authStore.jwt;
-    const refreshToken = authStore.refreshToken;
-
-    console.log('[AxiosInstance] Request:', {
-      method: config.method?.toUpperCase(),
-      url: config.url,
-      hasAccessToken: !!token,
-      hasRefreshToken: !!refreshToken,
-      tokenLength: token ? token.length : 0,
-    });
+    const token = useAuthStore.getState().jwt;
 
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
-      console.log('[AxiosInstance] ✅ Authorization header set');
-    } else {
-      console.warn('[AxiosInstance] ⚠️ No token found in Zustand store!');
-      console.log('[AxiosInstance] Store state:', {
-        jwt: authStore.jwt ? '(exists)' : '(null)',
-        refreshToken: authStore.refreshToken ? '(exists)' : '(null)',
-        isAuthenticated: authStore.isAuthenticated,
-      });
     }
 
     return config;
@@ -107,10 +89,7 @@ instance.interceptors.response.use(
 
     // Handle 401 - Token expired or invalid
     if (error.response?.status === 401 && !originalRequest._retry) {
-      console.log('[AxiosInstance] 401 detected - attempting token refresh');
-
       if (isRefreshing) {
-        console.log('[AxiosInstance] Token refresh in progress - queueing request');
         return new Promise((onSuccess, onFailed) => {
           failedQueue.push({ onSuccess, onFailed });
         }).then((token) => {
@@ -123,34 +102,20 @@ instance.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        const authStore = useAuthStore.getState();
-        const refreshToken = authStore.refreshToken;
-
-        if (!refreshToken) {
-          console.warn('[AxiosInstance] No refresh token available - logging out');
-          authStore.logout();
-          processQueue(new ApiError('Session expired', 401), null);
-          return Promise.reject(error);
-        }
-
-        console.log('[AxiosInstance] Attempting to refresh token');
-
-        // Use a fresh axios instance to avoid interceptor loops
+        // No body needed — ASP.NET reads refreshToken from HttpOnly cookie automatically
         const response = await axios.post(
           `${API_BASE_URL}/api/auth/refresh-token`,
-          { refreshToken },
+          null,
           {
             timeout: 10000,
             withCredentials: true,
           }
         );
 
-        const { accessToken, refreshToken: newRefreshToken } = response.data;
+        const accessToken = response.data?.AccessToken || response.data?.accessToken;
 
-        console.log('[AxiosInstance] Token refreshed successfully');
-
-        // Update tokens in store
-        authStore.setTokens(accessToken, newRefreshToken || refreshToken);
+        // Store only access token — refresh token stays in HttpOnly cookie
+        useAuthStore.getState().setJwt(accessToken);
 
         // Update default headers
         instance.defaults.headers.common.Authorization = `Bearer ${accessToken}`;
@@ -162,10 +127,12 @@ instance.interceptors.response.use(
         originalRequest.headers.Authorization = `Bearer ${accessToken}`;
         return instance(originalRequest);
       } catch (refreshError) {
-        console.error('[AxiosInstance] Token refresh failed:', refreshError);
-        const authStore = useAuthStore.getState();
-        authStore.logout();
+        // Refresh token cookie expired or invalid — force re-login
+        useAuthStore.getState().logout();
+        localStorage.removeItem('authUser');
+        localStorage.removeItem('userProfile');
         processQueue(refreshError, null);
+        window.location.href = '/login';
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;

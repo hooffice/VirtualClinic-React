@@ -176,18 +176,10 @@ class AuthService {
         normalizedResponse: JSON.stringify(normalizedResponse, null, 2),
       });
 
-      // Store tokens in Zustand if present
+      // Store access token in Zustand — refresh token managed by HttpOnly cookie (ASP.NET)
       if (normalizedResponse?.accessToken || normalizedResponse?.AccessToken) {
-        const authStore = useAuthStore.getState();
         const accessToken = normalizedResponse.accessToken || normalizedResponse.AccessToken;
-        const refreshToken = normalizedResponse.refreshToken || normalizedResponse.RefreshToken || '';
-
-        authStore.setTokens(accessToken, refreshToken);
-
-        console.log('[AuthService] ✅ Tokens stored in Zustand:', {
-          accessTokenLength: accessToken.length,
-          refreshTokenLength: refreshToken.length,
-        });
+        useAuthStore.getState().setJwt(accessToken);
       }
 
       // Store user in localStorage if present
@@ -284,22 +276,15 @@ class AuthService {
 
   /**
    * Refresh access token
+   * No body sent — ASP.NET reads refreshToken from HttpOnly cookie automatically
    */
-  async refreshToken(refreshToken: string): Promise<AuthResponse> {
+  async refreshToken(): Promise<AuthResponse> {
     try {
-      console.log('[AuthService] refreshToken()');
-      const response = await this.axiosInstance.post(ENDPOINTS.REFRESH_TOKEN, {
-        refreshToken,
-      });
+      const response = await this.axiosInstance.post(ENDPOINTS.REFRESH_TOKEN);
 
-      // Update tokens in store
-      if (response.data?.accessToken) {
-        const authStore = useAuthStore.getState();
-        authStore.setTokens(
-          response.data.accessToken,
-          response.data.refreshToken || refreshToken
-        );
-        console.log('[AuthService] Tokens updated after refresh');
+      const accessToken = response.data?.AccessToken || response.data?.accessToken;
+      if (accessToken) {
+        useAuthStore.getState().setJwt(accessToken);
       }
 
       return response.data;

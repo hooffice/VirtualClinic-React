@@ -89,13 +89,9 @@ export interface AuthResponse {
   [key: string]: any;
 }
 
-export interface RefreshTokenRequest {
-  refreshToken: string;
-}
-
 export interface RefreshTokenResponse {
   accessToken: string;
-  refreshToken: string;
+  AccessToken: string;
   expiresIn?: number;
 }
 

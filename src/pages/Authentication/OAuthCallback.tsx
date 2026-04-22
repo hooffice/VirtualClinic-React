@@ -85,12 +85,12 @@ const OAuthCallback: React.FC = () => {
           return;
         }
 
-        // Step 3: Store tokens in Zustand
+        // Step 3: Store access token in Zustand
+        // Refresh token is managed by HttpOnly cookie set by ASP.NET — not stored in JS
         setProgress(60);
         setMessage('Storing authentication tokens...');
 
         const accessToken = response.accessToken || response.AccessToken;
-        const refreshToken = response.refreshToken || response.RefreshToken;
 
         if (!accessToken) {
           console.error('[OAuthCallback] No access token in response');
@@ -99,10 +99,7 @@ const OAuthCallback: React.FC = () => {
           return;
         }
 
-        const authStore = useAuthStore.getState();
-        authStore.setTokens(accessToken, refreshToken || '');
-
-        console.log('[OAuthCallback] ✅ Tokens stored in Zustand');
+        useAuthStore.getState().setJwt(accessToken);
 
         // Step 4: Store user in localStorage
         setProgress(80);
