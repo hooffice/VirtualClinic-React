@@ -1,25 +1,25 @@
 import { combineReducers } from "redux";
 
 // Front
-import LayoutReducer from "./layouts/reducer";
-import LoginReducer from "./auth/login/reducer";
-import ProfileReducer from "./auth/profile/reducer";
-import ForgotPasswordReducer from "./auth/forgetpwd/reducer";
-import AccountReducer from "./auth/register/reducer";
-import RoleReducer from "./auth/role/reducer";
-import RegisterReducer from "./auth/register/reducer";
+import layoutReducer from "./layouts/reducer";
+import loginReducer from "./auth/login/reducer";
+import profileReducer from "./auth/profile/reducer";
+import forgotPasswordReducer from "./auth/forgetpwd/reducer";
+import accountReducer from "./auth/register/reducer";
+import roleReducer from "./auth/role/reducer";
+import registerReducer from "./auth/register/reducer";
 //Admin Module
-import OrganizationReducer from "./admin/organization/reducer";
+import organizationReducer from "./admin/organization/reducer";
 
 const rootReducer = combineReducers({
-    Layout: LayoutReducer,
-    Login: LoginReducer,
-    Profile: ProfileReducer,
-    ForgetPassword: ForgotPasswordReducer,
-    Account: AccountReducer,
-    register: RegisterReducer,
-    role: RoleReducer,
-    Organization: OrganizationReducer
+    Layout: layoutReducer,
+    Login: loginReducer,
+    Profile: profileReducer,
+    ForgetPassword: forgotPasswordReducer,
+    Account: accountReducer,
+    register: registerReducer,
+    role: roleReducer,
+    Organization: organizationReducer
 });
 
 export default rootReducer;

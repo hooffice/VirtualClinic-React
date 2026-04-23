@@ -165,33 +165,17 @@ const TableContainer = ({
   return (
     <Fragment>
 
-      <Row className="mb-2">
-        {isCustomPageSize && (
-          <Col sm={2}>
-            <select
-              className="form-select pageSize mb-2"
-              value={table.getState().pagination.pageSize}
-              onChange={e => {
-                table.setPageSize(Number(e.target.value))
-              }}
-            >
-              {[10, 20, 30, 40, 50].map(pageSize => (
-                <option key={pageSize} value={pageSize}>
-                  Show {pageSize}
-                </option>
-              ))}
-            </select>
-          </Col>
-        )}
-
-        {isGlobalFilter && <DebouncedInput
+      <Row className="mb-2 align-items-center">
+        {isGlobalFilter && 
+        <Col sm={6}>
+        <DebouncedInput
           value={globalFilter ?? ''}
           onChange={value => setGlobalFilter(String(value))}
           className="form-control search-box me-2 mb-2 d-inline-block"
           placeholder={SearchPlaceholder}
-        />}
+        /></Col>}
         {isJobListGlobalFilter && <JobListGlobalFilter setGlobalFilter={setGlobalFilter} />}
-        {isAddButton && <Col sm={6}>
+        {isAddButton && <Col sm={6} className="d-flex justify-content-end">
           <div className="text-sm-end">
             <Button type="button" className={buttonClass} onClick={handleUserClick}>
               <i className="mdi mdi-plus me-1"></i> {buttonName}</Button>
@@ -205,8 +189,16 @@ const TableContainer = ({
             {getHeaderGroups().map(headerGroup => (
               <tr key={headerGroup.id}>
                 {headerGroup.headers.map(header => {
+                  const hideOnMobile = (header.column.columnDef.meta as any)?.hideOnMobile;
                   return (
-                    <th key={header.id} colSpan={header.colSpan} className={`${header.column.columnDef.enableSorting ? "sorting sorting_desc" : ""}`}>
+                    <th
+                      key={header.id}
+                      colSpan={header.colSpan}
+                      className={[
+                        header.column.columnDef.enableSorting ? "sorting sorting_desc" : "",
+                        hideOnMobile ? "d-none d-md-table-cell" : "",
+                      ].join(" ").trim()}
+                    >
                       {header.isPlaceholder ? null : (
                         <React.Fragment>
                           <div
@@ -247,8 +239,12 @@ const TableContainer = ({
               return (
                 <tr key={row.id}>
                   {row.getVisibleCells().map(cell => {
+                    const hideOnMobile = (cell.column.columnDef.meta as any)?.hideOnMobile;
                     return (
-                      <td key={cell.id}>
+                      <td
+                        key={cell.id}
+                        className={hideOnMobile ? "d-none d-md-table-cell" : ""}
+                      >
                         {flexRender(
                           cell.column.columnDef.cell,
                           cell.getContext()
@@ -266,11 +262,34 @@ const TableContainer = ({
 
       {
         isPagination && (
-          <Row>
-            <Col sm={12} md={5}>
-              <div className="dataTables_info">Showing {getState().pagination.pageSize} of {data.length} Results</div>
+          <Row className="align-items-center mt-3 gy-2">
+            <Col xs={12} md={5}>
+              <div className="d-flex align-items-center gap-2 flex-wrap">
+                {isCustomPageSize && (
+                  <>
+                    <span className="text-muted">Rows per page:</span>
+                    <select
+                      className="form-select form-select-sm"
+                      style={{ width: "75px" }}
+                      value={getState().pagination.pageSize}
+                      onChange={e => table.setPageSize(Number(e.target.value))}
+                    >
+                      {[10, 20, 30, 40, 50].map(size => (
+                        <option key={size} value={size}>{size}</option>
+                      ))}
+                    </select>
+                  </>
+                )}
+                <span className="text-muted">
+                  {getState().pagination.pageIndex * getState().pagination.pageSize + 1}–
+                  {Math.min(
+                    (getState().pagination.pageIndex + 1) * getState().pagination.pageSize,
+                    data.length
+                  )} of {data.length}
+                </span>
+              </div>
             </Col>
-            <Col sm={12} md={7}>
+            <Col xs={12} md={7}>
               <div className={paginationWrapper}>
                 <ul className={pagination}>
                   <li className={`paginate_button page-item previous ${!getCanPreviousPage() ? "disabled" : ""}`}>

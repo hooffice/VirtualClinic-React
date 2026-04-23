@@ -20,7 +20,7 @@ const AdminMenu = (props: any) => {
         </Link>
         <ul className="sub-menu">
           <li>
-            <Link to="#">{props.t("Organization")}</Link>
+            <Link to="/admin/organizations">{props.t("Organization")}</Link>
           </li>
           <li>
             <Link to="#">{props.t("Employer")}</Link>

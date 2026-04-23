@@ -19,6 +19,7 @@ import SubAdminMenu from "./Roles/SubAdminMenu";
 
 const SidebarContent = (props: any) => {
   const ref = useRef<any>();
+  const metisMenuRef = useRef<any>(null);   // track instance so we can dispose it
   const [userType, setUserType] = useState<number | null>(null);
 
   // Get user type from localStorage userProfile
@@ -168,13 +169,31 @@ const SidebarContent = (props: any) => {
   }, [userType]); // Re-calculate when userType changes
 
   useEffect(() => {
-    new MetisMenu("#side-menu");
+    // Dispose previous instance before creating a new one.
+    // Without this, every userType change stacks another MetisMenu on the
+    // same element — conflicting click handlers cancel each other out,
+    // making submenus appear stuck.
+    if (metisMenuRef.current) {
+      try { metisMenuRef.current.dispose(); } catch (_) { /* ignore */ }
+    }
+    metisMenuRef.current = new MetisMenu("#side-menu");
+    return () => {
+      try { metisMenuRef.current?.dispose(); } catch (_) { /* ignore */ }
+    };
   }, [userType]); // Re-initialize menu when userType changes
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
     activeMenu();
   }, [activeMenu]);
+
+  // Auto-close sidebar on mobile when route changes (user tapped a menu link)
+  // Uses window.screen.width to match the same breakpoint as tToggle() in Header.tsx
+  useEffect(() => {
+    if (window.screen.width <= 998) {
+      document.body.classList.remove("sidebar-enable");
+    }
+  }, [props.router.location.pathname]);
 
   function scrollElement(item: any) {
     if (item && ref.current) {

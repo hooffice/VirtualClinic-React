@@ -24,6 +24,7 @@ export interface OrganizationListItem {
   country:       string | null;
 }
 
+
 export interface OrganizationModel {
   id:           number;
   clientId:     number;

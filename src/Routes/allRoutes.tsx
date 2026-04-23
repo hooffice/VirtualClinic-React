@@ -1,6 +1,9 @@
 import { Navigate } from "react-router-dom"
 import Dashboard from "../pages/Dashboard";
 
+// Admin
+import OrganizationList from "pages/Admin/Organization";
+
 // Auth
 import Login from "pages/Authentication/login";
 import Logout from "pages/Authentication/Logout";
@@ -17,6 +20,9 @@ import EmailVerification from "pages/Authentication/EmailVerification";
 const authProtectedRoutes = [
   { path: "/dashboard", component: <Dashboard /> },
   { path: "/profile", component: <UserProfile /> },
+
+  // Admin
+  { path: "/admin/organizations", component: <OrganizationList /> },
 
   { path: "/", exact: true, component: <Navigate to="/dashboard" /> },
 ];

@@ -1,0 +1,283 @@
+/* ============================================================
+   Organization Page & Modal Styles
+   Scoped under .org-modal to avoid global conflicts
+   ============================================================ */
+
+/* ── Modal shell ─────────────────────────────────────────── */
+.org-modal .modal-content {
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+}
+
+.org-modal .modal-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 12px 12px 0 0;
+  padding: 1rem 1.5rem;
+  border-bottom: none;
+}
+
+.org-modal .modal-header .modal-title {
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.org-modal .modal-header .btn-close {
+  filter: invert(1) grayscale(100%) brightness(200%);
+  opacity: 0.8;
+}
+
+.org-modal .modal-header .btn-close:hover {
+  opacity: 1;
+}
+
+.org-modal .modal-body {
+  padding: 1.5rem;
+  background-color: #ffffff;
+  /* enough room for the country/state/city dropdowns to open downward */
+  min-height: 420px;
+  overflow-y: auto;
+  overflow-x: visible;
+}
+
+.org-modal .modal-footer {
+  border-top: 1px solid #f0f0f0;
+  padding: 1rem 1.5rem;
+  background-color: #fafafa;
+  border-radius: 0 0 12px 12px;
+}
+
+/* ── Form labels ─────────────────────────────────────────── */
+.org-modal .form-label,
+.org-modal label {
+  color: #2c3e50;
+  font-weight: 500;
+  margin-bottom: 0.4rem;
+  font-size: 0.9rem;
+}
+
+/* ── Text inputs ─────────────────────────────────────────── */
+.org-modal .form-control {
+  border-radius: 6px;
+  border: 1px solid #e0e0e0;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.95rem;
+  background-color: #ffffff;
+  color: #2c3e50;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.org-modal .form-control:focus {
+  border-color: #667eea;
+  box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+  background-color: #ffffff;
+}
+
+.org-modal .form-control.is-invalid {
+  border-color: #dc3545;
+}
+
+.org-modal .form-control.is-invalid:focus {
+  box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+}
+
+.org-modal .form-control::placeholder {
+  color: #aaa;
+  font-size: 0.9rem;
+}
+
+/* ── Checkbox (Active) ───────────────────────────────────── */
+.org-modal .form-check-input {
+  width: 1.1rem;
+  height: 1.1rem;
+  cursor: pointer;
+  border: 1px solid #dee2e6;
+  border-radius: 0.25em;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.org-modal .form-check-input:checked {
+  background-color: #667eea;
+  border-color: #667eea;
+}
+
+.org-modal .form-check-input:focus {
+  box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+}
+
+.org-modal .form-check-label {
+  font-size: 0.95rem;
+  color: #2c3e50;
+  cursor: pointer;
+}
+
+/* ── Buttons ─────────────────────────────────────────────── */
+.org-modal .btn-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  border-radius: 6px;
+  padding: 0.5rem 1.5rem;
+  font-weight: 600;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.org-modal .btn-primary:hover:not(:disabled) {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.org-modal .btn-secondary {
+  border-radius: 6px;
+  padding: 0.5rem 1.5rem;
+  font-weight: 500;
+}
+
+/* ── react-select (Country / State / City) ───────────────── */
+
+/* Control box */
+.org-modal .react-select__control {
+  border-radius: 6px;
+  border: 1px solid #e0e0e0;
+  min-height: 38px;
+  box-shadow: none;
+  background-color: #ffffff;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.org-modal .react-select__control:hover {
+  border-color: #b0b0b0;
+}
+
+.org-modal .react-select__control--is-focused {
+  border-color: #667eea !important;
+  box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25) !important;
+}
+
+.org-modal .react-select__control--is-disabled {
+  background-color: #f8f9fa;
+  border-color: #e9ecef;
+  cursor: not-allowed;
+}
+
+/* Placeholder */
+.org-modal .react-select__placeholder {
+  color: #aaa;
+  font-size: 0.9rem;
+}
+
+/* Selected value */
+.org-modal .react-select__single-value {
+  color: #2c3e50;
+  font-size: 0.95rem;
+}
+
+/* Input text */
+.org-modal .react-select__input-container {
+  color: #2c3e50;
+  font-size: 0.95rem;
+}
+
+/* Separator between value and arrow */
+.org-modal .react-select__indicator-separator {
+  background-color: #e0e0e0;
+}
+
+/* Dropdown arrow */
+.org-modal .react-select__dropdown-indicator {
+  color: #999;
+  padding: 6px 8px;
+}
+
+.org-modal .react-select__dropdown-indicator:hover {
+  color: #667eea;
+}
+
+/* Clear (×) button */
+.org-modal .react-select__clear-indicator {
+  color: #999;
+  padding: 6px 6px;
+}
+
+.org-modal .react-select__clear-indicator:hover {
+  color: #dc3545;
+}
+
+/* ── react-select MENU (portaled to <body>) ──────────────── */
+/*
+   The menu is rendered outside .org-modal via menuPortalTarget={document.body}.
+   Target it globally using the classNamePrefix "react-select".
+   z-index 9999 ensures it floats above Bootstrap modal (z-index 1055).
+*/
+.react-select__menu {
+  z-index: 9999 !important;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  border: 1px solid #e0e0e0;
+  overflow: hidden;
+}
+
+.react-select__menu-list {
+  max-height: 220px;
+  padding: 4px 0;
+}
+
+.react-select__option {
+  color: #2c3e50;
+  padding: 8px 12px;
+  font-size: 0.92rem;
+  cursor: pointer;
+}
+
+.react-select__option--is-focused {
+  background-color: #eef0fd;
+  color: #2c3e50;
+}
+
+.react-select__option--is-selected {
+  background-color: #667eea;
+  color: #ffffff;
+}
+
+.react-select__option--is-selected:hover {
+  background-color: #5568d3;
+}
+
+/* "Create ..." option */
+.react-select__option.react-select__option--is-focused.react-select__option--is-create {
+  background-color: #f0fdf4;
+  color: #15803d;
+}
+
+/* Loading spinner inside select */
+.react-select__loading-indicator span {
+  background-color: #667eea;
+}
+
+/* ── Form group spacing ───────────────────────────────────── */
+.org-modal .form-group {
+  margin-bottom: 1rem;
+}
+
+/* ── Validation feedback ─────────────────────────────────── */
+.org-modal .invalid-feedback {
+  font-size: 0.82rem;
+  margin-top: 0.25rem;
+}
+
+/* ── Responsive ──────────────────────────────────────────── */
+@media (max-width: 576px) {
+  .org-modal .modal-body {
+    padding: 1rem;
+  }
+
+  .org-modal .modal-footer {
+    padding: 0.75rem 1rem;
+    flex-direction: column-reverse;
+    gap: 0.5rem;
+  }
+
+  .org-modal .modal-footer .btn {
+    width: 100%;
+  }
+}
