@@ -6,8 +6,7 @@ import VerticalLayout from "./Layouts/VerticalLayout";
 import HorizontalLayout from "./Layouts/HorizontalLayout/index";
 import "./assets/scss/theme.scss";
 import NonAuthLayout from "./Layouts/NonLayout";
-import { ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import ToastProvider from "./Components/Common/ToastProvider";
 
 //constants
 import {
@@ -67,18 +66,7 @@ function App() {
   const Layout = getLayout(layoutTypes);
   return (
     <React.Fragment>
-      <ToastContainer
-        position="top-right"
-        autoClose={5000}
-        hideProgressBar={false}
-        newestOnTop={true}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="light"
-      />
+      <ToastProvider />
       <Routes>
         {publicRoutes.map((route, idx) => (
           <Route path={route.path} key={idx}

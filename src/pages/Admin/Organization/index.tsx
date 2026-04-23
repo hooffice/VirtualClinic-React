@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { toast } from "react-toastify";
+import { toastService } from "@/services/toastService";
 import {
   Container, Card, CardBody, Row, Col, Badge,
   Modal, ModalHeader, ModalBody, ModalFooter,
@@ -125,14 +125,7 @@ const OrganizationList: React.FC = () => {
   // Show success toast and auto-close modal
   useEffect(() => {
     if (success && message) {
-      toast.success(message, {
-        position: "top-right",
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-      });
+      toastService.success(message);
       setModalOpen(false);
       setTimeout(() => dispatch(resetOrganizationState()), 3000);
     }
@@ -141,14 +134,7 @@ const OrganizationList: React.FC = () => {
   // Show error toast
   useEffect(() => {
     if (error) {
-      toast.error(error, {
-        position: "top-right",
-        autoClose: 5000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-      });
+      toastService.error(error);
       setTimeout(() => dispatch(clearError()), 5000);
     }
   }, [error, dispatch]);
