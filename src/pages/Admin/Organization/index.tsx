@@ -359,7 +359,7 @@ const OrganizationList: React.FC = () => {
     dispatch(saveOrganization(form, clientId));
   };
 
-  // ── Render ───────────────────────────────────────────────────────────────
+  // Render─────────────────────
 
   return (
     <React.Fragment>
@@ -400,7 +400,7 @@ const OrganizationList: React.FC = () => {
         </Container>
       </div>
 
-      {/* ── Add / Edit Modal ─────────────────────────────────────────────── */}
+      {/* Add / Edit Modal───*/}
       <Modal isOpen={modalOpen} toggle={handleModalClose} size="lg" centered className="org-modal">
         <ModalHeader toggle={handleModalClose}>
           {form.id === 0 ? "Add Organization" : "Edit Organization"}
@@ -591,7 +591,7 @@ const OrganizationList: React.FC = () => {
         </Form>
       </Modal>
 
-      {/* ── Delete Confirmation ──────────────────────────────────────────── */}
+      {/* Delete Confirmation*/}
       <DeleteModal
         show={deleteModal}
         onDeleteClick={handleDeleteConfirm}
