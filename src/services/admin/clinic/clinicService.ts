@@ -1,5 +1,5 @@
 import axiosInstance from '@/config/axiosInstance';
-import {ClinicModel, ClinicListResponse, ClinicResponse, ClinicPageResponse, ReferralClinic, ReferralClinician } from '@/types/clinic.types';
+import {ClinicModel, ClinicListResponse, ClinicResponse, ClinicPageResponse, ReferralClinic, ReferralClinician } from '@/types/clinic/clinic.types';
 import { SaveResponse } from '@/types/api.types';
 import { axiosErrorToApiError } from '@/types/errors';
 

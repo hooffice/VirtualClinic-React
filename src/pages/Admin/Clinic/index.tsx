@@ -23,7 +23,7 @@ import { RootState } from "@/store";
 import Breadcrumb from "Components/Common/Breadcrumb";
 import TableContainer from "Components/Common/TableContainer";
 import DeleteModal from "Components/Common/DeleteModal";
-import { ClinicModel, ClinicListItem } from "@/types/clinic.types";
+import { ClinicModel, ClinicListItem } from "@/types/clinic/clinic.types";
 import {
   fetchClinics,
   saveClinic,
@@ -35,6 +35,15 @@ import {
   clearError,
 } from "@/slices/admin/clinic/clinicSlice";
 
+import { commonService } from "@/services/commonService";
+import type { SelectOption, SelectStringOption} from "@/types/api.types";
+import { timezoneService, Timezone } from "@/services/timezoneService";
+import type { Country, State, City } from "@/services/commonService";
+import CreatableSelect from "react-select/creatable";
+import type { SingleValue } from "react-select";
+// Types - Dropdown Listbox
+
+  const clientId: number = Number(import.meta.env.VITE_CLIENT_ID) || 1;
 /**
  * Clinic Component with Server-Side Pagination & Search
  * Uses TableContainer with server-side data fetching
@@ -61,11 +70,39 @@ const emptyModel: ClinicModel = {
   timezone: null,
 };
 
+/**
+ * Map list row → editable model.
+ * Cast to `any` because OrganizationListItem is typed with legacy underscore
+ * names but the API actually returns camelCase at runtime.
+ */
+const toModel = (clinic: ClinicListItem): ClinicModel => {
+  return {
+      id: clinic.id,
+      clientId: clinic.client_Id || clientId,
+      organizationId: clinic.organization_Id || 0,
+      code: clinic.code,
+      name: clinic.name,
+      addressLine1: clinic.address_Line1,
+      addressLine2: clinic.address_Line2,
+      cityId: clinic.city_Id,
+      cityName: clinic.cityName,
+      stateId: clinic.state_Id,
+      stateName: clinic.stateName,
+      countryId: clinic.country_Id,
+      countryName: clinic.countryName,
+      zip: clinic.zip,
+      contact1: clinic.contact1,
+      contact2: clinic.contact2,
+      active: clinic.active === "Yes" ? true : false,
+      timezone: null,
+  };
+};
+
 const ClinicList: React.FC = () => {
   document.title = "Clinics | Virtual Clinic";
 
   const dispatch = useDispatch<any>();
-  const clientId: number = Number(import.meta.env.VITE_CLIENT_ID) || 1;
+
 
   // Redux state
   const { list, loading, saving, success, error, message, totalPages, currentPage, pageSize, totalRecords } = useSelector(
@@ -78,6 +115,51 @@ const ClinicList: React.FC = () => {
   const [deleteTarget, setDeleteTarget] = useState<number | null>(null);
   const [form, setForm] = useState<ClinicModel>(emptyModel);
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+  const [countries, setCountries]         = useState<Country[]>([]);
+  const [states, setStates]               = useState<State[]>([]);
+  const [cities, setCities]               = useState<City[]>([]);
+  const [loadingStates, setLoadingStates] = useState(false);
+  const [loadingCities, setLoadingCities] = useState(false);  
+  const [timezono, setTimezone]           = useState<Timezone[]>([]);
+
+  // react-select options (memoized)
+  const countryOptions = useMemo<SelectOption[]>(
+    () => countries.map(c => ({ value: Number(c.id), label: c.name })),
+    [countries]
+  );
+  const stateOptions = useMemo<SelectOption[]>(
+    () => states.map(s => ({ value: Number(s.id), label: s.name })),
+    [states]
+  );
+  const cityOptions = useMemo<SelectOption[]>(
+    () => cities.map(c => ({ value: Number(c.id), label: c.name })),
+    [cities]
+  );
+  const timezoneOptions = useMemo<SelectStringOption[]>(
+    () => timezono.map(tz => ({ value: tz.nameOfTimeZone, label: tz.nameOfTimeZone })),
+    [timezono]
+  );
+
+  // set values of dropdown
+  const selectedCountry = useMemo(
+    () => countryOptions.find(o => o.value === form.countryId) ?? null,
+    [countryOptions, form.countryId]
+  );
+
+  const selectedState = useMemo(
+    () => stateOptions.find(o => o.value === form.stateId) ?? null,
+    [stateOptions, form.stateId]
+  );
+
+  const selectedCity = useMemo(
+    () => cityOptions.find(o => o.value === form.cityId) ?? null,
+    [cityOptions, form.cityId]
+  );  
+
+  const selectedTimezone = useMemo(
+    () => timezoneOptions.find(o => o.value === form.timezone) ?? null,
+    [timezoneOptions, form.timezone]
+  );    
 
   // Server-side pagination & search state
   const [pageNumber, setPageNumber] = useState(1);
@@ -106,25 +188,69 @@ const ClinicList: React.FC = () => {
     }
   };
 
+  // Country → load states, reset state & city
+  const handleCountryChange = async (option: SingleValue<SelectOption>) => {
+    const countryId = option?.value ?? null;
+    setForm(prev => ({ ...prev, countryId, stateId: null, cityId: null }));
+    setStates([]);
+    setCities([]);
+    if (countryId) {
+      setLoadingStates(true);
+      try {
+        const data = await commonService.getStates(countryId);
+        setStates(data);
+      } catch { /* ignore */ } finally {
+        setLoadingStates(false);
+      }
+    }
+  };
+
+  // State → load cities, reset city
+  const handleStateChange = async (option: SingleValue<SelectOption>) => {
+    const stateId = option?.value ?? null;
+    setForm(prev => ({ ...prev, stateId, cityId: null }));
+    setCities([]);
+    if (stateId) {
+      setLoadingCities(true);
+      try {
+        const data = await commonService.getCities(stateId);
+        setCities(data);
+      } catch { /* ignore */ } finally {
+        setLoadingCities(false);
+      }
+    }
+  };
+
+  // City
+  const handleCityChange = (option: SingleValue<SelectOption>) => {
+    setForm(prev => ({ ...prev, cityId: option?.value ?? null }));
+  };
+
+  // Timezone
+  const handleTimezoneChange = (option: SingleValue<SelectStringOption>) => {
+    setForm(prev => ({ ...prev, timezone: option?.value ?? null }));
+  };
+
+
   // Fetch clinics when page, size, or search changes
   // Use ref to prevent duplicate fetches in strict mode or from loops
   useEffect(() => {
-    const currentQuery = JSON.stringify({
-      clientId,
-      pageNumber,
-      pageSize: pageNum,
-      search: searchTerm,
-    });
+    // const currentQuery = JSON.stringify({
+    //   clientId,
+    //   pageNumber,
+    //   pageSize: pageNum,
+    //   search: searchTerm,
+    // });
 
-    console.log("📌 Fetch useEffect triggered. Query:", currentQuery);
+    // console.log("📌 Fetch useEffect triggered. Query:", currentQuery);
 
-    if (lastQueryRef.current === currentQuery) {
-      console.log("⏭️  Skipped (duplicate query)");
-      return;
-    }
+    // if (lastQueryRef.current === currentQuery) {
+    //   console.log("⏭️  Skipped (duplicate query)");
+    //   return;
+    // }
 
-    console.log("📡 Fetching data. Previous query:", lastQueryRef.current);
-    lastQueryRef.current = currentQuery;
+    // console.log("📡 Fetching data. Previous query:", lastQueryRef.current);
+    // lastQueryRef.current = currentQuery;
 
     dispatch(fetchClinics({
       clientId,
@@ -132,6 +258,9 @@ const ClinicList: React.FC = () => {
       pageSize: pageNum,
       search: searchTerm,
     }));
+    commonService.getCountries().then(setCountries).catch(console.error);
+    timezoneService.getTimezones().then(setTimezone).catch(console.error);
+
 
   }, [pageNumber, pageNum, searchTerm, clientId, dispatch]);
 
@@ -269,30 +398,30 @@ const ClinicList: React.FC = () => {
     setModalOpen(true);
   };
 
-  const handleEdit = (clinic: ClinicListItem) => {
-    const model: ClinicModel = {
-      id: clinic.id,
-      clientId: clinic.client_Id || clientId,
-      organizationId: clinic.organization_Id || 0,
-      code: clinic.code,
-      name: clinic.name,
-      addressLine1: clinic.address_Line1,
-      addressLine2: clinic.address_Line2,
-      cityId: clinic.city_Id,
-      cityName: clinic.cityName,
-      stateId: clinic.state_Id,
-      stateName: clinic.stateName,
-      countryId: clinic.country_Id,
-      countryName: clinic.countryName,
-      zip: clinic.zip,
-      contact1: clinic.contact1,
-      contact2: clinic.contact2,
-      active: clinic.active === "Yes" ? true : false,
-      timezone: null,
-    };
+  const handleEdit = async (row: ClinicListItem) => {
+    const model: ClinicModel = toModel(row);
     dispatch(setSelected(model));
     setForm(model);
     setFormErrors({});
+    // Fetch states & cities in parallel before opening modal
+    const [statesData, citiesData] = await Promise.all([
+      model.countryId
+        ? commonService.getStates(model.countryId).catch((): State[] => [])
+        : Promise.resolve<State[]>([]),
+      model.stateId
+        ? commonService.getCities(model.stateId).catch((): City[] => [])
+        : Promise.resolve<City[]>([]),
+    ]);
+
+    // Batch all state updates — modal opens with everything ready
+    setStates(statesData);
+    setCities(citiesData);
+    setForm({
+      ...model,
+      countryId: Number(model.countryId),
+      stateId: Number(model.stateId),
+      cityId: Number(model.cityId),
+    });    
     setModalOpen(true);
   };
 
@@ -395,7 +524,7 @@ const ClinicList: React.FC = () => {
         </Container>
       </div>
 
-      {/* ── Add / Edit Modal ─────────────────────────────────────────────── */}
+      {/* Add / Edit Modal*/}
       <Modal isOpen={modalOpen} toggle={handleModalClose} size="lg" centered>
         <ModalHeader toggle={handleModalClose}>
           {form.id === 0 ? "Add Clinic" : "Edit Clinic"}
@@ -470,29 +599,42 @@ const ClinicList: React.FC = () => {
               </Col>
             </Row>
 
-            {/* City / State */}
+            {/* Country / State */}
             <Row>
               <Col md={6}>
                 <FormGroup>
-                  <Label for="cityName">City</Label>
-                  <Input
-                    id="cityName"
-                    name="cityName"
-                    value={form.cityName ?? ""}
-                    onChange={handleChange}
-                    placeholder="City"
+                  <Label for="countryName">Country</Label>
+                  <CreatableSelect<SelectOption>
+                    inputId="countryId"
+                    options={countryOptions}
+                    value={selectedCountry}
+                    onChange={handleCountryChange}
+                    placeholder="Search country..."
+                    isClearable
+                    menuPlacement="auto"
+                    styles={{ menu: base => ({ ...base, zIndex: 9999 }) }}
+                    classNamePrefix="react-select"
                   />
                 </FormGroup>
-              </Col>
+              </Col>              
+
               <Col md={6}>
                 <FormGroup>
-                  <Label for="stateName">State</Label>
-                  <Input
-                    id="stateName"
-                    name="stateName"
-                    value={form.stateName ?? ""}
-                    onChange={handleChange}
-                    placeholder="State"
+                  <Label>
+                    State {loadingStates && <Spinner size="sm" className="ms-1" />}
+                  </Label>
+                  <CreatableSelect<SelectOption>
+                    inputId="stateId"
+                    options={stateOptions}
+                    value={selectedState}
+                    onChange={handleStateChange}
+                    placeholder={form.countryId ? "Search state..." : "Select country first"}
+                    isClearable
+                    isDisabled={!form.countryId || loadingStates}
+                    isLoading={loadingStates}
+                    menuPlacement="auto"
+                    styles={{ menu: base => ({ ...base, zIndex: 9999 }) }}
+                    classNamePrefix="react-select"
                   />
                 </FormGroup>
               </Col>
@@ -500,6 +642,26 @@ const ClinicList: React.FC = () => {
 
             {/* Zip / Country */}
             <Row>
+              <Col md={6}>
+                <FormGroup>
+                  <Label>
+                    City {loadingCities && <Spinner size="sm" className="ms-1" />}
+                  </Label>
+                  <CreatableSelect<SelectOption>
+                    inputId="cityId"
+                    options={cityOptions}
+                    value={selectedCity}
+                    onChange={handleCityChange}
+                    placeholder={form.stateId ? "Search city..." : "Select state first"}
+                    isClearable
+                    isDisabled={!form.stateId || loadingCities}
+                    isLoading={loadingCities}
+                    menuPlacement="auto"
+                    styles={{ menu: base => ({ ...base, zIndex: 9999 }) }}
+                    classNamePrefix="react-select"
+                  />
+                </FormGroup>
+              </Col>              
               <Col md={6}>
                 <FormGroup>
                   <Label for="zip">Zip / Postal Code</Label>
@@ -512,18 +674,7 @@ const ClinicList: React.FC = () => {
                   />
                 </FormGroup>
               </Col>
-              <Col md={6}>
-                <FormGroup>
-                  <Label for="countryName">Country</Label>
-                  <Input
-                    id="countryName"
-                    name="countryName"
-                    value={form.countryName ?? ""}
-                    onChange={handleChange}
-                    placeholder="Country"
-                  />
-                </FormGroup>
-              </Col>
+
             </Row>
 
             {/* Contact Information */}
@@ -565,12 +716,16 @@ const ClinicList: React.FC = () => {
               <Col md={6}>
                 <FormGroup>
                   <Label for="timezone">Timezone</Label>
-                  <Input
-                    id="timezone"
-                    name="timezone"
-                    value={form.timezone ?? ""}
-                    onChange={handleChange}
-                    placeholder="UTC, EST, etc."
+                  <CreatableSelect<SelectStringOption>
+                    inputId="timezone"
+                    options={timezoneOptions}
+                    value={selectedTimezone}
+                    onChange={handleTimezoneChange}
+                    placeholder="Search Timezone..."
+                    isClearable
+                    menuPlacement="auto"
+                    styles={{ menu: base => ({ ...base, zIndex: 9999 }) }}
+                    classNamePrefix="react-select"
                   />
                 </FormGroup>
               </Col>
@@ -614,7 +769,7 @@ const ClinicList: React.FC = () => {
         </Form>
       </Modal>
 
-      {/* ── Delete Confirmation ──────────────────────────────────────────── */}
+      {/* Delete Confirmation*/}
       <DeleteModal
         show={deleteModal}
         onDeleteClick={handleDeleteConfirm}

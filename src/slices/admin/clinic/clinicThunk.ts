@@ -1,6 +1,6 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import { clinicService } from "@/services/admin/clinic/clinicService";
-import { ClinicModel } from "@/types/clinic.types";
+import { ClinicModel } from "@/types/clinic/clinic.types";
 import {
   setLoading,
   setSaving,

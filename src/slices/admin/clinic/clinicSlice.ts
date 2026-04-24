@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { ClinicModel, ClinicListItem } from "@/types/clinic.types";
+import { ClinicModel, ClinicListItem } from "@/types/clinic/clinic.types";
 
 export interface ClinicState {
   list: ClinicListItem[];

@@ -249,3 +249,11 @@ export interface SaveResponse {
   message: string;
   success: boolean;
 }
+// =====================================================
+//SELECT OPTION NUMER VALUE
+// =====================================================
+export interface SelectOption { value: number; label: string };
+// =====================================================
+//SELECT OPTION STRING VALUE
+// =====================================================
+export interface SelectStringOption { value: string; label: string };
