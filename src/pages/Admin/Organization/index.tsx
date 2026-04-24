@@ -386,7 +386,7 @@ const OrganizationList: React.FC = () => {
                       handleUserClick={handleAddNew}
                       buttonClass="btn btn-info btn-rounded"
                       buttonName="Add"
-                      SearchPlaceholder="Search organizations..."
+                      searchPlaceholder="Search organizations..."
                       tableClass="table-bordered align-middle nowrap mt-2"
                       theadClass="table-light"
                       paginationWrapper="dataTables_paginate paging_simple_numbers"

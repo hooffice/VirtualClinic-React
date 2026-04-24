@@ -68,7 +68,7 @@ interface TableContainerProps<T> {
   serverSideCurrentPage?: number;
   serverSidePageSize?: number;
   serverSideTotalPages?: number;
-  serverSideSearchTerm?: string; // ✅ NEW: Sync search from parent
+  serverSideSearchTerm?: string;
 
   isGlobalFilter?: boolean;
   isPagination?: boolean;
@@ -78,6 +78,15 @@ interface TableContainerProps<T> {
   buttonClass?: string;
   isAddButton?: boolean;
   handleUserClick?: () => void;
+
+  // ✅ NEW: CSS class customization
+  tableClass?: string;
+  theadClass?: string;
+  paginationWrapper?: string;
+  pagination?: string;
+  searchPlaceholder?: string;
+  isLoading?: boolean;
+  emptyMessage?: string;
 }
 
 // ----------------------
@@ -94,7 +103,7 @@ const TableContainer = <T,>({
   serverSideCurrentPage = 1,
   serverSidePageSize = 10,
   serverSideTotalPages = 0,
-  serverSideSearchTerm = "", // ✅ NEW: Sync search from parent
+  serverSideSearchTerm = "",
 
   isGlobalFilter = true,
   isPagination = true,
@@ -104,6 +113,14 @@ const TableContainer = <T,>({
   buttonClass,
   isAddButton,
   handleUserClick,
+
+  tableClass = "",
+  theadClass = "table-light",
+  paginationWrapper = "dataTables_paginate paging_simple_numbers",
+  pagination = "pagination justify-content-end pagination-sm",
+  searchPlaceholder = "Search...",
+  isLoading = false,
+  emptyMessage = "No data available",
 }: TableContainerProps<T>) => {
 
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -266,7 +283,7 @@ const TableContainer = <T,>({
                 }
               }}
               className="form-control"
-              placeholder="Search..."
+              placeholder={searchPlaceholder}
             />
           </Col>
         )}
@@ -282,11 +299,11 @@ const TableContainer = <T,>({
       </Row>
 
       {/* Table */}
-      <div className="table-responsive">
-        <Table bordered hover>
+      <div className="table-responsive" style={{ overflowY: "visible" }}>
+        <Table bordered hover className={tableClass}>
           <thead>
             {getHeaderGroups().map(headerGroup => (
-              <tr key={headerGroup.id}>
+              <tr key={headerGroup.id} className={theadClass}>
                 {headerGroup.headers.map(header => (
                   <th key={header.id}>
                     <div
@@ -321,12 +338,28 @@ const TableContainer = <T,>({
             ))}
           </tbody>
         </Table>
+
+        {/* Empty State */}
+        {getRowModel().rows.length === 0 && (
+          <div className="text-center py-4">
+            <p className="text-muted">{emptyMessage}</p>
+          </div>
+        )}
       </div>
 
       {/* Pagination */}
       {isPagination && (
         <Row className="mt-2">
           <Col>
+            {/* Pagination Info */}
+            {serverSideTotalRecords > 0 && (
+              <div className="mb-2">
+                <small className="text-muted">
+                  Showing {Math.min((serverSideCurrentPage - 1) * serverSidePageSize + 1, serverSideTotalRecords)} to {Math.min(serverSideCurrentPage * serverSidePageSize, serverSideTotalRecords)} of {serverSideTotalRecords} items
+                </small>
+              </div>
+            )}
+
             <div className="d-flex justify-content-between align-items-center">
 
               {/* Rows */}
@@ -345,7 +378,7 @@ const TableContainer = <T,>({
               )}
 
               {/* Pagination */}
-              <ul className="pagination mb-0">
+              <ul className={`pagination mb-0 ${pagination}`}>
 
                 {/* Prev */}
                 <li className="page-item">
