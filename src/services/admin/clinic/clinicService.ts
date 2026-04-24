@@ -1,7 +1,7 @@
 import axiosInstance from '@/config/axiosInstance';
-import { SaveResponse } from '@/types/api.types';
+import { ApiResponse, SaveResponse } from '@/types/api.types';
 import { axiosErrorToApiError } from '@/types/errors';
-import {ClinicModel, ClinicListResponse, ClinicResponse, ClinicPageResponse, ReferralClinic, ReferralClinician } from '@/types/admin/clinic/clinic.types';
+import {ClinicModel, ClinicResponse, ClinicPageResponse, ReferralClinic, ReferralClinician, ClinicListItem } from '@/types/admin/clinic/clinic.types';
 
 
 const BASE = "/api/clinic";
@@ -40,12 +40,12 @@ class ClinicService {
    * GET /api/clinic/clinicbyclient/{id}
    * Get clinics assigned to a specific clinician
    */
-  async getClinicByClient(clientId: number): Promise<ClinicListResponse[]> {
+  async getClinicByClient(clientId: number): Promise<ApiResponse<ClinicListItem[]>> {
     try {
-      const response = await axiosInstance.get<ClinicListResponse>(
-        `${BASE}/clinicbyclinician/${clientId}`
+      const response = await axiosInstance.get(
+        `${BASE}/clinicbyclient/${clientId}`
       );
-      return Array.isArray(response.data.data) ? response.data.data as ClinicListResponse[] : [];
+      return response.data;
     } catch (error) {
       throw axiosErrorToApiError(error);
     }
@@ -54,12 +54,12 @@ class ClinicService {
    * GET /api/clinic/clinicbyclinician/{id}
    * Get clinics assigned to a specific clinician
    */
-  async getClinicByClinicianId(clinicianId: number): Promise<ClinicListResponse[]> {
+  async getClinicByClinicianId(clinicianId: number): Promise<ApiResponse<ClinicListItem[]>> {
     try {
-      const response = await axiosInstance.get<ClinicListResponse>(
+      const response = await axiosInstance.get(
         `${BASE}/clinicbyclinician/${clinicianId}`
       );
-      return Array.isArray(response.data.data) ? response.data.data as ClinicListResponse[] : [];
+      return response.data;
     } catch (error) {
       throw axiosErrorToApiError(error);
     }
@@ -84,12 +84,12 @@ class ClinicService {
    * GET /api/clinic/referralclinics/{id}
    * Get referral clinics (not assigned to clinician)
    */
-  async getReferralClinics(clinicianId: number): Promise<ReferralClinic[]> {
+  async getReferralClinics(clinicianId: number): Promise<ApiResponse<ReferralClinic[]>> {
     try {
       const response = await axiosInstance.get<any>(
         `${BASE}/referralclinics/${clinicianId}`
       );
-      return Array.isArray(response.data.data) ? response.data.data : [];
+      return response.data;
     } catch (error) {
       throw axiosErrorToApiError(error);
     }
@@ -99,12 +99,12 @@ class ClinicService {
    * GET /api/clinic/referralclinician/{id}
    * Get referral clinicians for a specific clinic
    */
-  async getReferralClinicians(clinicId: number): Promise<ReferralClinician[]> {
+  async getReferralClinicians(clinicId: number): Promise<ApiResponse<ReferralClinician[]>> {
     try {
       const response = await axiosInstance.get<any>(
         `${BASE}/referralclinician/${clinicId}`
       );
-      return Array.isArray(response.data.data) ? response.data.data : [];
+      return response.data;
     } catch (error) {
       throw axiosErrorToApiError(error);
     }

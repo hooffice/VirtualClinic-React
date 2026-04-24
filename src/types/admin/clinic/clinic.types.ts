@@ -70,6 +70,7 @@ export interface ReferralClinician {
 export interface ClinicPageResponse {
   data: ClinicListItem[];
   xpage: {
+    currentPage: number;
     pageNumber: number;
     pageSize: number;
     totalRecords: number;
@@ -79,7 +80,7 @@ export interface ClinicPageResponse {
 }
 
 export interface ClinicListResponse {
-  data: ClinicListItem[] | ClinicModel[];
+  data: ClinicListItem[];
   success: boolean;
 }
 

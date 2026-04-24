@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState, useRef, useCallback } from "react";
+import React, { useEffect, useMemo, useState, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { toastService } from "@/services/toastService";
 import {
@@ -267,19 +267,34 @@ const ClinicList: React.FC = () => {
   // Show success toast and close modal (only after save/delete, not after pagination)
   useEffect(() => {
     if (success && message) {
+      // ✅ Check BEFORE resetting form - this is crucial!
+      // Otherwise useEffect runs twice and form.id changes to 0
+      const isNewRecord = form.id === 0;
+
       toastService.success(message);
       setModalOpen(false);
       // Reset form only on success
       setForm(emptyModel);
       setFormErrors({});
 
-      // Reset to page 1 - will trigger fetch via main useEffect
-      setPageNumber(1);
-      setPageNum(10);
-      setSearchTerm("");
-
-      // Update ref to ensure we fetch page 1 (not skipped by duplicate check)
-      lastQueryRef.current = "";
+      // ✅ ONLY reset to page 1 for NEW records (add)
+      // For EDIT, stay on current page but refresh the list
+      if (isNewRecord) {
+        // New record added → go to page 1 (triggers fetch via useEffect)
+        setPageNumber(1);
+        setPageNum(10);
+        setSearchTerm("");
+        lastQueryRef.current = "";
+      } else {
+        // Editing → stay on current page but refresh the list
+        lastQueryRef.current = "";  // Reset to allow fetch even if query is same
+        dispatch(fetchClinics({
+          clientId,
+          pageNumber,
+          pageSize: pageNum,
+          search: searchTerm,
+        }));
+      }
 
       // Clear success state after a delay
       const timer = setTimeout(() => {
@@ -287,7 +302,7 @@ const ClinicList: React.FC = () => {
       }, 2000);
       return () => clearTimeout(timer);
     }
-  }, [success, message, dispatch]);
+  }, [success, message, dispatch, clientId, pageNumber, pageNum, searchTerm]);
 
   // Show error toast
   useEffect(() => {

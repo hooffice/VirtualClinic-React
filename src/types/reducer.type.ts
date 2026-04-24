@@ -103,26 +103,25 @@ export const resetBaseState = <TList, TModel>(
 };
 
 export const advancedReducers = {
-  setListData: <TList, TModel>(
+  fetchSuccess: <TList, TModel>(
     state: BaseEntityState<TList, TModel>,
     action: PayloadAction<ApiResponse<TList[]>>
   ) => {
-    const { data, message, success } = action.payload;
+    const { data, success } = action.payload;
 
     state.list = Array.isArray(data) ? data : [];
 
     state.loading = false;
     state.saving = false;
     state.success = success ?? true;
-    state.message = message ?? null;
     state.error = null;
   },
 };
 
 
 export const advancedPageReducers = {
-  setListWithPagination: <TList, TModel>(
-    state:  BaseEntityState<TList, TModel> & PaginatedState,
+  setListWithPagination: <TList>(
+    state:  BaseEntityState<TList, any> & PaginatedState,
     action: PayloadAction<PaginatedApiResponse<TList>>
   ) => {
     const { data, currentPage, totalPages, pageSize, totalRecords, message } =

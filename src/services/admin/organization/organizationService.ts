@@ -1,19 +1,19 @@
 import axiosInstance from '@/config/axiosInstance';
-import { SaveResponse } from '@/types/api.types';
+import { ApiResponse, SaveResponse } from '@/types/api.types';
 import { axiosErrorToApiError } from '@/types/errors';
-import { OrganizationListItem, ListResponse, OrganizationModel } from '@/types/admin/organization/organization.type';
+import { OrganizationListItem, OrganizationModel } from '@/types/admin/organization/organization.type';
 const BASE = "/api/organization";
 
 class OrganizationService {
 
   // GET /api/organization/getorganizationbyclientid?id={clientId}
-  async getByClientId(clientId: number): Promise<OrganizationListItem[]> {
+  async getByClientId(clientId: number): Promise<ApiResponse<OrganizationListItem[]>> {
     try {
-      const response = await axiosInstance.get<ListResponse>(
+      const response = await axiosInstance.get(
         `${BASE}/getorganizationbyclientid`,
         { params: { id: clientId } }
       );
-      return response.data.data;  
+      return response.data;  
     } catch (error) {
       throw axiosErrorToApiError(error);
     }
