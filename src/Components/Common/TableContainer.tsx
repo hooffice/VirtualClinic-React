@@ -1,48 +1,23 @@
-import React, { Fragment, useEffect, useState } from "react";
+import React, { Fragment, useEffect, useRef, useState } from "react";
 import { Row, Table, Button, Col } from "reactstrap";
-import { Link } from "react-router-dom";
 
 import {
-  Column,
-  Table as ReactTable,
+  ColumnDef,
   ColumnFiltersState,
-  FilterFn,
+  SortingState,
   useReactTable,
   getCoreRowModel,
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
   flexRender
-} from '@tanstack/react-table';
+} from "@tanstack/react-table";
 
-import { rankItem } from '@tanstack/match-sorter-utils';
-import JobListGlobalFilter from "./GlobalSearchFilter";
+import { rankItem } from "@tanstack/match-sorter-utils";
 
-// Column Filter
-const Filter = ({
-  column
-}: {
-  column: Column<any, unknown>;
-  table: ReactTable<any>;
-}) => {
-  const columnFilterValue = column.getFilterValue();
-
-  return (
-    <>
-      <DebouncedInput
-        type="text"
-        value={(columnFilterValue ?? '') as string}
-        onChange={value => column.setFilterValue(value)}
-        placeholder="Search..."
-        className="w-36 border shadow rounded"
-        list={column.id + 'list'}
-      />
-      <div className="h-1" />
-    </>
-  );
-};
-
-// Global Filter
+// ----------------------
+// Debounced Input (FIXED)
+// ----------------------
 const DebouncedInput = ({
   value: initialValue,
   onChange,
@@ -50,265 +25,398 @@ const DebouncedInput = ({
   ...props
 }: {
   value: string | number;
-  onChange: (value: string | number) => void;
+  onChange: (value: string) => void;
   debounce?: number;
-} & Omit<React.InputHTMLAttributes<HTMLInputElement>, 'onChange'>) => {
+} & Omit<React.InputHTMLAttributes<HTMLInputElement>, "onChange">) => {
+
   const [value, setValue] = useState(initialValue);
+  const firstRun = useRef(true);
 
   useEffect(() => {
     setValue(initialValue);
   }, [initialValue]);
 
   useEffect(() => {
+    if (firstRun.current) {
+      firstRun.current = false;
+      return;
+    }
+
     const timeout = setTimeout(() => {
-      onChange(value);
+      onChange(String(value));
     }, debounce);
 
     return () => clearTimeout(timeout);
-  }, [debounce, onChange, value]);
+  }, [value]);
 
   return (
-    <React.Fragment>
-      <Col sm={4}>
-        <input {...props} value={value} onChange={e => setValue(e.target.value)} />
-      </Col>
-    </React.Fragment>
+    <input {...props} value={value} onChange={e => setValue(e.target.value)} />
   );
 };
-interface TableContainerProps {
-  columns?: any;
-  data?: any;
-  divClassName?: any;
-  tableClass?: any;
-  theadClass?: any;
-  isBordered?: boolean;
+
+// ----------------------
+// Props
+// ----------------------
+interface TableContainerProps<T> {
+  columns: ColumnDef<T, any>[];
+  data: T[];
+
+  isServerSidePagination?: boolean;
+  onServerChange?: (query: any) => void;
+
+  serverSideTotalRecords?: number;
+  serverSideCurrentPage?: number;
+  serverSidePageSize?: number;
+  serverSideTotalPages?: number;
+  serverSideSearchTerm?: string; // ✅ NEW: Sync search from parent
+
   isGlobalFilter?: boolean;
   isPagination?: boolean;
-  paginationWrapper?: string;
-  SearchPlaceholder?: string;
-  pagination?: string;
-  handleUserClick?: any;
-  buttonClass?: string;
-  buttonName?: string;
-  isAddButton?: boolean;
   isCustomPageSize?: boolean;
-  isJobListGlobalFilter?: boolean;
+
+  buttonName?: string;
+  buttonClass?: string;
+  isAddButton?: boolean;
+  handleUserClick?: () => void;
 }
 
-const TableContainer = ({
+// ----------------------
+// Component
+// ----------------------
+const TableContainer = <T,>({
   columns,
   data,
-  tableClass,
-  theadClass,
-  divClassName,
-  isBordered,
-  isPagination,
-  isGlobalFilter,
-  paginationWrapper,
-  SearchPlaceholder,
-  pagination,
-  buttonClass,
+
+  isServerSidePagination = false,
+  onServerChange,
+
+  serverSideTotalRecords = 0,
+  serverSideCurrentPage = 1,
+  serverSidePageSize = 10,
+  serverSideTotalPages = 0,
+  serverSideSearchTerm = "", // ✅ NEW: Sync search from parent
+
+  isGlobalFilter = true,
+  isPagination = true,
+  isCustomPageSize = true,
+
   buttonName,
+  buttonClass,
   isAddButton,
-  isCustomPageSize,
   handleUserClick,
-  isJobListGlobalFilter,
-}: TableContainerProps) => {
+}: TableContainerProps<T>) => {
 
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-  const [globalFilter, setGlobalFilter] = useState('');
+  const [globalFilter, setGlobalFilter] = useState("");
+  const [sorting, setSorting] = useState<SortingState>([]);
 
-  const fuzzyFilter: FilterFn<any> = (row, columnId, value, addMeta) => {
+  // ✅ NEW: local page state (IMPORTANT FIX)
+  const [localPage, setLocalPage] = useState(serverSideCurrentPage);
+
+  useEffect(() => {
+    setLocalPage(serverSideCurrentPage);
+  }, [serverSideCurrentPage]);
+
+  // ✅ NEW: Sync search term from parent when it changes
+  useEffect(() => {
+    setGlobalFilter(serverSideSearchTerm);
+  }, [serverSideSearchTerm]);
+
+  // ----------------------
+  // Fuzzy Filter
+  // ----------------------
+  const fuzzyFilter = (row: any, columnId: string, value: string, addMeta: any) => {
     const itemRank = rankItem(row.getValue(columnId), value);
-    addMeta({
-      itemRank
-    });
+    addMeta({ itemRank });
     return itemRank.passed;
   };
 
+  // ----------------------
+  // Build Server Query
+  // ----------------------
+  const buildQuery = (override: any = {}) => ({
+    page: localPage,
+    pageSize: serverSidePageSize,
+    search: globalFilter,
+    filters: columnFilters,
+    sorting,
+    ...override
+  });
+
+  // ----------------------
+  // Table
+  // ----------------------
   const table = useReactTable({
     columns,
     data,
-    filterFns: {
-      fuzzy: fuzzyFilter,
-    },
+
     state: {
       columnFilters,
       globalFilter,
+      sorting,
+      ...(isServerSidePagination && {
+        pagination: {
+          pageIndex: localPage - 1,
+          pageSize: serverSidePageSize,
+        },
+      }),
     },
-    onColumnFiltersChange: setColumnFilters,
+
+    manualPagination: isServerSidePagination,
+    manualFiltering: isServerSidePagination,
+    manualSorting: isServerSidePagination,
+
+    pageCount: isServerSidePagination ? serverSideTotalPages : undefined,
+
+    onColumnFiltersChange: (filters) => {
+      setColumnFilters(filters);
+      if (isServerSidePagination) {
+        setLocalPage(1);
+        onServerChange?.(buildQuery({ filters, page: 1 }));
+      }
+    },
+
     onGlobalFilterChange: setGlobalFilter,
-    globalFilterFn: fuzzyFilter,
+
+    onSortingChange: (sort) => {
+      setSorting(sort);
+      if (isServerSidePagination) {
+        setLocalPage(1);
+        onServerChange?.(buildQuery({ sorting: sort, page: 1 }));
+      }
+    },
+
+    globalFilterFn: isServerSidePagination ? undefined : fuzzyFilter,
+
     getCoreRowModel: getCoreRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: isServerSidePagination ? undefined : getFilteredRowModel(),
+    getPaginationRowModel: isServerSidePagination ? undefined : getPaginationRowModel(),
+    getSortedRowModel: isServerSidePagination ? undefined : getSortedRowModel(),
   });
 
   const {
     getHeaderGroups,
     getRowModel,
-    getCanPreviousPage,
-    getCanNextPage,
-    getPageOptions,
+    getState,
     setPageIndex,
     nextPage,
     previousPage,
-    // setPageSize,
-    getState
+    getCanNextPage,
+    getCanPreviousPage,
+    getPageOptions,
   } = table;
 
-  // useEffect(() => {
-  //   Number(customPageSize) && setPageSize(Number(customPageSize));
-  // }, [customPageSize, setPageSize]);
+  // ----------------------
+  // Page Size Change
+  // ----------------------
+  const handlePageSizeChange = (size: number) => {
+    if (isServerSidePagination) {
+      setLocalPage(1);
+      onServerChange?.(buildQuery({ page: 1, pageSize: size }));
+    } else {
+      table.setPageSize(size);
+    }
+  };
 
+  // ----------------------
+  // Visible Pages (max 3)
+  // ----------------------
+  const getVisiblePages = () => {
+    const current = isServerSidePagination
+      ? localPage
+      : getState().pagination.pageIndex + 1;
+
+    const total = isServerSidePagination
+      ? serverSideTotalPages
+      : getPageOptions().length;
+
+    let start = Math.max(1, current - 1);
+    let end = Math.min(total, start + 2);
+
+    if (end - start < 2) {
+      start = Math.max(1, end - 2);
+    }
+
+    const pages = [];
+    for (let i = start; i <= end; i++) {
+      pages.push(i);
+    }
+    return pages;
+  };
+
+  // ----------------------
+  // Render
+  // ----------------------
   return (
     <Fragment>
 
+      {/* Header */}
       <Row className="mb-2 align-items-center">
-        {isGlobalFilter && 
-        <Col sm={6}>
-        <DebouncedInput
-          value={globalFilter ?? ''}
-          onChange={value => setGlobalFilter(String(value))}
-          className="form-control search-box me-2 mb-2 d-inline-block"
-          placeholder={SearchPlaceholder}
-        /></Col>}
-        {isJobListGlobalFilter && <JobListGlobalFilter setGlobalFilter={setGlobalFilter} />}
-        {isAddButton && <Col sm={6} className="d-flex justify-content-end">
-          <div className="text-sm-end">
-            <Button type="button" className={buttonClass} onClick={handleUserClick}>
-              <i className="mdi mdi-plus me-1"></i> {buttonName}</Button>
-          </div>
-        </Col>}
+
+        {isGlobalFilter && (
+          <Col sm={6}>
+            <DebouncedInput
+              value={globalFilter}
+              onChange={(val) => {
+                setGlobalFilter(val);
+
+                if (isServerSidePagination) {
+                  setLocalPage(1);
+                  onServerChange?.(buildQuery({ search: val, page: 1 }));
+                }
+              }}
+              className="form-control"
+              placeholder="Search..."
+            />
+          </Col>
+        )}
+
+        {isAddButton && (
+          <Col sm={6} className="text-end">
+            <Button className={buttonClass} onClick={handleUserClick}>
+              {buttonName || "Add"}
+            </Button>
+          </Col>
+        )}
+
       </Row>
 
-      <div className={divClassName ? divClassName : "table-responsive"}>
-        <Table hover className={tableClass} bordered={isBordered}>
-          <thead className={theadClass}>
+      {/* Table */}
+      <div className="table-responsive">
+        <Table bordered hover>
+          <thead>
             {getHeaderGroups().map(headerGroup => (
               <tr key={headerGroup.id}>
-                {headerGroup.headers.map(header => {
-                  const hideOnMobile = (header.column.columnDef.meta as any)?.hideOnMobile;
-                  return (
-                    <th
-                      key={header.id}
-                      colSpan={header.colSpan}
-                      className={[
-                        header.column.columnDef.enableSorting ? "sorting sorting_desc" : "",
-                        hideOnMobile ? "d-none d-md-table-cell" : "",
-                      ].join(" ").trim()}
+                {headerGroup.headers.map(header => (
+                  <th key={header.id}>
+                    <div
+                      onClick={header.column.getToggleSortingHandler()}
+                      style={{ cursor: "pointer" }}
                     >
-                      {header.isPlaceholder ? null : (
-                        <React.Fragment>
-                          <div
-                            {...{
-                              className: header.column.getCanSort()
-                                ? 'cursor-pointer select-none'
-                                : '',
-                              onClick: header.column.getToggleSortingHandler(),
-                            }}
-                          >
-                            {flexRender(
-                              header.column.columnDef.header,
-                              header.getContext()
-                            )}
-                            {
-                              {
-                                asc: '',
-                                desc: '',
-                              }
-                              [header.column.getIsSorted() as string] ?? null}
-                          </div>
-                          {header.column.getCanFilter() ? (
-                            <div>
-                              <Filter column={header.column} table={table} />
-                            </div>
-                          ) : null}
-                        </React.Fragment>
-                      )}
-                    </th>
-                  );
-                })}
+                      {flexRender(header.column.columnDef.header, header.getContext())}
+                    </div>
+
+                    {!isServerSidePagination && header.column.getCanFilter() && (
+                      <input
+                        className="form-control mt-1"
+                        value={(header.column.getFilterValue() ?? "") as string}
+                        onChange={e => header.column.setFilterValue(e.target.value)}
+                      />
+                    )}
+                  </th>
+                ))}
               </tr>
             ))}
           </thead>
 
           <tbody>
-            {getRowModel().rows.map(row => {
-              return (
-                <tr key={row.id}>
-                  {row.getVisibleCells().map(cell => {
-                    const hideOnMobile = (cell.column.columnDef.meta as any)?.hideOnMobile;
-                    return (
-                      <td
-                        key={cell.id}
-                        className={hideOnMobile ? "d-none d-md-table-cell" : ""}
-                      >
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
-                        )}
-                      </td>
-                    );
-                  })}
-                </tr>
-              );
-            })}
+            {getRowModel().rows.map(row => (
+              <tr key={row.id}>
+                {row.getVisibleCells().map(cell => (
+                  <td key={cell.id}>
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </td>
+                ))}
+              </tr>
+            ))}
           </tbody>
         </Table>
       </div>
 
+      {/* Pagination */}
+      {isPagination && (
+        <Row className="mt-2">
+          <Col>
+            <div className="d-flex justify-content-between align-items-center">
 
-      {
-        isPagination && (
-          <Row className="align-items-center mt-3 gy-2">
-            <Col xs={12} md={5}>
-              <div className="d-flex align-items-center gap-2 flex-wrap">
-                {isCustomPageSize && (
-                  <>
-                    <span className="text-muted">Rows per page:</span>
-                    <select
-                      className="form-select form-select-sm"
-                      style={{ width: "75px" }}
-                      value={getState().pagination.pageSize}
-                      onChange={e => table.setPageSize(Number(e.target.value))}
-                    >
-                      {[10, 20, 30, 40, 50].map(size => (
-                        <option key={size} value={size}>{size}</option>
-                      ))}
-                    </select>
-                  </>
-                )}
-                <span className="text-muted">
-                  {getState().pagination.pageIndex * getState().pagination.pageSize + 1}–
-                  {Math.min(
-                    (getState().pagination.pageIndex + 1) * getState().pagination.pageSize,
-                    data.length
-                  )} of {data.length}
-                </span>
-              </div>
-            </Col>
-            <Col xs={12} md={7}>
-              <div className={paginationWrapper}>
-                <ul className={pagination}>
-                  <li className={`paginate_button page-item previous ${!getCanPreviousPage() ? "disabled" : ""}`}>
-                    <Link to="#" className="page-link" onClick={previousPage}><i className="mdi mdi-chevron-left"></i></Link>
-                  </li>
-                  {getPageOptions().map((item: any, key: number) => (
-                    <li key={key} className={`paginate_button page-item ${getState().pagination.pageIndex === item ? "active" : ""}`}>
-                      <Link to="#" className="page-link" onClick={() => setPageIndex(item)}>{item + 1}</Link>
+              {/* Rows */}
+              {isCustomPageSize && (
+                <div>
+                  <span className="me-2">Rows:</span>
+                  <select
+                    value={isServerSidePagination ? serverSidePageSize : getState().pagination.pageSize}
+                    onChange={(e) => handlePageSizeChange(Number(e.target.value))}
+                  >
+                    {[10, 20, 30, 50].map(size => (
+                      <option key={size} value={size}>{size}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              {/* Pagination */}
+              <ul className="pagination mb-0">
+
+                {/* Prev */}
+                <li className="page-item">
+                  <button
+                    className="page-link"
+                    disabled={isServerSidePagination ? localPage === 1 : !getCanPreviousPage()}
+                    onClick={() => {
+                      if (isServerSidePagination) {
+                        const prev = localPage - 1;
+                        setLocalPage(prev);
+                        onServerChange?.(buildQuery({ page: prev }));
+                      } else {
+                        previousPage();
+                      }
+                    }}
+                  >
+                    {"<<"}
+                  </button>
+                </li>
+
+                {/* Pages */}
+                {getVisiblePages().map(page => {
+                  const current = isServerSidePagination
+                    ? localPage
+                    : getState().pagination.pageIndex + 1;
+
+                  return (
+                    <li key={page} className={`page-item ${current === page ? "active" : ""}`}>
+                      <button
+                        className="page-link"
+                        onClick={() => {
+                          if (isServerSidePagination) {
+                            setLocalPage(page);
+                            onServerChange?.(buildQuery({ page }));
+                          } else {
+                            setPageIndex(page - 1);
+                          }
+                        }}
+                      >
+                        {page}
+                      </button>
                     </li>
-                  ))}
-                  <li className={`paginate_button page-item next ${!getCanNextPage() ? "disabled" : ""}`}>
-                    <Link to="#" className="page-link" onClick={nextPage}><i className="mdi mdi-chevron-right"></i></Link>
-                  </li>
-                </ul>
-              </div>
-            </Col>
-          </Row>
-        )
-      }
+                  );
+                })}
+
+                {/* Next */}
+                <li className="page-item">
+                  <button
+                    className="page-link"
+                    disabled={isServerSidePagination ? localPage === serverSideTotalPages : !getCanNextPage()}
+                    onClick={() => {
+                      if (isServerSidePagination) {
+                        const next = localPage + 1;
+                        setLocalPage(next);
+                        onServerChange?.(buildQuery({ page: next }));
+                      } else {
+                        nextPage();
+                      }
+                    }}
+                  >
+                    {">>"}
+                  </button>
+                </li>
+
+              </ul>
+
+            </div>
+          </Col>
+        </Row>
+      )}
+
     </Fragment>
   );
 };

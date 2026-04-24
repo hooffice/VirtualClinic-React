@@ -10,6 +10,7 @@ import roleReducer from "./auth/role/reducer";
 import registerReducer from "./auth/register/reducer";
 //Admin Module
 import organizationReducer from "./admin/organization/reducer";
+import clinicReducer from "./admin/clinic/clinicSlice";
 
 const rootReducer = combineReducers({
     Layout: layoutReducer,
@@ -19,7 +20,8 @@ const rootReducer = combineReducers({
     Account: accountReducer,
     register: registerReducer,
     role: roleReducer,
-    Organization: organizationReducer
+    Organization: organizationReducer,
+    Clinic: clinicReducer
 });
 
 export default rootReducer;

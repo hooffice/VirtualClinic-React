@@ -19,7 +19,7 @@ const ToastProvider: React.FC = () => {
       pauseOnFocusLoss
       draggable
       pauseOnHover
-      theme="light"
+      theme="colored"
       limit={3}
     />
   );

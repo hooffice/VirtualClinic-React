@@ -26,7 +26,7 @@ const AdminMenu = (props: any) => {
             <Link to="#">{props.t("Employer")}</Link>
           </li>
           <li>
-            <Link to="#">{props.t("Clinic")}</Link>
+            <Link to="/admin/clinics">{props.t("Clinic")}</Link>
           </li>
           <li>
             <Link to="#">{props.t("Clinician")}</Link>

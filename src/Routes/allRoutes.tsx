@@ -3,6 +3,7 @@ import Dashboard from "../pages/Dashboard";
 
 // Admin
 import OrganizationList from "pages/Admin/Organization";
+import ClinicExample from "@/pages/Admin/Clinic";
 
 // Auth
 import Login from "pages/Authentication/login";
@@ -23,6 +24,7 @@ const authProtectedRoutes = [
 
   // Admin
   { path: "/admin/organizations", component: <OrganizationList /> },
+  { path: "/admin/clinics", component: <ClinicExample /> },
 
   { path: "/", exact: true, component: <Navigate to="/dashboard" /> },
 ];
