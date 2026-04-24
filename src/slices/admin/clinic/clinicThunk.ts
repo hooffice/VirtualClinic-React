@@ -1,6 +1,6 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import { clinicService } from "@/services/admin/clinic/clinicService";
-import { ClinicModel } from "@/types/clinic/clinic.types";
+import { ClinicModel } from "@/types/admin/clinic/clinic.types";
 import {
   setLoading,
   setSaving,
@@ -35,10 +35,10 @@ export const fetchClinics = createAsyncThunk(
 
       dispatch(setList(response.data));
 
-      console.log("📌 API Response xpage:", response.xpage);
+      //console.log("📌 API Response xpage:", response.xpage);
       // Use requested pageNumber since API doesn't return it
       const currentPage = params.pageNumber || 1;
-      console.log("✓ Setting Redux currentPage to:", currentPage);
+      //onsole.log("✓ Setting Redux currentPage to:", currentPage);
 
       dispatch(
         setPagination({

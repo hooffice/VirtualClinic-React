@@ -23,7 +23,7 @@ import { RootState } from "@/store";
 import Breadcrumb from "Components/Common/Breadcrumb";
 import TableContainer from "Components/Common/TableContainer";
 import DeleteModal from "Components/Common/DeleteModal";
-import { ClinicModel, ClinicListItem } from "@/types/clinic/clinic.types";
+import { ClinicModel, ClinicListItem } from "@/types/admin/clinic/clinic.types";
 import {
   fetchClinics,
   saveClinic,
@@ -172,19 +172,19 @@ const ClinicList: React.FC = () => {
   // Handle server-side query changes from TableContainer
   // No memoization needed - state updates are the priority here
   const handleServerChange = (query: any) => {
-    console.log("📌 handleServerChange called with:", query);
+    //console.log("📌 handleServerChange called with:", query);
 
     if (query.page !== undefined) {
       setPageNumber(query.page);
-      console.log("✓ setPageNumber to:", query.page);
+      //console.log("✓ setPageNumber to:", query.page);
     }
     if (query.pageSize !== undefined) {
       setPageNum(query.pageSize);
-      console.log("✓ setPageNum to:", query.pageSize);
+      //console.log("✓ setPageNum to:", query.pageSize);
     }
     if (query.search !== undefined) {
       setSearchTerm(query.search);
-      console.log("✓ setSearchTerm to:", query.search);
+      //console.log("✓ setSearchTerm to:", query.search);
     }
   };
 
@@ -496,8 +496,9 @@ const ClinicList: React.FC = () => {
                       isCustomPageSize
                       handleUserClick={handleAddNew}
                       buttonClass="btn btn-info btn-rounded"
-                      buttonName="Add Clinic"
+                      buttonName=" + Add"
                       // Server-side pagination props
+                      searchPlaceholder="Search clinic...."
                       isServerSidePagination={true}
                       onServerChange={handleServerChange}
                       serverSideTotalRecords={totalRecords}

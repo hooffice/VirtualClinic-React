@@ -1,4 +1,5 @@
-import { organizationService, OrganizationModel } from '@/services/admin/organization/organizationService';
+import { organizationService } from '@/services/admin/organization/organizationService';
+import { OrganizationModel } from '@/types/admin/organization/organization.type';
 import { getErrorMessage } from '@/types/errors';
 import {
   setLoading,

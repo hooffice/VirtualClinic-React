@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { OrganizationListItem, OrganizationModel } from '@/services/admin/organization/organizationService';
+import { OrganizationListItem, OrganizationModel } from '@/types/admin/organization/organization.type';
 
 export interface OrganizationState {
   list:     OrganizationListItem[];

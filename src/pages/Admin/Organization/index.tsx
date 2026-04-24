@@ -14,7 +14,7 @@ import DeleteModal from "Components/Common/DeleteModal";
 import {
   OrganizationListItem,
   OrganizationModel,
-} from "@/services/admin/organization/organizationService";
+} from "@/types/admin/organization/organization.type";
 import {
   fetchOrganizations,
   saveOrganization,
@@ -385,7 +385,7 @@ const OrganizationList: React.FC = () => {
                       isCustomPageSize
                       handleUserClick={handleAddNew}
                       buttonClass="btn btn-info btn-rounded"
-                      buttonName="Add"
+                      buttonName=" + Add"
                       searchPlaceholder="Search organizations..."
                       tableClass="table-bordered align-middle nowrap mt-2"
                       theadClass="table-light"

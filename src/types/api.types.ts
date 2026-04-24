@@ -7,29 +7,51 @@
 // GENERIC RESPONSE WRAPPERS
 // =====================================================
 
-export interface ApiResponse<T = any> {
-  code?: number | string;
-  Code?: number | string;
-  success?: boolean;
+// export interface ApiResponse<T = any> {
+//   code?: number | string;
+//   Code?: number | string;
+//   success?: boolean;
+//   message?: string;
+//   data?: T;
+//   data_source?: string;
+//   state?: string;
+//   State?: string;
+//   status?: string;
+//   Status?: string;
+// }
+
+// export interface PaginatedResponse<T> {
+//   items: T[];
+//   totalCount: number;
+//   pageNumber: number;
+//   pageSize: number;
+//   totalPages: number;
+//   hasNextPage: boolean;
+//   hasPreviousPage: boolean;
+// }
+
+export interface ApiResponse<T> {
+  data: T;
   message?: string;
-  data?: T;
-  data_source?: string;
-  state?: string;
-  State?: string;
-  status?: string;
-  Status?: string;
+  success?: boolean;
 }
 
-export interface PaginatedResponse<T> {
-  items: T[];
-  totalCount: number;
-  pageNumber: number;
-  pageSize: number;
+export interface PaginatedApiResponse<T> {
+  data: T[];
+  currentPage: number;
   totalPages: number;
-  hasNextPage: boolean;
-  hasPreviousPage: boolean;
+  pageSize: number;
+  totalRecords: number;
+  message?: string;
 }
+// =====================================================
+// SAVE RESONSE
+// =====================================================
 
+export interface SaveResponse {
+  message: string;
+  success: boolean;
+}
 // =====================================================
 // AUTHENTICATION TYPES
 // =====================================================
@@ -241,14 +263,7 @@ export interface SearchParams extends PaginationParams, SortParams {
   filter?: Record<string, any>;
 }
 
-// =====================================================
-// SAVE RESONSE
-// =====================================================
 
-export interface SaveResponse {
-  message: string;
-  success: boolean;
-}
 // =====================================================
 //SELECT OPTION NUMER VALUE
 // =====================================================

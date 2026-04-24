@@ -370,7 +370,7 @@ const TableContainer = <T,>({
                     value={isServerSidePagination ? serverSidePageSize : getState().pagination.pageSize}
                     onChange={(e) => handlePageSizeChange(Number(e.target.value))}
                   >
-                    {[10, 20, 30, 50].map(size => (
+                    {[10, 20, 30, 50, 100].map(size => (
                       <option key={size} value={size}>{size}</option>
                     ))}
                   </select>
