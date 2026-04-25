@@ -36,7 +36,7 @@ export const fetchClinics = createAsyncThunk(
 
      const payload = {
            data: response.data,
-           currentPage: params.pageNumber || 1,  // ✅ Use requested page, not response
+           currentPage: params.pageNumber || 1,  // Use requested page, not response
            totalPages: response.xpage.totalPages,
            pageSize: response.xpage.pageSize,
            totalRecords: response.xpage.totalRecords,
@@ -45,10 +45,10 @@ export const fetchClinics = createAsyncThunk(
 
       dispatch(setListWithPagination(payload));
 
-      console.log("✅ Clinics loaded:", response.data.length, "items | Page:", params.pageNumber || 1);
+      console.log("Clinics loaded:", response.data.length, "items | Page:", params.pageNumber || 1);
       return response.data;
     } catch (error: any) {
-      console.error("❌ Error fetching clinics:", error.message);
+      console.error("Error fetching clinics:", error.message);
       dispatch(setError(error.message || "Failed to fetch clinics"));
       throw error;
     }
@@ -65,10 +65,10 @@ export const fetchClinicsByClient = createAsyncThunk(
       dispatch(setLoading());
       const result = await clinicService.getClinicByClient(clientId);
       dispatch(fetchSuccess(result.data))
-      //console.log("✅ Clinics by client loaded:", result.data.length, "items");
+      //console.log("Clinics by client loaded:", result.data.length, "items");
       return result;
     } catch (error: any) {
-      console.error("❌ Error fetching clinics by client:", error.message);
+      console.error("Error fetching clinics by client:", error.message);
       dispatch(setError(error.message || "Failed to fetch clinics"));
       throw error;
     }
@@ -85,10 +85,10 @@ export const fetchClinicsByClinicianId = createAsyncThunk(
       dispatch(setLoading());
       const result = await clinicService.getClinicByClinicianId(clinicianId);
       dispatch(fetchSuccess(result.data));
-      //console.log("✅ Clinics by clinician loaded:", result.data.length, "items");
+      //console.log("Clinics by clinician loaded:", result.data.length, "items");
       return result;
     } catch (error: any) {
-      console.error("❌ Error fetching clinics by clinician:", error.message);
+      console.error("Error fetching clinics by clinician:", error.message);
       dispatch(setError(error.message || "Failed to fetch clinics"));
       throw error;
     }
@@ -102,20 +102,21 @@ export const saveClinic = createAsyncThunk(
   "clinic/saveClinic",
   async (model: ClinicModel, { dispatch }) => {
     try {
+      dispatch(setSaving());
       const response = await clinicService.save(model);
 
       if (response.success) {
-        //console.log("✅ Clinic saved:", response.message);
+        //console.log("Clinic saved:", response.message);
         dispatch(setSuccess(response.message || "Clinic saved successfully!"));
         return response;
       } else {
-        console.warn("⚠️ Save failed:", response.message);
+        console.warn("Save failed:", response.message);
         dispatch(setError(response.message || "Failed to save clinic"));
         throw new Error(response.message || "Failed to save clinic");
       }
     } catch (error: any) {
       const errorMsg = error.message || "Failed to save clinic";
-      console.error("❌ Error saving clinic:", errorMsg);
+      console.error("Error saving clinic:", errorMsg);
       dispatch(setError(errorMsg));
       throw error;
     }
@@ -133,17 +134,17 @@ export const removeClinic = createAsyncThunk(
       const response = await clinicService.delete(id);
 
       if (response.success) {
-        console.log("✅ Clinic deleted:", response.message);
+        console.log("Clinic deleted:", response.message);
         dispatch(setSuccess(response.message || "Clinic deleted successfully!"));
       } else {
-        console.warn("⚠️ Delete failed:", response.message);
+        console.warn("Delete failed:", response.message);
         dispatch(setError(response.message || "Failed to delete clinic"));
       }
 
       return response;
     } catch (error: any) {
       const errorMsg = error.message || "Failed to delete clinic";
-      console.error("❌ Error deleting clinic:", errorMsg);
+      console.error("Error deleting clinic:", errorMsg);
       dispatch(setError(errorMsg));
       throw error;
     }

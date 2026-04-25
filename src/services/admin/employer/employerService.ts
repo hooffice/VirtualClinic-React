@@ -1,7 +1,7 @@
 import axiosInstance from '@/config/axiosInstance';
-import { SaveResponse } from '@/types/api.types';
+import { ApiResponse, SaveResponse } from '@/types/api.types';
 import { axiosErrorToApiError } from '@/types/errors';
-import { EmployerListResponse, EmployerModel } from '@/types/admin/employer/employer.type';
+import { EmployerList, EmployerModel } from '@/types/admin/employer/employer.type';
 
 const BASE = "/api/employer";
 
@@ -9,9 +9,9 @@ class EmployerService {
    /**
    * GET /api/employer/getemployerlistbyorgrnizationid
    */
-  async getEmployerByOrganization(organizationId: number): Promise<EmployerListResponse> {
+  async getEmployerByOrganization(organizationId: number): Promise<ApiResponse<EmployerList>[]> {
     try {
-      const response = await axiosInstance.get<EmployerListResponse>(
+      const response = await axiosInstance.get(
         `${BASE}/getemployerlistbyorgrnizationid`,
         {
           params: {id: organizationId}
@@ -24,11 +24,11 @@ class EmployerService {
   }
 
    /**
-   * GET /api/employer/getemployerlistbyorgrnizationid
+   * GET /api/employer/getemployerlist
    */
-  async getEmployerByClient(clientId: number): Promise<EmployerListResponse> {
+  async getEmployerByClient(clientId: number): Promise<ApiResponse<EmployerList[]>> {
     try {
-      const response = await axiosInstance.get<EmployerListResponse>(
+      const response = await axiosInstance.get(
         `${BASE}/getemployerlist`,
         {
           params: {id: clientId}

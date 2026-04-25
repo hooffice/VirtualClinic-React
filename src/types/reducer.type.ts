@@ -76,6 +76,7 @@ export const baseReducers = {
   clearError: <TList, TModel>(state: BaseEntityState<TList, TModel>) => {
     state.error = null;
   }
+  
 };
 
 export const paginationReducers = {
@@ -105,15 +106,14 @@ export const resetBaseState = <TList, TModel>(
 export const advancedReducers = {
   fetchSuccess: <TList, TModel>(
     state: BaseEntityState<TList, TModel>,
-    action: PayloadAction<ApiResponse<TList[]>>
+    action: PayloadAction<TList[]>
   ) => {
-    const { data, success } = action.payload;
 
-    state.list = Array.isArray(data) ? data : [];
+    state.list = action.payload;
 
     state.loading = false;
     state.saving = false;
-    state.success = success ?? true;
+    state.success = true;
     state.error = null;
   },
 };

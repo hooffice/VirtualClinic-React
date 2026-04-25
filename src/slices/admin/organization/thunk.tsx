@@ -17,7 +17,7 @@ export const fetchOrganizations = (clientId: number) => async (dispatch: any) =>
   try {
     dispatch(setLoading());
     const data = await organizationService.getByClientId(clientId);
-    dispatch(fetchSuccess(data));
+    dispatch(fetchSuccess(data.data));
   } catch (error) {
     dispatch(organizationError(getErrorMessage(error)));
   }
