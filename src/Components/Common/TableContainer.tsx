@@ -79,10 +79,10 @@ interface TableContainerProps<T> {
   isAddButton?: boolean;
   handleUserClick?: () => void;
 
-  // ✅ NEW: CSS class customization
+  // NEW: CSS class customization
   tableClass?: string;
   theadClass?: string;
-  paginationWrapper?: string;
+  //paginationWrapper?: string;
   pagination?: string;
   searchPlaceholder?: string;
   isLoading?: boolean;
@@ -116,7 +116,6 @@ const TableContainer = <T,>({
 
   tableClass = "",
   theadClass = "table-light",
-  paginationWrapper = "dataTables_paginate paging_simple_numbers",
   pagination = "pagination justify-content-end pagination-sm",
   searchPlaceholder = "Search...",
   isLoading = false,
@@ -127,14 +126,14 @@ const TableContainer = <T,>({
   const [globalFilter, setGlobalFilter] = useState("");
   const [sorting, setSorting] = useState<SortingState>([]);
 
-  // ✅ NEW: local page state (IMPORTANT FIX)
+  // NEW: local page state (IMPORTANT FIX)
   const [localPage, setLocalPage] = useState(serverSideCurrentPage);
 
   useEffect(() => {
     setLocalPage(serverSideCurrentPage);
   }, [serverSideCurrentPage]);
 
-  // ✅ NEW: Sync search term from parent when it changes
+  // NEW: Sync search term from parent when it changes
   useEffect(() => {
     setGlobalFilter(serverSideSearchTerm);
   }, [serverSideSearchTerm]);
@@ -326,25 +325,34 @@ const TableContainer = <T,>({
             ))}
           </thead>
 
-          <tbody>
-            {getRowModel().rows.map(row => (
-              <tr key={row.id}>
-                {row.getVisibleCells().map(cell => (
-                  <td key={cell.id}>
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
+<tbody>
+  {isLoading ? (
+    <tr>
+      <td colSpan={table.getAllLeafColumns().length} className="text-center py-4">
+        <div className="spinner-border text-primary" />
+      </td>
+    </tr>
+  ) : getRowModel().rows.length > 0 ? (
+    getRowModel().rows.map(row => (
+      <tr key={row.id}>
+        {row.getVisibleCells().map(cell => (
+          <td key={cell.id}>
+            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+          </td>
+        ))}
+      </tr>
+    ))
+  ) : (
+    <tr>
+      {/* Empty State */}
+      <td colSpan={table.getAllLeafColumns().length} className="text-center py-4">
+        {emptyMessage}
+      </td>
+    </tr>
+  )}
+</tbody>
         </Table>
 
-        {/* Empty State */}
-        {getRowModel().rows.length === 0 && (
-          <div className="text-center py-4">
-            <p className="text-muted">{emptyMessage}</p>
-          </div>
-        )}
       </div>
 
       {/* Pagination */}

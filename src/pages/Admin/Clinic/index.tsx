@@ -528,12 +528,7 @@ const ClinicList: React.FC = () => {
             <Col xs={12}>
               <Card>
                 <CardBody>
-                  {loading ? (
-                    <div className="text-center py-5">
-                      <Spinner color="primary" />
-                      <p className="text-muted mt-2">Loading clinics...</p>
-                    </div>
-                  ) : (
+
                     <TableContainer
                       columns={columns}
                       data={list || []}
@@ -541,6 +536,7 @@ const ClinicList: React.FC = () => {
                       isAddButton
                       isPagination
                       isCustomPageSize
+                      isLoading = {loading}
                       handleUserClick={handleAddNew}
                       buttonClass="btn btn-info btn-rounded"
                       buttonName=" + Add"
@@ -554,8 +550,6 @@ const ClinicList: React.FC = () => {
                       serverSideTotalPages={totalPages}
                       serverSideSearchTerm={searchTerm}
                     />
-                  )}
-
                 </CardBody>
               </Card>
             </Col>
