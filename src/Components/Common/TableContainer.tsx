@@ -10,7 +10,7 @@ import {
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
-  flexRender
+  flexRender,
 } from "@tanstack/react-table";
 
 import { rankItem } from "@tanstack/match-sorter-utils";
@@ -28,7 +28,6 @@ const DebouncedInput = ({
   onChange: (value: string) => void;
   debounce?: number;
 } & Omit<React.InputHTMLAttributes<HTMLInputElement>, "onChange">) => {
-
   const [value, setValue] = useState(initialValue);
   const firstRun = useRef(true);
 
@@ -50,7 +49,11 @@ const DebouncedInput = ({
   }, [value]);
 
   return (
-    <input {...props} value={value} onChange={e => setValue(e.target.value)} />
+    <input
+      {...props}
+      value={value}
+      onChange={(e) => setValue(e.target.value)}
+    />
   );
 };
 
@@ -121,7 +124,6 @@ const TableContainer = <T,>({
   isLoading = false,
   emptyMessage = "No data available",
 }: TableContainerProps<T>) => {
-
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [globalFilter, setGlobalFilter] = useState("");
   const [sorting, setSorting] = useState<SortingState>([]);
@@ -141,7 +143,12 @@ const TableContainer = <T,>({
   // ----------------------
   // Fuzzy Filter
   // ----------------------
-  const fuzzyFilter = (row: any, columnId: string, value: string, addMeta: any) => {
+  const fuzzyFilter = (
+    row: any,
+    columnId: string,
+    value: string,
+    addMeta: any,
+  ) => {
     const itemRank = rankItem(row.getValue(columnId), value);
     addMeta({ itemRank });
     return itemRank.passed;
@@ -156,7 +163,7 @@ const TableContainer = <T,>({
     search: globalFilter,
     filters: columnFilters,
     sorting,
-    ...override
+    ...override,
   });
 
   // ----------------------
@@ -205,8 +212,12 @@ const TableContainer = <T,>({
     globalFilterFn: isServerSidePagination ? undefined : fuzzyFilter,
 
     getCoreRowModel: getCoreRowModel(),
-    getFilteredRowModel: isServerSidePagination ? undefined : getFilteredRowModel(),
-    getPaginationRowModel: isServerSidePagination ? undefined : getPaginationRowModel(),
+    getFilteredRowModel: isServerSidePagination
+      ? undefined
+      : getFilteredRowModel(),
+    getPaginationRowModel: isServerSidePagination
+      ? undefined
+      : getPaginationRowModel(),
     getSortedRowModel: isServerSidePagination ? undefined : getSortedRowModel(),
   });
 
@@ -265,10 +276,8 @@ const TableContainer = <T,>({
   // ----------------------
   return (
     <Fragment>
-
       {/* Header */}
       <Row className="mb-2 align-items-center">
-
         {isGlobalFilter && (
           <Col sm={6}>
             <DebouncedInput
@@ -294,187 +303,246 @@ const TableContainer = <T,>({
             </Button>
           </Col>
         )}
-
       </Row>
 
       {/* Table */}
       <div className="table-responsive" style={{ overflowY: "visible" }}>
         <Table bordered hover className={tableClass}>
           <thead>
-            {getHeaderGroups().map(headerGroup => (
+            {getHeaderGroups().map((headerGroup) => (
               <tr key={headerGroup.id} className={theadClass}>
-                {headerGroup.headers.map(header => (
+                {headerGroup.headers.map((header) => (
                   <th key={header.id}>
                     <div
                       onClick={header.column.getToggleSortingHandler()}
                       style={{ cursor: "pointer" }}
                     >
-                      {flexRender(header.column.columnDef.header, header.getContext())}
+                      {flexRender(
+                        header.column.columnDef.header,
+                        header.getContext(),
+                      )}
                     </div>
 
-                    {!isServerSidePagination && header.column.getCanFilter() && (
-                      <input
-                        className="form-control mt-1"
-                        value={(header.column.getFilterValue() ?? "") as string}
-                        onChange={e => header.column.setFilterValue(e.target.value)}
-                      />
-                    )}
+                    {!isServerSidePagination &&
+                      header.column.getCanFilter() && (
+                        <input
+                          className="form-control mt-1"
+                          value={
+                            (header.column.getFilterValue() ?? "") as string
+                          }
+                          onChange={(e) =>
+                            header.column.setFilterValue(e.target.value)
+                          }
+                        />
+                      )}
                   </th>
                 ))}
               </tr>
             ))}
           </thead>
 
-<tbody>
-  {isLoading ? (
-    <tr>
-      <td colSpan={table.getAllLeafColumns().length} className="text-center py-4">
-        <div className="spinner-border text-primary" />
-      </td>
-    </tr>
-  ) : getRowModel().rows.length > 0 ? (
-    getRowModel().rows.map(row => (
-      <tr key={row.id}>
-        {row.getVisibleCells().map(cell => (
-          <td key={cell.id}>
-            {flexRender(cell.column.columnDef.cell, cell.getContext())}
-          </td>
-        ))}
-      </tr>
-    ))
-  ) : (
-    <tr>
-      {/* Empty State */}
-      <td colSpan={table.getAllLeafColumns().length} className="text-center py-4">
-        {emptyMessage}
-      </td>
-    </tr>
-  )}
-</tbody>
+          <tbody>
+            {isLoading ? (
+              <tr>
+                <td
+                  colSpan={table.getAllLeafColumns().length}
+                  className="text-center py-4"
+                >
+                  <div className="spinner-border text-primary" />
+                </td>
+              </tr>
+            ) : getRowModel().rows.length > 0 ? (
+              getRowModel().rows.map((row) => (
+                <tr key={row.id}>
+                  {row.getVisibleCells().map((cell) => (
+                    <td key={cell.id}>
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext(),
+                      )}
+                    </td>
+                  ))}
+                </tr>
+              ))
+            ) : (
+              <tr>
+                {/* Empty State */}
+                <td
+                  colSpan={table.getAllLeafColumns().length}
+                  className="text-center py-4"
+                >
+                  {emptyMessage}
+                </td>
+              </tr>
+            )}
+          </tbody>
         </Table>
-
       </div>
 
       {/* Pagination */}
       {isPagination && (
         <>
-<Row className="mt-2 align-items-center">
+          <Row className="mt-2 align-items-center">
+            {/* Left: Rows selector */}
+            {isCustomPageSize && (
+              <Col
+                xs={12}
+                md={4}
+                className="d-flex justify-content-center justify-content-md-start mb-2 mb-md-0"
+              >
+                <div className="d-flex align-items-center">
+                  <span className="me-2">Rows:</span>
+                  <select
+                    value={
+                      isServerSidePagination
+                        ? serverSidePageSize
+                        : getState().pagination.pageSize
+                    }
+                    onChange={(e) =>
+                      handlePageSizeChange(Number(e.target.value))
+                    }
+                    className="form-select form-select-sm"
+                    style={{ width: "80px" }}
+                  >
+                    {[10, 20, 30, 50, 100].map((size) => (
+                      <option key={size} value={size}>
+                        {size}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </Col>
+            )}
 
-  {/* Left: Rows selector */}
-  {isCustomPageSize && (
-    <Col xs={12} md={4} className="d-flex justify-content-center justify-content-md-start mb-2 mb-md-0">
-      <div className="d-flex align-items-center">
-        <span className="me-2">Rows:</span>
-        <select
-          value={isServerSidePagination ? serverSidePageSize : getState().pagination.pageSize}
-          onChange={(e) => handlePageSizeChange(Number(e.target.value))}
-          className="form-select form-select-sm"
-          style={{ width: "80px" }}
-        >
-          {[10, 20, 30, 50, 100].map(size => (
-            <option key={size} value={size}>{size}</option>
-          ))}
-        </select>
-      </div>
-    </Col>
-  )}
-
-
-  {/* Middle: Rows selector */}
-  <Col xs={12} md={4} className="text-center justify-content-center mb-2 mb-md-0">
-    {(serverSideTotalRecords > 0 || data.length > 0) && (
-      <small className="text-muted">
-        {isServerSidePagination ? (
-          <>
-            Showing {Math.min((serverSideCurrentPage - 1) * serverSidePageSize + 1, serverSideTotalRecords)}
-            {" "}to{" "}
-            {Math.min(serverSideCurrentPage * serverSidePageSize, serverSideTotalRecords)}
-            {" "}of {serverSideTotalRecords} items
-          </>
-        ) : (
-          <>
-            Showing {Math.min((getState().pagination.pageIndex * getState().pagination.pageSize) + 1, data.length)}
-            {" "}to{" "}
-            {Math.min((getState().pagination.pageIndex + 1) * getState().pagination.pageSize, data.length)}
-            {" "}of {data.length} items
-          </>
-        )}
-      </small>
-    )}
-  </Col>
-
-  {/* Right: Pagination */}
-  <Col xs={12} md={4} className="d-flex justify-content-center justify-content-md-end">
-    <ul className={`pagination mb-0 ${pagination}`}>
-      {/* Prev */}
-      <li className="page-item">
-        <button
-          className="page-link"
-          disabled={isServerSidePagination ? localPage === 1 : !getCanPreviousPage()}
-          onClick={() => {
-            if (isServerSidePagination) {
-              const prev = localPage - 1;
-              setLocalPage(prev);
-              onServerChange?.(buildQuery({ page: prev }));
-            } else {
-              previousPage();
-            }
-          }}
-        >
-          {"<<"}
-        </button>
-      </li>
-
-      {/* Pages */}
-      {getVisiblePages().map(page => {
-        const current = isServerSidePagination
-          ? localPage
-          : getState().pagination.pageIndex + 1;
-
-        return (
-          <li key={page} className={`page-item ${current === page ? "active" : ""}`}>
-            <button
-              className="page-link"
-              onClick={() => {
-                if (isServerSidePagination) {
-                  setLocalPage(page);
-                  onServerChange?.(buildQuery({ page }));
-                } else {
-                  setPageIndex(page - 1);
-                }
-              }}
+            {/* Middle: Rows selector */}
+            <Col
+              xs={12}
+              md={4}
+              className="text-center justify-content-center mb-2 mb-md-0"
             >
-              {page}
-            </button>
-          </li>
-        );
-      })}
+              {(serverSideTotalRecords > 0 || data.length > 0) && (
+                <small className="text-muted">
+                  {isServerSidePagination ? (
+                    <>
+                      Showing{" "}
+                      {Math.min(
+                        (serverSideCurrentPage - 1) * serverSidePageSize + 1,
+                        serverSideTotalRecords,
+                      )}{" "}
+                      to{" "}
+                      {Math.min(
+                        serverSideCurrentPage * serverSidePageSize,
+                        serverSideTotalRecords,
+                      )}{" "}
+                      of {serverSideTotalRecords} items
+                    </>
+                  ) : (
+                    <>
+                      Showing{" "}
+                      {Math.min(
+                        getState().pagination.pageIndex *
+                          getState().pagination.pageSize +
+                          1,
+                        data.length,
+                      )}{" "}
+                      to{" "}
+                      {Math.min(
+                        (getState().pagination.pageIndex + 1) *
+                          getState().pagination.pageSize,
+                        data.length,
+                      )}{" "}
+                      of {data.length} items
+                    </>
+                  )}
+                </small>
+              )}
+            </Col>
 
-      {/* Next */}
-      <li className="page-item">
-        <button
-          className="page-link"
-          disabled={isServerSidePagination ? localPage === serverSideTotalPages : !getCanNextPage()}
-          onClick={() => {
-            if (isServerSidePagination) {
-              const next = localPage + 1;
-              setLocalPage(next);
-              onServerChange?.(buildQuery({ page: next }));
-            } else {
-              nextPage();
-            }
-          }}
-        >
-          {">>"}
-        </button>
-      </li>
-    </ul>
-  </Col>
+            {/* Right: Pagination */}
+            <Col
+              xs={12}
+              md={4}
+              className="d-flex justify-content-center justify-content-md-end"
+            >
+              <ul className={`pagination mb-0 ${pagination}`}>
+                {/* Prev */}
+                <li className="page-item">
+                  <button
+                    className="page-link"
+                    disabled={
+                      isServerSidePagination
+                        ? localPage === 1
+                        : !getCanPreviousPage()
+                    }
+                    onClick={() => {
+                      if (isServerSidePagination) {
+                        const prev = localPage - 1;
+                        setLocalPage(prev);
+                        onServerChange?.(buildQuery({ page: prev }));
+                      } else {
+                        previousPage();
+                      }
+                    }}
+                  >
+                    {"<<"}
+                  </button>
+                </li>
 
-</Row>
+                {/* Pages */}
+                {getVisiblePages().map((page) => {
+                  const current = isServerSidePagination
+                    ? localPage
+                    : getState().pagination.pageIndex + 1;
+
+                  return (
+                    <li
+                      key={page}
+                      className={`page-item ${current === page ? "active" : ""}`}
+                    >
+                      <button
+                        className="page-link"
+                        onClick={() => {
+                          if (isServerSidePagination) {
+                            setLocalPage(page);
+                            onServerChange?.(buildQuery({ page }));
+                          } else {
+                            setPageIndex(page - 1);
+                          }
+                        }}
+                      >
+                        {page}
+                      </button>
+                    </li>
+                  );
+                })}
+
+                {/* Next */}
+                <li className="page-item">
+                  <button
+                    className="page-link"
+                    disabled={
+                      isServerSidePagination
+                        ? localPage === serverSideTotalPages
+                        : !getCanNextPage()
+                    }
+                    onClick={() => {
+                      if (isServerSidePagination) {
+                        const next = localPage + 1;
+                        setLocalPage(next);
+                        onServerChange?.(buildQuery({ page: next }));
+                      } else {
+                        nextPage();
+                      }
+                    }}
+                  >
+                    {">>"}
+                  </button>
+                </li>
+              </ul>
+            </Col>
+          </Row>
         </>
       )}
-
     </Fragment>
   );
 };
