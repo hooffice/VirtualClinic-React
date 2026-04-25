@@ -41,6 +41,8 @@ import { timezoneService, Timezone } from "@/services/timezoneService";
 import type { Country, State, City } from "@/services/commonService";
 import CreatableSelect from "react-select/creatable";
 import type { SingleValue } from "react-select";
+import { OrganizationListItem } from "@/types/admin/organization/organization.type";
+import organizationService from "@/services/admin/organization/organizationService";
 // Types - Dropdown Listbox
 
   const clientId: number = Number(import.meta.env.VITE_CLIENT_ID) || 1;
@@ -51,9 +53,9 @@ import type { SingleValue } from "react-select";
 
 const emptyModel: ClinicModel = {
   id: 0,
-  clientId: 1,
-  organizationId: 0,
-  code: null,
+  clientId: clientId || 1,
+  organizationId: 3,
+  code: "***",
   name: null,
   addressLine1: null,
   addressLine2: null,
@@ -61,13 +63,13 @@ const emptyModel: ClinicModel = {
   cityName: null,
   stateId: null,
   stateName: null,
-  countryId: null,
+  countryId: 231,
   countryName: null,
   zip: null,
   contact1: null,
   contact2: null,
   active: true,
-  timezone: null,
+  timezone: 'Eastern Standard Time',
 };
 
 /**
@@ -79,7 +81,7 @@ const toModel = (clinic: ClinicListItem): ClinicModel => {
   return {
       id: clinic.id,
       clientId: clinic.client_Id || clientId,
-      organizationId: clinic.organization_Id || 0,
+      organizationId: clinic.organization_Id || 3,
       code: clinic.code,
       name: clinic.name,
       addressLine1: clinic.address_Line1,
@@ -94,7 +96,7 @@ const toModel = (clinic: ClinicListItem): ClinicModel => {
       contact1: clinic.contact1,
       contact2: clinic.contact2,
       active: clinic.active === "Yes" ? true : false,
-      timezone: null,
+      timezone: clinic.timezone,
   };
 };
 
@@ -102,7 +104,7 @@ const ClinicList: React.FC = () => {
   document.title = "Clinics | Virtual Clinic";
 
   const dispatch = useDispatch<any>();
-
+  const clientId: number = Number(import.meta.env.VITE_CLIENT_ID) || 1;
 
   // Redux state
   const { list, loading, saving, success, error, message, totalPages, currentPage, pageSize, totalRecords } = useSelector(
@@ -120,9 +122,14 @@ const ClinicList: React.FC = () => {
   const [cities, setCities]               = useState<City[]>([]);
   const [loadingStates, setLoadingStates] = useState(false);
   const [loadingCities, setLoadingCities] = useState(false);  
-  const [timezono, setTimezone]           = useState<Timezone[]>([]);
+  const [organizations, setOrganizations] = useState<OrganizationListItem[]>([]);
+  const [timezone, setTimezone]           = useState<Timezone[]>([]);
 
   // react-select options (memoized)
+  const organizationOptions = useMemo<SelectOption[]>(
+    () => organizations.map(c => ({ value: Number(c.id), label: c.name ?? "" })),
+    [organizations]
+  );
   const countryOptions = useMemo<SelectOption[]>(
     () => countries.map(c => ({ value: Number(c.id), label: c.name })),
     [countries]
@@ -136,11 +143,16 @@ const ClinicList: React.FC = () => {
     [cities]
   );
   const timezoneOptions = useMemo<SelectStringOption[]>(
-    () => timezono.map(tz => ({ value: tz.nameOfTimeZone, label: tz.nameOfTimeZone })),
-    [timezono]
+    () => timezone.map(tz => ({ value: tz.nameOfTimeZone, label: tz.nameOfTimeZone })),
+    [timezone]
   );
 
   // set values of dropdown
+  const selectedOrganization = useMemo(
+    () => organizationOptions.find(o => o.value === form.organizationId) ?? null,
+    [countryOptions, form.countryId]
+  );
+
   const selectedCountry = useMemo(
     () => countryOptions.find(o => o.value === form.countryId) ?? null,
     [countryOptions, form.countryId]
@@ -189,6 +201,12 @@ const ClinicList: React.FC = () => {
   };
 
   // Country → load states, reset state & city
+  // Organization
+  const handleOrganizationChange = (option: SingleValue<SelectOption>) => {
+    setForm(prev => ({ ...prev, organizationId: option?.value ?? 3 }));
+  };
+
+  //Country
   const handleCountryChange = async (option: SingleValue<SelectOption>) => {
     const countryId = option?.value ?? null;
     setForm(prev => ({ ...prev, countryId, stateId: null, cityId: null }));
@@ -258,6 +276,7 @@ const ClinicList: React.FC = () => {
       pageSize: pageNum,
       search: searchTerm,
     }));
+    organizationService.getByClientId(clientId).then((res) => {setOrganizations(res.data);}).catch(console.error);
     commonService.getCountries().then(setCountries).catch(console.error);
     timezoneService.getTimezones().then(setTimezone).catch(console.error);
 
@@ -273,12 +292,13 @@ const ClinicList: React.FC = () => {
 
       toastService.success(message);
       setModalOpen(false);
+      setDeleteModal(false);  // Close delete modal too
       // Reset form only on success
       setForm(emptyModel);
       setFormErrors({});
 
       // ✅ ONLY reset to page 1 for NEW records (add)
-      // For EDIT, stay on current page but refresh the list
+      // For EDIT/DELETE, stay on current page but refresh the list
       if (isNewRecord) {
         // New record added → go to page 1 (triggers fetch via useEffect)
         setPageNumber(1);
@@ -286,13 +306,18 @@ const ClinicList: React.FC = () => {
         setSearchTerm("");
         lastQueryRef.current = "";
       } else {
-        // Editing → stay on current page but refresh the list
+        // Editing/Deleting → stay on current page but refresh the list
+        // Use closure to capture current pagination values
+        const currentPageNum = pageNumber;
+        const currentPageSize = pageNum;
+        const currentSearchTerm = searchTerm;
+
         lastQueryRef.current = "";  // Reset to allow fetch even if query is same
         dispatch(fetchClinics({
           clientId,
-          pageNumber,
-          pageSize: pageNum,
-          search: searchTerm,
+          pageNumber: currentPageNum,
+          pageSize: currentPageSize,
+          search: currentSearchTerm,
         }));
       }
 
@@ -302,7 +327,9 @@ const ClinicList: React.FC = () => {
       }, 2000);
       return () => clearTimeout(timer);
     }
-  }, [success, message, dispatch, clientId, pageNumber, pageNum, searchTerm]);
+    // ✅ Only depend on success/message, NOT on pageNumber/pageSize/searchTerm
+    // This prevents double-trigger when pagination changes
+  }, [success, message, dispatch, clientId, form.id]);
 
   // Show error toast
   useEffect(() => {
@@ -328,8 +355,8 @@ const ClinicList: React.FC = () => {
         enableColumnFilter: false,
       },
       {
-        header: "Address",
-        accessorKey: "address_Line1",
+        header: "Organization",
+        accessorKey: "organizationName",
         enableSorting: false,
         enableColumnFilter: false,
         meta: { hideOnMobile: true },
@@ -415,6 +442,7 @@ const ClinicList: React.FC = () => {
 
   const handleEdit = async (row: ClinicListItem) => {
     const model: ClinicModel = toModel(row);
+    console.log(row)
     dispatch(setSelected(model));
     setForm(model);
     setFormErrors({});
@@ -474,8 +502,12 @@ const ClinicList: React.FC = () => {
   const validate = (): boolean => {
     const errors: Record<string, string> = {};
     if (!form.name?.trim()) errors.name = "Name is required";
-    if (!form.code?.trim()) errors.code = "Code is required";
-    if (!form.contact1?.trim()) errors.contact1 = "Contact is required";
+    if (!form.cityId?.toString().trim()) errors.cityId = "City is required";
+    if (!form.stateId?.toString().trim()) errors.stateId = "State is required";
+    if (!form.countryId?.toString().trim()) errors.countryId = "Country is required";
+    if (!form.organizationId?.toString().trim()) errors.organizationId = "Organization is required";
+    //if (!form.code?.trim()) errors.code = "Code is required";
+    //if (!form.contact1?.trim()) errors.contact1 = "Contact is required";
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -523,16 +555,7 @@ const ClinicList: React.FC = () => {
                       serverSideSearchTerm={searchTerm}
                     />
                   )}
-                  <Row>
-                  {/* Pagination Info */}
-                  <Col xs={12} className="text-center">
-                      {loading == false && totalPages > 0 && (
-                            <small className="text-muted">
-                              Showing <strong>{Math.min(currentPage * pageSize, totalRecords)}</strong> of <strong>{totalRecords}</strong> 
-                            </small>
-                      )}
-                  </Col>
-                </Row>
+
                 </CardBody>
               </Card>
             </Col>
@@ -551,19 +574,22 @@ const ClinicList: React.FC = () => {
             <Row>
               <Col md={6}>
                 <FormGroup>
-                  <Label for="code">
-                    Code <span className="text-danger">*</span>
+                  <Label for="organizationId">
+                    Organization <span className="text-danger">*</span>
                   </Label>
-                  <Input
-                    id="code"
-                    name="code"
-                    value={form.code ?? ""}
-                    onChange={handleChange}
-                    invalid={!!formErrors.code}
-                    placeholder="CLINIC-001"
+                  <CreatableSelect<SelectOption>
+                    inputId="organizationId"
+                    options={organizationOptions}
+                    value={selectedOrganization}
+                    onChange={handleOrganizationChange}
+                    placeholder="Search Organization..."
+                    isClearable
+                    menuPlacement="auto"
+                    styles={{ menu: base => ({ ...base, zIndex: 9999 }) }}
+                    classNamePrefix="react-select"
                   />
-                  {formErrors.code && (
-                    <span className="text-danger small">{formErrors.code}</span>
+                  {formErrors.organizationId && (
+                    <span className="text-danger small">{formErrors.organizationId}</span>
                   )}
                 </FormGroup>
               </Col>
@@ -619,7 +645,7 @@ const ClinicList: React.FC = () => {
             <Row>
               <Col md={6}>
                 <FormGroup>
-                  <Label for="countryName">Country</Label>
+                  <Label for="countryName">Country<span className="text-danger">*</span></Label>
                   <CreatableSelect<SelectOption>
                     inputId="countryId"
                     options={countryOptions}
@@ -631,13 +657,16 @@ const ClinicList: React.FC = () => {
                     styles={{ menu: base => ({ ...base, zIndex: 9999 }) }}
                     classNamePrefix="react-select"
                   />
+                  {formErrors.countryId && (
+                    <span className="text-danger small">{formErrors.countryId}</span>
+                  )}                  
                 </FormGroup>
               </Col>              
 
               <Col md={6}>
                 <FormGroup>
                   <Label>
-                    State {loadingStates && <Spinner size="sm" className="ms-1" />}
+                    State <span className="text-danger">*</span> {loadingStates && <Spinner size="sm" className="ms-1" />}
                   </Label>
                   <CreatableSelect<SelectOption>
                     inputId="stateId"
@@ -652,6 +681,9 @@ const ClinicList: React.FC = () => {
                     styles={{ menu: base => ({ ...base, zIndex: 9999 }) }}
                     classNamePrefix="react-select"
                   />
+                  {formErrors.stateId && (
+                    <span className="text-danger small">{formErrors.stateId}</span>
+                  )}                    
                 </FormGroup>
               </Col>
             </Row>
@@ -661,7 +693,7 @@ const ClinicList: React.FC = () => {
               <Col md={6}>
                 <FormGroup>
                   <Label>
-                    City {loadingCities && <Spinner size="sm" className="ms-1" />}
+                    City <span className="text-danger">*</span>{loadingCities && <Spinner size="sm" className="ms-1" />}
                   </Label>
                   <CreatableSelect<SelectOption>
                     inputId="cityId"
@@ -676,6 +708,9 @@ const ClinicList: React.FC = () => {
                     styles={{ menu: base => ({ ...base, zIndex: 9999 }) }}
                     classNamePrefix="react-select"
                   />
+                  {formErrors.cityId && (
+                    <span className="text-danger small">{formErrors.cityId}</span>
+                  )}                   
                 </FormGroup>
               </Col>              
               <Col md={6}>
@@ -731,7 +766,7 @@ const ClinicList: React.FC = () => {
             <Row>
               <Col md={6}>
                 <FormGroup>
-                  <Label for="timezone">Timezone</Label>
+                  <Label for="timezone">Timezone<span className="text-danger">*</span></Label>
                   <CreatableSelect<SelectStringOption>
                     inputId="timezone"
                     options={timezoneOptions}
