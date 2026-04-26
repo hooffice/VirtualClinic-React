@@ -254,6 +254,8 @@ const Employers: React.FC = () => {
                       isPagination
                       isCustomPageSize
                       isLoading={loading} 
+                      // isRowClickable={true}
+                      // onRowClick={(row)=>{console.log(row)}}
                       handleUserClick={handleAddNew}
                       buttonClass="btn btn-info btn-rounded"
                       buttonName=" + Add"

@@ -64,6 +64,9 @@ interface TableContainerProps<T> {
   columns: ColumnDef<T, any>[];
   data: T[];
 
+  isRowClickable?: boolean;
+  onRowClick?: (row: T) => void;
+
   isServerSidePagination?: boolean;
   onServerChange?: (query: any) => void;
 
@@ -98,6 +101,9 @@ interface TableContainerProps<T> {
 const TableContainer = <T,>({
   columns,
   data,
+
+  isRowClickable = false,
+  onRowClick,
 
   isServerSidePagination = false,
   onServerChange,
@@ -354,7 +360,29 @@ const TableContainer = <T,>({
               </tr>
             ) : getRowModel().rows.length > 0 ? (
               getRowModel().rows.map((row) => (
-                <tr key={row.id}>
+                // <tr key={row.id}>
+                //   {row.getVisibleCells().map((cell) => (
+                //     <td key={cell.id}>
+                //       {flexRender(
+                //         cell.column.columnDef.cell,
+                //         cell.getContext(),
+                //       )}
+                //     </td>
+                //   ))}
+                // </tr>
+                <tr
+                  key={row.id}
+                  onClick={(e) => {
+                    if (!isRowClickable) return;
+                    const target = e.target as HTMLElement;
+                   // Prevent click when interacting with controls
+                    if (target.closest("button, a, input")) return;
+                    onRowClick?.(row.original);
+                  }}
+                  style={{
+                    cursor: isRowClickable ? "pointer" : "default",
+                  }}
+                >
                   {row.getVisibleCells().map((cell) => (
                     <td key={cell.id}>
                       {flexRender(
