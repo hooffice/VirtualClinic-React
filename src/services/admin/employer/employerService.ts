@@ -34,7 +34,7 @@ class EmployerService {
           params: {id: clientId}
         }
       );
-      return response.data.data;
+      return response.data;
     } catch (error) {
       throw axiosErrorToApiError(error);
     }

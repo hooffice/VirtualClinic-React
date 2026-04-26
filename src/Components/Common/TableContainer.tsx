@@ -85,7 +85,7 @@ interface TableContainerProps<T> {
   // NEW: CSS class customization
   tableClass?: string;
   theadClass?: string;
-  //paginationWrapper?: string;
+  paginationWrapper?: string;
   pagination?: string;
   searchPlaceholder?: string;
   isLoading?: boolean;
@@ -119,6 +119,7 @@ const TableContainer = <T,>({
 
   tableClass = "",
   theadClass = "table-light",
+  paginationWrapper = "",
   pagination = "pagination justify-content-end pagination-sm",
   searchPlaceholder = "Search...",
   isLoading = false,
@@ -464,81 +465,83 @@ const TableContainer = <T,>({
               md={4}
               className="d-flex justify-content-center justify-content-md-end"
             >
-              <ul className={`pagination mb-0 ${pagination}`}>
-                {/* Prev */}
-                <li className="page-item">
-                  <button
-                    className="page-link"
-                    disabled={
-                      isServerSidePagination
-                        ? localPage === 1
-                        : !getCanPreviousPage()
-                    }
-                    onClick={() => {
-                      if (isServerSidePagination) {
-                        const prev = localPage - 1;
-                        setLocalPage(prev);
-                        onServerChange?.(buildQuery({ page: prev }));
-                      } else {
-                        previousPage();
+              <div className={paginationWrapper}>
+                <ul className={`pagination mb-0 ${pagination}`}>
+                  {/* Prev */}
+                  <li className="page-item">
+                    <button
+                      className="page-link"
+                      disabled={
+                        isServerSidePagination
+                          ? localPage === 1
+                          : !getCanPreviousPage()
                       }
-                    }}
-                  >
-                    {"<<"}
-                  </button>
-                </li>
-
-                {/* Pages */}
-                {getVisiblePages().map((page) => {
-                  const current = isServerSidePagination
-                    ? localPage
-                    : getState().pagination.pageIndex + 1;
-
-                  return (
-                    <li
-                      key={page}
-                      className={`page-item ${current === page ? "active" : ""}`}
+                      onClick={() => {
+                        if (isServerSidePagination) {
+                          const prev = localPage - 1;
+                          setLocalPage(prev);
+                          onServerChange?.(buildQuery({ page: prev }));
+                        } else {
+                          previousPage();
+                        }
+                      }}
                     >
-                      <button
-                        className="page-link"
-                        onClick={() => {
-                          if (isServerSidePagination) {
-                            setLocalPage(page);
-                            onServerChange?.(buildQuery({ page }));
-                          } else {
-                            setPageIndex(page - 1);
-                          }
-                        }}
-                      >
-                        {page}
-                      </button>
-                    </li>
-                  );
-                })}
+                      {"<<"}
+                    </button>
+                  </li>
 
-                {/* Next */}
-                <li className="page-item">
-                  <button
-                    className="page-link"
-                    disabled={
-                      isServerSidePagination
-                        ? localPage === serverSideTotalPages
-                        : !getCanNextPage()
-                    }
-                    onClick={() => {
-                      if (isServerSidePagination) {
-                        const next = localPage + 1;
-                        setLocalPage(next);
-                        onServerChange?.(buildQuery({ page: next }));
-                      } else {
-                        nextPage();
+                  {/* Pages */}
+                  {getVisiblePages().map((page) => {
+                    const current = isServerSidePagination
+                      ? localPage
+                      : getState().pagination.pageIndex + 1;
+
+                    return (
+                      <li
+                        key={page}
+                        className={`page-item ${current === page ? "active" : ""}`}
+                      >
+                        <button
+                          className="page-link"
+                          onClick={() => {
+                            if (isServerSidePagination) {
+                              setLocalPage(page);
+                              onServerChange?.(buildQuery({ page }));
+                            } else {
+                              setPageIndex(page - 1);
+                            }
+                          }}
+                        >
+                          {page}
+                        </button>
+                      </li>
+                    );
+                  })}
+
+                  {/* Next */}
+                  <li className="page-item">
+                    <button
+                      className="page-link"
+                      disabled={
+                        isServerSidePagination
+                          ? localPage === serverSideTotalPages
+                          : !getCanNextPage()
                       }
-                    }}
-                  >
-                    {">>"}
-                  </button>
-                </li>
-              </ul>
+                      onClick={() => {
+                        if (isServerSidePagination) {
+                          const next = localPage + 1;
+                          setLocalPage(next);
+                          onServerChange?.(buildQuery({ page: next }));
+                        } else {
+                          nextPage();
+                        }
+                      }}
+                    >
+                      {">>"}
+                    </button>
+                  </li>
+                </ul>
+              </div>
             </Col>
           </Row>
         </>

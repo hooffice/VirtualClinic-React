@@ -167,7 +167,7 @@ const ClinicList: React.FC = () => {
   const selectedOrganization = useMemo(
     () =>
       organizationOptions.find((o) => o.value === form.organizationId) ?? null,
-    [countryOptions, form.countryId],
+    [organizationOptions, form.organizationId],
   );
 
   const selectedCountry = useMemo(

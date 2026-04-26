@@ -32,7 +32,6 @@ import type { SingleValue } from "react-select";
 import "./Organization.css";
 
 // Types - Dropdown Listbox
-
 type SelectOption = { value: number; label: string };
 
 // Helpers ─ Models
@@ -386,7 +385,7 @@ const OrganizationList: React.FC = () => {
                       handleUserClick={handleAddNew}
                       buttonClass="btn btn-info btn-rounded"
                       buttonName=" + Add"
-                      searchPlaceholder="Search organizations..."
+                      searchPlaceholder="Search organization..."
                       tableClass="table-bordered align-middle nowrap mt-2"
                       theadClass="table-light"
                       paginationWrapper="dataTables_paginate paging_simple_numbers"
