@@ -1,4 +1,12 @@
-import { UserDto } from "@/types/api.types";
+
+export interface UserModel {
+  userId: number;
+  userName: string;
+  identityId: string;
+  userType: number;
+  active: boolean;
+
+}    
 
 export interface ClinicianList {
     id: number;
@@ -30,9 +38,7 @@ export interface ClinicianModel {
     addressLine1: string | null;
     addressLine2: string | null;
     cityId: number | null;
-    cityName: string | null;
     stateId: number | null;
-    stateName: string | null;
     countryId: number | null;
     zip: string | null;
     profileImage: string | null;
@@ -56,7 +62,7 @@ export interface ClinicianModel {
     isAddedSendGrid: boolean | null;
     clinicianContact: Clinician_Contact;
     clinicianRecruits: Clinician_RecruitModel;
-    userDetail: UserDto;
+    userDetail: UserModel;
 }
 export interface Clinician_Contact {
     id: number;
