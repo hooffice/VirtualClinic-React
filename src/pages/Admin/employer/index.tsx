@@ -12,12 +12,10 @@ import { RootState } from "@/store";
 import Breadcrumb from "Components/Common/Breadcrumb";
 import TableContainer from "Components/Common/TableContainer";
 import DeleteModal from "Components/Common/DeleteModal";
-import { RHFInput } from "Components/Common/Forms/RHFInput";
-import { RHFCheckBox } from "Components/Common/Forms/RHFCheckbox";
-import { RHFSelect } from "Components/Common/Forms/RHFSelect";
-import { RHFFormWrapper } from "Components/Common/Forms/RHFFormWrapper";
+import { RHFInput, RHFCheckBox, RHFSelect, RHFFormWrapper } from "Components/Common/Forms";
+
 //type
-import { EmployerList, EmployerModel } from "@/types/admin/employer/employer.type";
+import { EmployerList } from "@/types/admin/employer/employer.type";
 import { employerSchema, EmployerForm } from "@/types/admin/employer/employer.schema";
 import { toForm, toModel } from "@/types/admin/employer/employer.mapper";
 //thunk
