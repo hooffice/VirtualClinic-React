@@ -1,21 +1,25 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { toastService } from "@/services/toastService";
 import {
   Container, Card, CardBody, Row, Col, Badge,
   Modal, ModalHeader, ModalBody, ModalFooter,
-  Form, FormGroup, Label, Input, FormFeedback,
   Button, Spinner,
 } from "reactstrap";
 import { RootState } from "@/store";
 import Breadcrumb from "Components/Common/Breadcrumb";
 import TableContainer from "Components/Common/TableContainer";
 import DeleteModal from "Components/Common/DeleteModal";
-//dropdown
-import CreatableSelect from "react-select/creatable";
-import type { SingleValue } from "react-select";
+import { RHFInput } from "Components/Common/Forms/RHFInput";
+import { RHFCheckBox } from "Components/Common/Forms/RHFCheckbox";
+import { RHFSelect } from "Components/Common/Forms/RHFSelect";
+import { RHFFormWrapper } from "Components/Common/Forms/RHFFormWrapper";
 //type
 import { EmployerList, EmployerModel } from "@/types/admin/employer/employer.type";
+import { employerSchema, EmployerForm } from "@/types/admin/employer/employer.schema";
+import { toForm, toModel } from "@/types/admin/employer/employer.mapper";
 //thunk
 import { fetchEmployers, saveEmployer, removeEmployer } from "@/slices/admin/employer/employerThunk";
 //slice-reducre
@@ -24,27 +28,25 @@ import { setSelected, resetEmployerState, clearError } from "@/slices/admin/empl
 import { organizationService } from "@/services/admin/organization/organizationService";
 import { OrganizationListItem } from "@/types/admin/organization/organization.type";
 
-// Types - Dropdown Listbox
-type SelectOption = { value: number; label: string };
 
 // Helpers ─ Models
-const emptyModel = (clientId: number): EmployerModel =>({
-    id: 0,
-    clientId: clientId,
-    organizationId: null,
-    code:"",
-    name:"",
-    active:true
+const emptyModel = (clientId: number): EmployerForm => ({
+  id: 0,
+  clientId,
+  organizationId: null,
+  code: "",
+  name: "",
+  active: true
 });
 
-// Map list row → editable model
-const toModel = (item: EmployerList): EmployerModel => ({
-    id: item.id,
-    clientId: item.clientId,
-    organizationId: item.organizationId,
-    code: item.code ?? "",
-    name: item.name ?? "",
-    active: item.active === 'Yes' ? true : false
+// Map list row → form data
+const listToForm = (item: EmployerList): EmployerForm => toForm({
+  id: item.id,
+  clientId: item.clientId,
+  organizationId: item.organizationId ? Number(item.organizationId) : null,
+  code: item.code ?? "",
+  name: item.name ?? "",
+  active: item.active === 'Yes' ? true : false
 });
 
 // component - rafcep
@@ -55,56 +57,50 @@ const Employers: React.FC = () => {
   const dispatch = useDispatch<any>();
   const clientId: number = Number(import.meta.env.VITE_CLIENT_ID) || 1;
 
- // Redux State
+  // Redux State
   const { list, loading, saving, success, error, message } = useSelector(
-     (state: RootState) => state.Employer
-   );
+    (state: RootState) => state.Employer
+  );
 
- // Local UI state
-  const [modalOpen, setModalOpen]         = useState(false);
-  const [deleteModal, setDeleteModal]     = useState(false);
-  const [deleteTarget, setDeleteTarget]   = useState<number | null>(null);
-  const [form, setForm]                   = useState<EmployerModel>(emptyModel(clientId));
-  const [formErrors, setFormErrors]       = useState<Record<string, string>>({});
+
+  // React Hook Form with Zod validation
+  const methods = useForm<EmployerForm>({
+    resolver: zodResolver(employerSchema),
+    mode: 'onBlur',
+    defaultValues: emptyModel(clientId),
+  });
+  const { setError, formState: { errors }, } = methods;
+  // Local UI state
+  const [modalOpen, setModalOpen] = useState(false);
+  const [deleteModal, setDeleteModal] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<number | null>(null);
   const [organizations, setOrganizations] = useState<OrganizationListItem[]>([]);
+  const [editingRow, setEditingRow] = useState<EmployerList | null>(null);
 
   // react-select options (memoized)
-  const organizationOptions = useMemo<SelectOption[]>(
+  const organizationOptions = useMemo(
     () =>
       organizations.map((c) => ({ value: Number(c.id), label: c.name ?? "" })),
     [organizations]
   );
-  // set values of dropdown
-  const selectedOrganization = useMemo(
-    () =>
-      organizationOptions.find((o) => o.value === form.organizationId) ?? null,
-    [organizationOptions, form.organizationId]
-  );
 
-  // Dropdown - change value
-  const handleOrganizationChange = (option: SingleValue<SelectOption>) => {
-    setForm((prev) => ({ ...prev, organizationId: option?.value ?? 3 }));
-  };
-
-// Handlers 
+  // Handlers
   const handleAddNew = () => {
     dispatch(setSelected(null));
-    setForm(emptyModel(clientId));
-    setFormErrors({});
+    methods.reset(emptyModel(clientId));
     setModalOpen(true);
   };
 
   const handleEdit = async (row: EmployerList) => {
-    const model = toModel(row);
+    const model = toModel(listToForm(row));
     dispatch(setSelected(model));
-    setFormErrors({});
-    setForm(model);
-    setModalOpen(true);    
+    setEditingRow(row);
+    setModalOpen(true);
   };
 
   const handleModalClose = () => {
     setModalOpen(false);
-    setFormErrors({});
+    setEditingRow(null);
     dispatch(setSelected(null));
   };
 
@@ -121,34 +117,29 @@ const Employers: React.FC = () => {
     setDeleteTarget(null);
   };
 
-  // Form field handlers
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value, type, checked } = e.target;
-    setForm(prev => ({ ...prev, [name]: type === "checkbox" ? checked : value }));
-    if (formErrors[name]) {
-      setFormErrors(prev => ({ ...prev, [name]: "" }));
+  // Form Submit with React Hook Form
+  const onSubmit = (formData: EmployerForm) => {
+  if (!formData.organizationId) {
+    setError("organizationId", {
+      type: "manual",
+      message: "Organization is required",
+    });
+    return;
+  }    
+    const model = toModel(formData);
+    dispatch(saveEmployer(model, clientId));
+  };
+
+  // Handle form population when editing
+  useEffect(() => {
+    if (modalOpen) {
+      if (editingRow) {
+        methods.reset(listToForm(editingRow));
+      } else {
+        methods.reset(emptyModel(clientId));
+      }
     }
-  };
-
-  // Submit 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!validate()) return;
-    dispatch(saveEmployer(form, clientId));
-  };
-
-
-  // Form Validation 
-  const validate = (): boolean => {
-    const errors: Record<string, string> = {};
-    if (!form.code?.trim())     errors.code     = "Code is required";
-    if (!form.name?.trim())     errors.name     = "Name is required";
-    if (!form.organizationId?.toString().trim())
-      errors.organizationId = "Organization is required";
-    setFormErrors(errors);
-    return Object.keys(errors).length === 0;
-  };
-
+  }, [modalOpen, editingRow, methods, clientId]);
   // Load list + dropdown on mount
   useEffect(() => {
     dispatch(fetchEmployers(clientId));
@@ -272,98 +263,80 @@ const Employers: React.FC = () => {
         </Container>
       </div>
 
-      {/* Add / Edit Modal───*/}
-      <Modal isOpen={modalOpen} toggle={handleModalClose} size="lg" centered className="org-modal">
+      {/* Add / Edit Modal */}
+      <Modal isOpen={modalOpen} toggle={handleModalClose} size="lg" centered >
         <ModalHeader toggle={handleModalClose}>
-          {form.id === 0 ? "Add Employer" : "Edit Employer"}
+          {methods.getValues('id') === 0 ? "Add Employer" : "Edit Employer"}
         </ModalHeader>
-        <Form onSubmit={handleSubmit}>
-          <ModalBody>
-            {/* Organization */}
+
+        <RHFFormWrapper methods={methods} onSubmit={onSubmit}>
+          <ModalBody style={{ maxHeight: 'calc(90vh - 180px)', overflowY: 'auto' }}>
             <Row>
               <Col md={12}>
-                <FormGroup>
-                  <Label for="organizationId">
-                    Organization <span className="text-danger">*</span>
-                  </Label>
-                  <CreatableSelect<SelectOption>
-                    inputId="organizationId"
-                    options={organizationOptions}
-                    value={selectedOrganization}
-                    onChange={handleOrganizationChange}
-                    placeholder="Search Organization..."
-                    isClearable
-                    menuPlacement="auto"
-                    styles={{ menu: (base) => ({ ...base, zIndex: 9999 }) }}
-                    classNamePrefix="react-select"
-                  />
-                  {formErrors.organizationId && (
-                    <span className="text-danger small">
-                      {formErrors.organizationId}
-                    </span>
-                  )}
-                </FormGroup>
-              </Col>                
-            </Row>
-            {/* Code */}
-            <Row>
-              <Col md={12}>
-                <FormGroup>
-                  <Label for="code">Code</Label>
-                  <Input
-                    id="code" name="code"
-                    value={form.code ?? ""}
-                    onChange={handleChange}
-                    placeholder="ORG-001"
-                  />
-                </FormGroup>
-              </Col>
-              </Row>
-              {/*  Name */}
-              <Row>
-              <Col md={12}>
-                <FormGroup>
-                  <Label for="name">Name <span className="text-danger">*</span></Label>
-                  <Input
-                    id="name" name="name"
-                    value={form.name ?? ""}
-                    onChange={handleChange}
-                    invalid={!!formErrors.name}
-                    placeholder="Employer name"
-                  />
-                  <FormFeedback>{formErrors.name}</FormFeedback>
-                </FormGroup>
+                <RHFSelect<EmployerForm>
+                  name="organizationId"
+                  label="Organization"
+                  options={organizationOptions}
+                  isClearable
+                />
+{errors.organizationId && (
+  <span className="text-danger">
+    {errors.organizationId.message}
+  </span>
+)}                
               </Col>
             </Row>
 
-            {/* Active */}
             <Row>
               <Col md={12}>
-                <FormGroup check className="mt-1">
-                  <Input
-                    id="active" name="active"
-                    type="checkbox"
-                    checked={form.active ?? true}
-                    onChange={handleChange}
-                  />
-                  <Label for="active" check className="ms-2">Active</Label>
-                </FormGroup>
+                <RHFInput<EmployerForm>
+                  name="code"
+                  label="Code"
+                  placeholder="EMP-001"
+                  type="text"
+                />
               </Col>
             </Row>
 
+            <Row>
+              <Col md={12}>
+                <RHFInput<EmployerForm>
+                  name="name"
+                  label="Name"
+                  placeholder="Employer name"
+                  type="text"
+                />
+              </Col>
+            </Row>
+
+            <Row>
+              <Col md={12}>
+                <RHFCheckBox<EmployerForm>
+                  name="active"
+                  label="Active"
+                />
+              </Col>
+            </Row>
           </ModalBody>
+
           <ModalFooter>
             <Button color="secondary" outline onClick={handleModalClose} disabled={saving}>
               Cancel
             </Button>
             <Button color="primary" type="submit" disabled={saving}>
-              {saving
-                ? <><Spinner size="sm" className="me-1" />Saving...</>
-                : form.id === 0 ? "Add Employer" : "Save Changes"
-              }
+              {saving ? (
+                <>
+                  <Spinner size="sm" className="me-1" />
+                  Saving...
+                </>
+              ) : methods.getValues('id') === 0 ? (
+                "Add Employer"
+              ) : (
+                "Save Changes"
+              )}
             </Button>
           </ModalFooter>
-        </Form>
+        </RHFFormWrapper>
       </Modal>
 
       {/* Delete Confirmation*/}
