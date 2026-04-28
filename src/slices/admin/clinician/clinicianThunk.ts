@@ -9,7 +9,7 @@ import {
   setSuccess,
   setError,
   setSelected,
-  deleteSuccess
+  deleteSuccess,
 } from "./clinicianSlice";
 import { handleAsync } from "@/utils/asyncHandler";
 
@@ -37,6 +37,7 @@ export const fetchCliniciansList = (
         setError,
       },
       (response, dispatch) => {
+
         const payload = {
            data: response.data,
            currentPage: params.pageNumber || 1,  // Use requested page, not response
@@ -44,6 +45,7 @@ export const fetchCliniciansList = (
            pageSize: response.xpage.pageSize,
            totalRecords: response.xpage.totalRecords,
       };
+
         dispatch(setListWithPagination(payload));
       }
     );
@@ -52,7 +54,7 @@ export const fetchCliniciansList = (
 /**
  * Fetch clinician by clinician ID
  */
-export const fetchClinicsByClinicianId = (clinicianId: number)  => 
+export const fetchClinicianByClinicianId = (clinicianId: number)  => 
   async (dispatch: any) => {
     await handleAsync(
       dispatch,
@@ -70,14 +72,14 @@ export const fetchClinicsByClinicianId = (clinicianId: number)  =>
 /**
  * Save Clinician (id = 0 → insert, id > 0 → update)
  */
-export const saveClinician = (model: ClinicianModel, clientId: number) => 
+export const saveClinician = (model: ClinicianModel, clientId: number) =>
   async (dispatch: any) => {
     await handleAsync(
-      dispatch, 
+      dispatch,
       () => service.save(model),
       {
         setSaving,
-        setError
+        setError,
       },
       async (res, dispatch) => {
         if (!res.success) {
@@ -98,21 +100,21 @@ export const saveClinician = (model: ClinicianModel, clientId: number) =>
   /**
    * Delete Clinician by ID
    */
-  export const removeClinician = (id: number) => async (dispatch: any) => {
-    await handleAsync(
-      dispatch, 
-      () => service.delete(id),
-      {
-        setSaving,
-        setError
-      },
-      async (res, dispatch) => {
-        if (!res.success) {
-          throw new Error(res.message);
-        }
-  
-        dispatch(deleteSuccess(id));
+export const removeClinician = (id: number) => async (dispatch: any) => {
+  await handleAsync(
+    dispatch,
+    () => service.delete(id),
+    {
+      setSaving,
+      setError
+    },
+    async (res, dispatch) => {
+      if (!res.success) {
+        throw new Error(res.message);
       }
-    );
-  };
+
+      dispatch(deleteSuccess(id));
+    }
+  );
+};
 

@@ -16,11 +16,16 @@ export const handleAsync = async <TResponse>(
     }
 
     const res = await apiCall();
-
-    // 👇 YOU control how to dispatch success
     onSuccess(res, dispatch);
 
   } catch (err: any) {
-    dispatch(actions.setError(err?.message || "Something went wrong"));
-  }
+    // Better error handling
+    const errorMessage = 
+      typeof err === 'string' 
+        ? err 
+        : err?.response?.data?.message || err?.message || "Something went wrong";
+    
+    dispatch(actions.setError(errorMessage));
+    
+  } 
 };

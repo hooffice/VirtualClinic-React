@@ -16,3 +16,4 @@ export * from "./auth/forgetpwd/thunk";
 //Admin Module
 export * from "./admin/organization/thunk"; //Organzation
 export * from "./admin/clinic/clinicThunk"; //Clinic
+export * from "./admin/clinician/clinicianThunk";//Clinician

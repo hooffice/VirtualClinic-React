@@ -30,7 +30,7 @@ const clinicianSlice = createSlice({
       state.message = null;
       state.error = null;
       state.selected = null;
-    },
+    },   
   },
 });
 

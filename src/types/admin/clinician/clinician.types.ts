@@ -26,6 +26,8 @@ export interface ClinicianList {
     totalAmount: string | null;
 }
 
+
+
 export interface ClinicianModel {
     id: number;
     clientId: number;

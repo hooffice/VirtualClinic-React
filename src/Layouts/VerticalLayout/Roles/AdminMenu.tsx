@@ -20,16 +20,16 @@ const AdminMenu = (props: any) => {
         </Link>
         <ul className="sub-menu">
           <li>
-            <Link to="/admin/organizations">{props.t("Organization")}</Link>
+            <Link to="/admin/organization">{props.t("Organization")}</Link>
           </li>
           <li>
-            <Link to="/admin/employers">{props.t("Employer")}</Link>
+            <Link to="/admin/employer">{props.t("Employer")}</Link>
           </li>
           <li>
-            <Link to="/admin/clinics">{props.t("Clinic")}</Link>
+            <Link to="/admin/clinic">{props.t("Clinic")}</Link>
           </li>
           <li>
-            <Link to="#">{props.t("Clinician")}</Link>
+            <Link to="/admin/clinician">{props.t("Clinician")}</Link>
           </li> 
           <li>
             <Link to="#">{props.t("Patient")}</Link>

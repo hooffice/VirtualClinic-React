@@ -7,7 +7,7 @@ const BASE = "/api/clinician";
 
 class ClinicianService {
     /**
-     * GET /api/clinician/clinicianbyclient
+     * GET /api/clinician/clinicianbyclientorderby
      * Get paginated list of clinics by client ID
      */
     async getClinicianByPaginated(
@@ -18,7 +18,7 @@ class ClinicianService {
     ): Promise<ApiPageResponse<ClinicianList>> {
         try {
             const res = await axiosInstance.get(
-                `${BASE}/clinicianbyclient`,
+                `${BASE}/clinicianbyclientorderby`,
                 {
                     params: {
                         id: clientId,
@@ -28,9 +28,9 @@ class ClinicianService {
                     }
                 }
             );
-            if (!res.success) {
-                throw new Error(res.message || "Failed to fetch data");
-            }
+            // if (!res.success) {
+            //     throw new Error(res.message || "Failed to fetch data");
+            // }
             return res.data;
         } catch (error) {
             throw axiosErrorToApiError(error);
