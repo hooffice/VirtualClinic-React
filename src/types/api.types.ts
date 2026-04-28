@@ -36,6 +36,19 @@ export interface ApiResponse<T> {
   success?: boolean;
 }
 
+export interface ApiPageResponse<T> {
+  data: T;
+  xpage: {
+    currentPage: number;
+    pageNumber: number;
+    pageSize: number;
+    totalRecords: number;
+    totalPages: number;
+  };  
+  success: boolean;
+  message?: string;
+}
+
 export interface PaginatedApiResponse<T> {
   data: T[];
   currentPage: number;

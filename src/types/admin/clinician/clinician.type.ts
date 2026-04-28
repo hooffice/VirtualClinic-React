@@ -100,3 +100,23 @@ export interface Clinician_RecruitModel {
     billingAgreement: string | null;
     tempCouponCode: string | null;
 }
+
+export interface BillingProcedureTypeList {
+    id: number;
+    billingProcedure: string;
+}
+
+export interface BillingProcedureList {
+    billingProcedure: number;
+    couponCode: string;
+}
+
+export interface ChangePassword {
+    identityId: string;
+    password: string;
+}
+
+export interface ChangeUserName {
+    identityId: string;
+    userName: string;
+}
