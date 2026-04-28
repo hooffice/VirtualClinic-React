@@ -64,6 +64,7 @@ export const fetchClinicianByClinicianId = (clinicianId: number)  =>
         setError,
       },
       (res, dispatch) => {
+        console.log(res)
         dispatch(setSelected(res));
       }
     );

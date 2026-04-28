@@ -18,6 +18,7 @@ const clinicianSlice = createSlice({
 
     setSelected: (state, action: PayloadAction<ClinicianModel | null>) => {
       state.selected = action.payload;
+      state.loading = false;
     },
     deleteSuccess: (state, action: PayloadAction<number>) => {
       state.saving = false;

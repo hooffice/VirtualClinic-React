@@ -28,9 +28,6 @@ class ClinicianService {
                     }
                 }
             );
-            // if (!res.success) {
-            //     throw new Error(res.message || "Failed to fetch data");
-            // }
             return res.data;
         } catch (error) {
             throw axiosErrorToApiError(error);
@@ -42,14 +39,15 @@ class ClinicianService {
      */
     async getClinicianById(clinicianId: number): Promise<ClinicianModel> {
         try {
-            const res = await axiosInstance.get<ApiResponse<ClinicianModel>>(
+            const result = await axiosInstance.get<ApiResponse<ClinicianModel>>(
                 `${BASE}/${clinicianId}`
             );
+            const res = result.data;
             if (!res.success) {
                 throw new Error(res.message || "Failed to fetch data");
             }
 
-            return res.data.data ?? {};
+            return res.data ?? {};
         } catch (error) {
             throw axiosErrorToApiError(error);
         }
@@ -69,7 +67,7 @@ class ClinicianService {
                 throw new Error(res.message || "Failed to fetch billing procedure types");
             }
 
-            return res.data.data ?? []; // always safe
+            return res.data ?? []; // always safe
 
         } catch (error) {
             throw axiosErrorToApiError(error);
@@ -89,7 +87,7 @@ class ClinicianService {
                 throw new Error(res.message || "Failed to fetch invoice procedure types");
             }
 
-            return res.data.data ?? []; // always safe
+            return res.data ?? []; // always safe
 
         } catch (error) {
             throw axiosErrorToApiError(error);
@@ -109,7 +107,7 @@ class ClinicianService {
                 throw new Error(res.message || "Failed to fetch billing procedure types");
             }
 
-            return res.data.data ?? []; // always safe
+            return res.data ?? []; // always safe
 
         } catch (error) {
             throw axiosErrorToApiError(error);

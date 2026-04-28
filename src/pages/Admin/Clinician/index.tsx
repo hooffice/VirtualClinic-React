@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { toastService } from "@/services/toastService";
 import {
@@ -12,7 +13,7 @@ import {
 import { RootState } from "@/store";
 import Breadcrumb from "Components/Common/Breadcrumb";
 import TableContainer from "Components/Common/TableContainer";
-
+import avatar1 from  "@/assets/images/users/avatar-1.jpg" //"../../assets/images/users/avatar-3.jpg"
 //type
 import { ClinicianList } from "@/types/admin/clinician/clinician.types";
 //thunk
@@ -22,7 +23,9 @@ import { clearError } from "@/slices/admin/clinician/clinicianSlice";
 
 const Clinician: React.FC = () => {
   const dispatch = useDispatch<any>();
+  const navigate = useNavigate();
   const clientId: number = Number(import.meta.env.VITE_CLIENT_ID) || 1;
+  const baseurl: string = import.meta.env.VITE_API_BASE_URL;
 
   // Redux state
   const {
@@ -78,6 +81,17 @@ const Clinician: React.FC = () => {
     }
   };
 
+
+  // Handle row click - navigate to edit
+  const handleRowClick = (row: ClinicianList) => {
+    navigate(`/admin/clinician/${row.id}`);
+  };
+
+  // Handle Add New button
+  const handleAddNew = () => {
+    navigate("/admin/clinician/0");
+  };
+
   // Show error toast
   useEffect(() => {
     if (error) {
@@ -90,10 +104,27 @@ const Clinician: React.FC = () => {
   const columns = useMemo(
     () => [
       {
-        header: "Code",
-        accessorKey: "code",
+        header: "Profile",
+        accessorKey: "profileImage",
         enableSorting: true,
         enableColumnFilter: false,
+        cell: (cell: any) => {
+        const row = cell.row.original;
+        const img = baseurl + row.profileImage;
+
+        return (
+          <img
+            src={img || avatar1} 
+            alt="profile"
+            style={{
+              width: "35px",
+              height: "35px",
+              borderRadius: "50%",
+              objectFit: "cover",
+            }}
+          />
+        );
+      },        
       },
       {
         header: "First Name",
@@ -161,7 +192,7 @@ const Clinician: React.FC = () => {
     <React.Fragment>
       <div className="page-content">
         <Container fluid>
-          <Breadcrumb title="Admin" breadcrumbItem="Clinicians" />
+          <Breadcrumb title="Admin" breadcrumbItem="Clinicians"  />
           <Row>
             <Col xs={12}>
               <Card>
@@ -173,6 +204,12 @@ const Clinician: React.FC = () => {
                     isPagination
                     isCustomPageSize
                     isLoading={loading}
+                    isAddButton
+                    handleUserClick={handleAddNew}
+                    buttonClass="btn btn-info btn-rounded"
+                    buttonName=" + Add"                    
+                    isRowClickable={true}                      
+                    onRowClick={(row)=>{handleRowClick(row)}}
                     searchPlaceholder="Search clinician..."
                     // Server-side pagination
                     isServerSidePagination={true}

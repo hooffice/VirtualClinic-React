@@ -5,7 +5,8 @@ import Dashboard from "../pages/Dashboard";
 import OrganizationList from "pages/Admin/Organization";
 import ClinicList from "@/pages/Admin/Clinic";
 import Employers from "@/pages/Admin/Employer";
-
+import Clinician from "@/pages/Admin/Clinician";
+import ClinicianDetail from "@/pages/Admin/Clinician/clinicianDetail";
 // Auth
 import Login from "pages/Authentication/login";
 import Logout from "pages/Authentication/Logout";
@@ -18,7 +19,7 @@ import OAuthCallback from "pages/Authentication/OAuthCallback";
 import MfaVerification from "pages/Authentication/MfaVerification";
 import MfaSetup from "pages/Authentication/MfaSetup";
 import EmailVerification from "pages/Authentication/EmailVerification";
-import Clinician from "@/pages/Admin/Clinician";
+
 
 const authProtectedRoutes = [
   { path: "/dashboard", component: <Dashboard /> },
@@ -29,6 +30,7 @@ const authProtectedRoutes = [
   { path: "/admin/clinic", component: <ClinicList /> },
   { path: "/admin/employer", component: <Employers /> },
   { path: "/admin/Clinician", component: <Clinician /> },
+  { path: "/admin/Clinician/:id", component: <ClinicianDetail /> },
   { path: "/", exact: true, component: <Navigate to="/dashboard" /> },
 ];
 
