@@ -1,7 +1,7 @@
 import axiosInstance from '@/config/axiosInstance';
 import { ApiPageResponse, ApiResponse, SaveResponse } from '@/types/api.types';
 import { axiosErrorToApiError } from '@/types/errors';
-import { ClinicianModel, BillingProcedureList, BillingProcedureTypeList, ClinicianList, ChangePassword, ChangeUserName } from '@/types/admin/clinician/clinician.type';
+import { ClinicianModel, BillingProcedureList, BillingProcedureTypeList, ClinicianList, ChangePassword, ChangeUserName } from '@/types/admin/clinician/clinician.types';
 
 const BASE = "/api/clinician";
 
@@ -31,7 +31,7 @@ class ClinicianService {
             if (!res.success) {
                 throw new Error(res.message || "Failed to fetch data");
             }
-            return res.data ?? [];
+            return res.data;
         } catch (error) {
             throw axiosErrorToApiError(error);
         }
@@ -40,16 +40,16 @@ class ClinicianService {
     /**
      * GET /api/clinicician/{id}
      */
-    async getClinicByClient(clientId: number): Promise<ClinicianModel[]> {
+    async getClinicianById(clinicianId: number): Promise<ClinicianModel> {
         try {
-            const res = await axiosInstance.get<ApiResponse<ClinicianModel[]>>(
-                `${BASE}/${clientId}`
+            const res = await axiosInstance.get<ApiResponse<ClinicianModel>>(
+                `${BASE}/${clinicianId}`
             );
             if (!res.success) {
                 throw new Error(res.message || "Failed to fetch data");
             }
 
-            return res.data.data ?? [];
+            return res.data.data ?? {};
         } catch (error) {
             throw axiosErrorToApiError(error);
         }
@@ -78,9 +78,9 @@ class ClinicianService {
     /**
      * GET /api/invoiceproceduretype
      */
-    async getInvoiceProcedureType(): Promise<ApiResponse<BillingProcedureTypeList[]>> {
+    async getInvoiceProcedureType(): Promise<BillingProcedureTypeList[]> {
         try {
-            const response = await axiosInstance.get(
+            const response = await axiosInstance.get<ApiResponse<BillingProcedureTypeList[]>>(
                 `${BASE}/invoiceproceduretype`
             );
             const res = response.data;

@@ -1,7 +1,8 @@
-import { ClinicianModel, Clinician_Contact, Clinician_RecruitModel, UserModel } from "./clinician.type";
+import { ClinicianForm } from "./clinician.schema";
+import { ClinicianModel, ClinicianContact, ClinicianRecruit, UserModel } from "./clinician.types";
 
 //API - to - Form
-export const toForm = (data: ClinicianModel) => {
+export const toForm = (data: ClinicianModel): ClinicianForm => {
   return {
     id: data.id,
     clientId: data.clientId,
@@ -22,12 +23,12 @@ export const toForm = (data: ClinicianModel) => {
 
     stateId: data.stateId ?? null,
 
-    countryId: data.countryId ?? null,
+    countryId: data.countryId ?? 231,
     zip: data.zip ?? "",
 
     profileImage: data.profileImage ?? "",
 
-    active: data.active ?? false,
+    active: data.active ? true : false,
 
     code: data.code ?? "",
     timeZone: data.timeZone ?? "",
@@ -56,55 +57,56 @@ export const toForm = (data: ClinicianModel) => {
 
     isAddedSendGrid: data.isAddedSendGrid ?? false,
 
-    // Nested objects
-    clinicianContact: {
-      id: data.clinicianContact?.id ?? 0,
-      clinicianId: data.id,
-      primaryContact: data.clinicianContact?.primaryContact ?? "",
-      secondaryContact: data.clinicianContact?.secondaryContact ?? "",
-      primaryEmail: data.clinicianContact?.primaryEmail ?? "",
-      secondaryEmail: data.clinicianContact?.secondaryEmail ?? "",
-      emergencyContact: data.clinicianContact?.emergencyContact ?? "",
-      emergencyPerson: data.clinicianContact?.emergencyPerson ?? "",
-    } as Clinician_Contact,
+    // Nested objects - optional in form schema
+    clinicianContact: data.clinicianContact ? {
+      id: data.clinicianContact.id,
+      clinicianId: data.clinicianContact.clinicianId,
+      primaryContact: data.clinicianContact.primaryContact,
+      secondaryContact: data.clinicianContact.secondaryContact,
+      primaryEmail: data.clinicianContact.primaryEmail,
+      secondaryEmail: data.clinicianContact.secondaryEmail,
+      emergencyContact: data.clinicianContact.emergencyContact,
+      emergencyPerson: data.clinicianContact.emergencyPerson,
+    } : undefined,
 
-    clinicianRecruits: {
-      id: data.clinicianRecruits?.id ?? 0,
-      clinicianId: data.id,
-      dateOfHire: data.clinicianRecruits?.dateOfHire ?? "",
-      clinicId: data.clinicianRecruits?.clinicId ?? null,
-      hourlyRate: data.clinicianRecruits?.hourlyRate ?? null,
-      recruitCvid: data.clinicianRecruits?.recruitCvid ?? null,
-      payrollProcess: data.clinicianRecruits?.payrollProcess ?? false,
-      policyDisplay: data.clinicianRecruits?.policyDisplay ?? false,
-      protocolDisplay: data.clinicianRecruits?.protocolDisplay ?? false,
-      salaryPayBy: data.clinicianRecruits?.salaryPayBy ?? "",
-      bankName: data.clinicianRecruits?.bankName ?? "",
-      dateOfExit: data.clinicianRecruits?.dateOfExit ?? "",
-      onlineBooking: data.clinicianRecruits?.onlineBooking ?? false,
-      affiliation: data.clinicianRecruits?.affiliation ?? "",
-      affiliationOther: data.clinicianRecruits?.affiliationOther ?? "",
-      canViewBioLabs: data.clinicianRecruits?.canViewBioLabs ?? false,
-      canViewCommission: data.clinicianRecruits?.canViewCommission ?? false,
-      agentId: data.clinicianRecruits?.agentId ?? null,
-      diseaseList: data.clinicianRecruits?.diseaseList ?? [],
-      billingProcedure: data.clinicianRecruits?.billingProcedure ?? null,
-      billingAgreementSigned: data.clinicianRecruits?.billingAgreementSigned ?? false,
-      billingAgreement: data.clinicianRecruits?.billingAgreement ?? "",
-      tempCouponCode: data.clinicianRecruits?.tempCouponCode ?? "",
-    } as Clinician_RecruitModel,
-    userDetail: {
-        userId: data.userDetail.userId,
-        userName: data.userDetail.userName,
-        userType: data.userDetail.userType,
-        identityId: data.userDetail.identityId,
-        active: data.userDetail.active
-    } as UserModel
+    clinicianRecruits: data.clinicianRecruits ? {
+      id: data.clinicianRecruits.id,
+      clinicianId: data.clinicianRecruits.clinicianId,
+      dateOfHire: data.clinicianRecruits.dateOfHire,
+      clinicId: data.clinicianRecruits.clinicId,
+      hourlyRate: data.clinicianRecruits.hourlyRate,
+      recruitCvid: data.clinicianRecruits.recruitCvid,
+      payrollProcess: data.clinicianRecruits.payrollProcess,
+      policyDisplay: data.clinicianRecruits.policyDisplay,
+      protocolDisplay: data.clinicianRecruits.protocolDisplay,
+      salaryPayBy: data.clinicianRecruits.salaryPayBy,
+      bankName: data.clinicianRecruits.bankName,
+      dateOfExit: data.clinicianRecruits.dateOfExit,
+      onlineBooking: data.clinicianRecruits.onlineBooking,
+      affiliation: data.clinicianRecruits.affiliation,
+      affiliationOther: data.clinicianRecruits.affiliationOther,
+      canViewBioLabs: data.clinicianRecruits.canViewBioLabs,
+      canViewCommission: data.clinicianRecruits.canViewCommission,
+      agentId: data.clinicianRecruits.agentId,
+      diseaseList: data.clinicianRecruits.diseaseList,
+      billingProcedure: data.clinicianRecruits.billingProcedure,
+      billingAgreementSigned: data.clinicianRecruits.billingAgreementSigned,
+      billingAgreement: data.clinicianRecruits.billingAgreement,
+      tempCouponCode: data.clinicianRecruits.tempCouponCode,
+    } : undefined,
+
+    userDetail: data.userDetail ? {
+      userId: data.userDetail.userId,
+      userName: data.userDetail.userName,
+      userType: data.userDetail.userType,
+      identityId: data.userDetail.identityId,
+      active: data.userDetail.active
+    } : undefined
   };
 };
 
 //Form - to - API
-export const toModel = (form: any): ClinicianModel => {
+export const toModel = (form: ClinicianForm): ClinicianModel => {
   return {
     id: form.id,
     clientId: form.clientId,
@@ -159,9 +161,9 @@ export const toModel = (form: any): ClinicianModel => {
 
     isAddedSendGrid: form.isAddedSendGrid,
 
-    clinicianContact: form.clinicianContact,
-    clinicianRecruits: form.clinicianRecruits,
+    clinicianContact: form.clinicianContact as ClinicianContact,
+    clinicianRecruits: form.clinicianRecruits as ClinicianRecruit,
 
-    userDetail: form.userDetail ?? null,
+    userDetail: form.userDetail as UserModel,
   };
 };

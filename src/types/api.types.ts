@@ -37,7 +37,7 @@ export interface ApiResponse<T> {
 }
 
 export interface ApiPageResponse<T> {
-  data: T;
+  data: T[];
   xpage: {
     currentPage: number;
     pageNumber: number;

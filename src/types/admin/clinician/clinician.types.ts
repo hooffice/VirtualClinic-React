@@ -15,7 +15,7 @@ export interface ClinicianList {
     providerName: string | null;
     firstName: string | null;
     lastName: string | null;
-    active: string | null;
+    active: string | null; // API returns 'Yes'/'No'
     npiNo: string | null;
     primaryClinic: string | null;
     affiliation: string | null;
@@ -60,11 +60,11 @@ export interface ClinicianModel {
     cliaCertification: boolean | null;
     cliaCertificationNo: string | null;
     isAddedSendGrid: boolean | null;
-    clinicianContact: Clinician_Contact;
-    clinicianRecruits: Clinician_RecruitModel;
+    clinicianContact: ClinicianContact;
+    clinicianRecruits: ClinicianRecruit;
     userDetail: UserModel;
 }
-export interface Clinician_Contact {
+export interface ClinicianContact {
     id: number;
     clinicianId: number;
     primaryContact: string | null;
@@ -75,7 +75,7 @@ export interface Clinician_Contact {
     emergencyPerson: string | null;
 }
 
-export interface Clinician_RecruitModel {
+export interface ClinicianRecruit {
     id: number;
     clinicianId: number;
     dateOfHire: string | null;

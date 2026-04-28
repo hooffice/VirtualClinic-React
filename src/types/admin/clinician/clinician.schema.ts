@@ -12,10 +12,19 @@ export const clinicianContactSchema = z.object({
   id: z.number(),
   clinicianId: z.number(),
 
-  primaryContact: z.string().min(1, "PrimaryContact is required"),
+  primaryContact: z.string().nullable().refine(
+    (val) => val === null || (val.trim().length > 0),
+    { message: "Primary Contact is required" }
+  ),
   secondaryContact: z.string().nullable(),
 
-  primaryEmail: z.string().email().min(1, "PrimaryEmail is required"),
+  primaryEmail: z.union([
+    z.literal(null),
+    z.string().email("Invalid email format")
+  ]).refine(
+    (val) => val === null || (val.trim().length > 0),
+    { message: "Primary Email is required" }
+  ),
   secondaryEmail: z.string().email().nullable(),
 
   emergencyContact: z.string().nullable(),
@@ -79,7 +88,7 @@ export const clinicianSchema = z.object({
   
   stateId: z.number().nullable(),
   
-  countryId: z.number().int(),
+  countryId: z.number().nullable().default(231),
 
   zip: z.string().nullable(),
 
@@ -114,10 +123,10 @@ export const clinicianSchema = z.object({
 
   isAddedSendGrid: z.boolean().nullable(),
 
-  clinicianContact: clinicianContactSchema,
-  clinicianRecruits: clinicianRecruitSchema,
+  clinicianContact: clinicianContactSchema.optional(),
+  clinicianRecruits: clinicianRecruitSchema.optional(),
 
-  userDetail: userModelSchema,
+  userDetail: userModelSchema.optional(),
 });
 
 export type ClinicianForm = z.infer<typeof clinicianSchema>;
