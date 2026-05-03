@@ -124,16 +124,20 @@ export function RHFSelect<
 
                 control: (base, state) => ({
                   ...base,
-                  minHeight: "34px", // 👈 reduce height here
+                  minHeight: "34px", // 
                   height: "34px",
                   fontSize: "11px",
                 }),
-
+                placeholder: (base) => ({
+                  ...base,
+                  fontSize: "11px",
+                  color: "#adb5bd", // softer gray
+                }),
                 valueContainer: (base) => ({
                   ...base,
                   height: "34px",
-                  padding: "0 8px", // 👈 reduce vertical padding
-                }),
+                  padding: "0 8px", // 
+                  }),
 
                 input: (base) => ({
                   ...base,

@@ -64,7 +64,7 @@ export function RHFSelect2<
         .join(", ");
     } else {
       const option = options.find((o) => o.value == value);
-      return option?.label || "-";
+      return option?.label || "";
     }
   };
 
@@ -73,7 +73,11 @@ export function RHFSelect2<
       {label && (
         <Label style={{ fontSize: "12px", fontWeight: 500 }}>
           {label}
-          {required && <span style={{ color: "red", marginLeft: 4, fontSize: "12px"}}>*</span>}
+          {required && (
+            <span style={{ color: "red", marginLeft: 4, fontSize: "12px" }}>
+              *
+            </span>
+          )}
         </Label>
       )}
 
@@ -85,7 +89,7 @@ export function RHFSelect2<
             border: "1px solid #ced4da",
             borderRadius: "6px",
             backgroundColor: "#f8f9fa",
-            fontSize: "12px"
+            fontSize: "12px",
           }}
         >
           {getDisplayValue()}
@@ -121,15 +125,19 @@ export function RHFSelect2<
 
                 control: (base, state) => ({
                   ...base,
-                  minHeight: "34px", // 👈 reduce height here
+                  minHeight: "34px", // reduce height here
                   height: "34px",
                   fontSize: "11px",
                 }),
-
+                placeholder: (base) => ({
+                  ...base,
+                  fontSize: "11px",
+                  color: "#adb5bd", // softer gray
+                }),
                 valueContainer: (base) => ({
                   ...base,
                   height: "34px",
-                  padding: "0 8px", // 👈 reduce vertical padding
+                  padding: "0 8px", // reduce vertical padding
                 }),
 
                 input: (base) => ({

@@ -67,23 +67,26 @@ const ClinicianDetail: React.FC = () => {
   };
 
   // Fetch clinician data if editing (id > 0)
-useEffect(() => {
-  if (isAddMode) {
-    dispatch(setSelected(null));
-    const emptyData = emptyForm(clientId);
-    reset(emptyData);
-    setInitialized(true);
-  } else if (id) {
-    dispatch(fetchClinicianByClinicianId(Number(id)));
-  }
-}, [id, isAddMode, dispatch, reset, clientId]);
-
   useEffect(() => {
-    if (selected && !initialized && !isAddMode) {
-      reset(toForm(selected));
+    if (isAddMode) {
+      dispatch(setSelected(null));
+      const emptyData = emptyForm(clientId);
+      reset(emptyData);
+      setInitialized(true);
+    } else if (id) {
+      // Reset initialized flag when id changes so form updates
+      setInitialized(false);
+      dispatch(fetchClinicianByClinicianId(Number(id)));
       setInitialized(true);
     }
-  }, [selected, initialized, isAddMode, reset]);
+  }, [id, isAddMode, dispatch, reset, clientId]);
+
+  // Update form when selected clinician data arrives
+  useEffect(() => {
+    if (selected && !isAddMode) {
+      reset(toForm(selected));
+    }
+  }, [selected, isAddMode, reset]);
 
   return (
     <React.Fragment>
@@ -139,25 +142,6 @@ useEffect(() => {
                                 }}
                               >
                                 <span className="d-block d-sm-none">
-                                  <i className="far fa-address-card"></i>
-                                </span>
-                                <span className="d-none d-sm-block">
-                                  <i className="far fa-address-card me-2"></i>
-                                  Contact
-                                </span>
-                              </NavLink>
-                            </NavItem>
-                            <NavItem>
-                              <NavLink
-                                style={{ cursor: "pointer" }}
-                                className={classnames({
-                                  active: activeTab === "3",
-                                })}
-                                onClick={() => {
-                                  toggle("3");
-                                }}
-                              >
-                                <span className="d-block d-sm-none">
                                   <i className="fas fa-key"></i>
                                 </span>
                                 <span className="d-none d-sm-block">
@@ -170,10 +154,10 @@ useEffect(() => {
                               <NavLink
                                 style={{ cursor: "pointer" }}
                                 className={classnames({
-                                  active: activeTab === "4",
+                                  active: activeTab === "3",
                                 })}
                                 onClick={() => {
-                                  toggle("4");
+                                  toggle("3");
                                 }}
                               >
                                 <span className="d-block d-sm-none">
@@ -200,18 +184,11 @@ useEffect(() => {
                             <TabPane tabId="2">
                               <Row>
                                 <Col sm="12">
-                                  <ClinicianContact />
-                                </Col>
-                              </Row>
-                            </TabPane>
-                            <TabPane tabId="3">
-                              <Row>
-                                <Col sm="12">
                                   <ClinicianAccount />
                                 </Col>
                               </Row>
                             </TabPane>
-                            <TabPane tabId="4">
+                            <TabPane tabId="3">
                               <Row>
                                 <Col sm="12">
                                   <ClinicianClinic />

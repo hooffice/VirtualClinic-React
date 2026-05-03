@@ -12,6 +12,7 @@ interface Props {
   required?: boolean;
   showUploadButton?: boolean; 
   className?: string;
+  
 }
 
 export const RHFProfileImage: React.FC<Props> = ({

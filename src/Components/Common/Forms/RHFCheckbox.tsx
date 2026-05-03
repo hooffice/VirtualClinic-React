@@ -29,7 +29,7 @@ export function RHFCheckBox<T extends FieldValues>({
         )}
       />
 
-      <Label check className="ms-2">
+      <Label check className="ms-2" style={{ fontSize: "11px", fontWeight: 300 }}>
         {label}
       </Label>
     </FormGroup>
