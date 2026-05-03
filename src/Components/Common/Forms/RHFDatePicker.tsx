@@ -36,11 +36,23 @@ export function RHFDatePicker<T extends FieldValues>({
   const value = watch(name); //  current value
   const dateRef = useRef<DatePicker>(null);
 
+  // Helper function to safely parse dates from various formats
+  const parseDate = (val: any): Date | null => {
+    if (!val) return null;
+    if (val instanceof Date) {
+      return isNaN(val.getTime()) ? null : val;
+    }
+    if (typeof val === "string") {
+      const parsed = new Date(val);
+      return isNaN(parsed.getTime()) ? null : parsed;
+    }
+    return null;
+  };
+
   // format date for display
   const formatDisplayDate = () => {
-    if (!value) return "";
-
-    const date = new Date(value);
+    const date = parseDate(value);
+    if (!date) return "";
 
     if (showTimeSelect) {
       return date.toLocaleString(); // date + time
@@ -80,11 +92,13 @@ export function RHFDatePicker<T extends FieldValues>({
         <Controller
           name={name}
           control={control}
-          render={({ field }) => (
+          render={({ field }) => {
+            const selectedDate = parseDate(field.value);
+            return (
             <div style={{ position: "relative" }}>
               <DatePicker
                 ref={dateRef}
-                selected={field.value ? new Date(field.value) : null}
+                selected={selectedDate}
                 onChange={(date) => field.onChange(date)}
                 placeholderText={placeholder}
                 dateFormat={dateFormat}
@@ -107,7 +121,8 @@ export function RHFDatePicker<T extends FieldValues>({
                 <i className="fas fa-calendar"></i>
               </span>
             </div>
-          )}
+            );
+          }}
         />
       )}
 

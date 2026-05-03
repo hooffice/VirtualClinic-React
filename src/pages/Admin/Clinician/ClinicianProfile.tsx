@@ -22,18 +22,40 @@ import {
   type City,
   commonService,
 } from "@/services/commonService";
+import { ReferredBy, referredByService } from "@/services/referredByService";
+import { SalesRep, salesRepService } from "@/services/salesRepService";
+import { Affiliation, affiliationService } from "@/services/affiliationService";
+import { BillingProcedureList } from "@/types/admin/clinician/clinician.types";
+import { ClinicListItem } from "@/types/admin/clinic/clinic.types";
 
 const ClinicianProfile: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const { setValue, watch } = useFormContext<ClinicianForm>();
+  const { setValue, watch, getValues } = useFormContext<ClinicianForm>();
 
   const values = watch();
   const isAddMode = !id || id === "0";
+
+  // Helper function to parse and format date values
+  const parseDate = (value: any): Date | null => {
+    if (!value) return null;
+    if (value instanceof Date) return value;
+    if (typeof value === "string") {
+      const parsed = new Date(value);
+      return isNaN(parsed.getTime()) ? null : parsed;
+    }
+    return null;
+  };
 
   const [timezone, setTimezone] = useState<Timezone[]>([]);
   const [countries, setCountries] = useState<Country[]>([]);
   const [states, setStates] = useState<State[]>([]);
   const [cities, setCities] = useState<City[]>([]);
+  const [referredByList, setReferredByList] = useState<ReferredBy[]>([]);
+  const [salesRepList, setSalesRepList] = useState<SalesRep[]>([]);
+  const [affiliations, setAffiliations] = useState<Affiliation[]>([]);
+  const [billingProcedureList, setBillingProcedureList] = useState<BillingProcedureList[]>([]);
+  const [clinic, setClinic] = useState<ClinicListItem[]>([]);
+
   const [loadingStates, setLoadingStates] = useState(false);
   const [loadingCities, setLoadingCities] = useState(false);
 
@@ -49,13 +71,41 @@ const ClinicianProfile: React.FC = () => {
     () => cities.map((c) => ({ value: Number(c.id), label: c.name })),
     [cities],
   );
+
   const timezoneOptions = useMemo<SelectStringOption[]>(
     () =>
       timezone.map((tz) => ({
-        value: tz.nameOfTimeZone,
-        label: tz.nameOfTimeZone,
+        value: tz.timeZoneTime,
+        label: tz.timeZoneTime,
       })),
     [timezone],
+  );
+
+  const salesRepOptions = useMemo<SelectOption[]>(
+    () =>
+      salesRepList.map((s) => ({
+        value: s.id,
+        label: s.salesRep,
+      })),
+    [salesRepList],
+  );
+
+  const referredByOptions = useMemo<SelectOption[]>(
+    () =>
+      referredByList.map((r) => ({
+        value: r.id,
+        label: r.referredBy,
+      })),
+    [referredByList],
+  );
+
+  const affiliationOptions = useMemo<SelectOption[]>(
+    () =>
+      affiliations.map((a) => ({
+        value: a.id,
+        label: a.affiliation,
+      })),
+    [affiliations],
   );
 
   // Helper to extract value from SelectOption or get raw value
@@ -137,8 +187,36 @@ const ClinicianProfile: React.FC = () => {
 
   // Load countries and timezones on mount
   useEffect(() => {
-    commonService.getCountries().then(setCountries).catch(console.error);
-    timezoneService.getTimezones().then(setTimezone).catch(console.error);
+    const fetchReferenceData = async () => {
+      try {
+        // Fetch Timezone
+        const timezoneData = await timezoneService.getTimezones();
+        setTimezone(timezoneData);
+        // Fetch County
+        const countryData = await commonService.getCountries();
+        setCountries(countryData);
+
+        // Fetch affiliations
+        const affiliationsData = await affiliationService.getAffiliations();
+        setAffiliations(affiliationsData);
+
+        // Fetch referred by list
+        const referredByData = await referredByService.getReferredByList();
+        setReferredByList(referredByData);
+
+        // Fetch sales rep list
+        const salesRepData = await salesRepService.getSalesRepList();
+        setSalesRepList(salesRepData);
+      } catch (err) {
+        console.error("Failed to fetch reference data:", err);
+        setCountries([]);
+        setTimezone([]);
+        setAffiliations([]);
+        setReferredByList([]);
+        setSalesRepList([]);
+      }
+    };
+    fetchReferenceData();
   }, []);
 
   // Auto-load states when country is selected (add or edit mode)
@@ -277,7 +355,7 @@ const ClinicianProfile: React.FC = () => {
       <b>Address</b>
       <div className="border-bottom my-3" />
       <Row>
-        <Col sm={12} md={3}>
+        <Col sm={12} md={4}>
           <RHFSelect2
             label="Timezone"
             name="timeZone"
@@ -286,7 +364,7 @@ const ClinicianProfile: React.FC = () => {
             isClearable
           />
         </Col>
-        <Col sm={12} md={3}>
+        <Col sm={12} md={2}>
           <RHFSelect
             label="Country"
             name="countryId"
@@ -340,14 +418,16 @@ const ClinicianProfile: React.FC = () => {
           <RHFInput label="UPI" name="upinNo" />
         </Col>
         <Col sm={12} md={3}>
-          <RHFSelect label="Sales Rep" name="salesRep" options={[]} />
+          <RHFSelect label="Sales Rep" name="salesRep" options={salesRepOptions} />
         </Col>
         <Col sm={12} md={3}>
-          <RHFSelect label="Refer By" name="referredBy" options={[]} />
+          <RHFSelect label="Refer By" name="referredBy" options={referredByOptions} />
         </Col>
+        {values.referredBy == 8 &&
         <Col sm={12} md={2}>
           <RHFInput label="Other Detail" name="referredbyOther" />
         </Col>
+        }
       </Row>
       <Row className="align-items-stretch">
         <Col sm={12} md={3}>
@@ -362,7 +442,7 @@ const ClinicianProfile: React.FC = () => {
           <RHFSelect
             label="Affiliation"
             name="clinicianRecruits.affiliation"
-            options={[]}
+            options={affiliationOptions}
           />
         </Col>
         <Col sm={12} md={2}>
@@ -426,12 +506,12 @@ const ClinicianProfile: React.FC = () => {
               name="bwoVcsign"
               containerStyle={{
                 width: "100%",
-                height: "34px", 
+                height: "34px",
               }}
               style={{
                 width: "100%",
                 height: "100%",
-                objectFit: "contain", 
+                objectFit: "contain",
               }}
             />
           </Col>

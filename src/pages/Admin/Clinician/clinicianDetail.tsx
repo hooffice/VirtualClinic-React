@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/store";
 import {
@@ -34,6 +34,7 @@ import { RHFFormWrapper } from "@/Components/Common/Forms";
 
 const ClinicianDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const dispatch = useDispatch<any>();
   const clientId = Number(import.meta.env.VITE_CLIENT_ID) || 1;
   const [initialized, setInitialized] = useState(false);
@@ -62,6 +63,10 @@ const ClinicianDetail: React.FC = () => {
     console.log("FULL FORM DATA:", formData);
     const payload = toModel(formData);
     await dispatch(saveClinician(payload, clientId));
+  };
+
+  const handleCancel = () => {
+    navigate("/admin/clinician");
   };
 
   // Fetch clinician data if editing (id > 0)
@@ -174,7 +179,11 @@ const ClinicianDetail: React.FC = () => {
                               Save
                             </button>
 
-                            <button type="button" className="btn btn-secondary">
+                            <button
+                              type="button"
+                              className="btn btn-secondary"
+                              onClick={handleCancel}
+                            >
                               Cancel
                             </button>
                           </div>

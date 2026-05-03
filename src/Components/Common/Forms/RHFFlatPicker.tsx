@@ -30,6 +30,19 @@ export function RHFFlatpickr<T extends FieldValues>({
   const error = errors[name];
   const value = watch(name);
 
+  // Helper function to safely parse dates from various formats
+  const parseDate = (val: any): Date | null => {
+    if (!val) return null;
+    if (val instanceof Date) {
+      return isNaN(val.getTime()) ? null : val;
+    }
+    if (typeof val === "string") {
+      const parsed = new Date(val);
+      return isNaN(parsed.getTime()) ? null : parsed;
+    }
+    return null;
+  };
+
   const getOptions = () => {
     switch (mode) {
       case "datetime":
@@ -51,8 +64,8 @@ export function RHFFlatpickr<T extends FieldValues>({
   };
 
   const formatDisplay = () => {
-    if (!value) return "";
-    const d = new Date(value);
+    const d = parseDate(value);
+    if (!d) return "";
 
     if (mode === "datetime") return d.toLocaleString();
     if (mode === "time") return d.toLocaleTimeString();
@@ -83,11 +96,13 @@ export function RHFFlatpickr<T extends FieldValues>({
         <Controller
           name={name}
           control={control}
-          render={({ field }) => (
+          render={({ field }) => {
+            const selectedDate = parseDate(field.value);
+            return (
             <div style={{ position: "relative" }}>
               <Flatpickr
                 style={{ fontSize: "11px" }}
-                value={field.value}
+                value={selectedDate}
                 onChange={([date]) => field.onChange(date)}
                 options={{
                   ...getOptions(),
@@ -121,7 +136,8 @@ export function RHFFlatpickr<T extends FieldValues>({
                 ></i>
               </span>
             </div>
-          )}
+            );
+          }}
         />
       )}
 
