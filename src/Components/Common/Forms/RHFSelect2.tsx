@@ -1,5 +1,5 @@
 import { Controller, FieldValues, Path, useFormContext } from "react-hook-form";
-import CreatableSelect from "react-select/creatable";
+import Select from "react-select";
 import { FormGroup, Label } from "reactstrap";
 
 type SelectOption = {
@@ -17,32 +17,32 @@ interface RHFSelectProps<
   name: Path<T>;
   label?: string;
   options: SelectOption[];
-  maxheight?: number;
+  isSearchable?: boolean;
   isClearable?: boolean;
   isDisabled?: boolean;
   isMulti?: boolean;
   isEdit?: boolean;
   required?: boolean;
   isLoading?: boolean;
-
-  // clean value-based handler
+  maxheight?: number;
   onChange?: (value: TValue) => void;
 }
 
-export function RHFSelect<
+export function RHFSelect2<
   T extends FieldValues,
   TValue = BaseValue | MultiValueType,
 >({
   name,
   label,
   options,
-  maxheight = 150,
+  isSearchable = true,
   isClearable = true,
   isDisabled = false,
   isMulti = false,
   isEdit = true,
   required = false,
   isLoading = false,
+  maxheight = 150,
   onChange,
 }: RHFSelectProps<T, TValue>) {
   const {
@@ -54,7 +54,7 @@ export function RHFSelect<
   const error = errors[name];
   const value = watch(name);
 
-  // View mode display
+  // ✅ View mode
   const getDisplayValue = () => {
     if (isMulti) {
       if (!Array.isArray(value)) return "";
@@ -73,11 +73,7 @@ export function RHFSelect<
       {label && (
         <Label style={{ fontSize: "12px", fontWeight: 500 }}>
           {label}
-          {required && (
-            <span style={{ color: "red", marginLeft: 4, fontSize: "12px" }}>
-              *
-            </span>
-          )}
+          {required && <span style={{ color: "red", marginLeft: 4, fontSize: "12px"}}>*</span>}
         </Label>
       )}
 
@@ -89,7 +85,7 @@ export function RHFSelect<
             border: "1px solid #ced4da",
             borderRadius: "6px",
             backgroundColor: "#f8f9fa",
-            fontSize: "12px",
+            fontSize: "12px"
           }}
         >
           {getDisplayValue()}
@@ -99,16 +95,17 @@ export function RHFSelect<
           name={name}
           control={control}
           render={({ field }) => (
-            <CreatableSelect
+            <Select
               options={options}
+              isSearchable={isSearchable}
               isClearable={isClearable}
               isDisabled={isDisabled}
               isMulti={isMulti}
               isLoading={isLoading}
-              className="customSelectStyles"
-              maxMenuHeight={maxheight}
+              classNamePrefix="react-select"
               menuPortalTarget={document.body}
               menuPosition="fixed"
+              maxMenuHeight={maxheight}
               styles={{
                 menuPortal: (base) => ({
                   ...base,
@@ -177,10 +174,7 @@ export function RHFSelect<
                   finalValue = (option as SelectOption | null)?.value ?? null;
                 }
 
-                // update RHF
                 field.onChange(finalValue);
-
-                // ✅ notify parent
                 onChange?.(finalValue as TValue);
               }}
             />

@@ -2,5 +2,8 @@ export * from "./RHFTextArea";
 export * from "./RHFCheckbox";
 export * from "./RHFInput";
 export * from "./RHFSelect";
+export * from "./RHFSelect2";
 export * from "./RHFDatePicker";
+export * from "./RHFFlatPicker";
+export * from "./RHFProfileImage";
 export * from "./RHFFormWrapper";

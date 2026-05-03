@@ -1,10 +1,114 @@
 import { ClinicianForm } from "./clinician.schema";
 import { ClinicianModel, ClinicianContact, ClinicianRecruit, UserModel } from "./clinician.types";
 
+//emptyForm
+export const emptyForm = (clientId: number): ClinicianForm => {
+  return {
+    id:  0,
+    clientId: clientId,
+
+    userId: null,
+
+    firstName: "",
+    middleName: "",
+    lastName:  "",
+
+    title: "",
+    credential: "",
+
+    addressLine1: "",
+    addressLine2: "",
+
+    cityId: null,
+
+    stateId: null,
+
+    countryId: 231,
+    zip: "",
+
+    profileImage: "",
+
+    active: true,
+
+    code: "",
+    timeZone: "Eastern Standard Time",
+
+    dob: "",
+    registrationDate: "",
+
+    subscriptionId: null,
+
+    signature: "",
+    upinNo: "",
+    npiNo: "",
+
+    bwoVcsign: false,
+    keyword: "",
+
+    sms: false,
+
+    referredBy: null,
+    referredbyOther: "",
+
+    salesRep: null,
+
+    cliaCertification: false,
+    cliaCertificationNo: "",
+
+    isAddedSendGrid: false,
+
+    // Nested objects - optional in form schema
+    clinicianContact: {
+      id: 0,
+      clinicianId: 0,
+      primaryContact: "",
+      secondaryContact: "",
+      primaryEmail: "",
+      secondaryEmail: "",
+      emergencyContact: "",
+      emergencyPerson: "",
+    },
+
+    clinicianRecruits: {
+      id: 0,
+      clinicianId: 0,
+      dateOfHire: "",
+      clinicId: 0,
+      hourlyRate: 0,
+      recruitCvid: null,
+      payrollProcess: false,
+      policyDisplay: false,
+      protocolDisplay: false,
+      salaryPayBy: "",
+      bankName: "",
+      dateOfExit: "",
+      onlineBooking: false,
+      affiliation: "",
+      affiliationOther: "",
+      canViewBioLabs: false,
+      canViewCommission: false,
+      agentId: null,
+      diseaseList: null,
+      billingProcedure: null,
+      billingAgreementSigned: false,
+      billingAgreement: "",
+      tempCouponCode: "",
+    },
+
+    userDetail: {
+      userId: 0,
+      userName: "",
+      userType: 3,
+      identityId: "",
+      active: true
+    } 
+  };
+}
+
 //API - to - Form
 export const toForm = (data: ClinicianModel): ClinicianForm => {
   return {
-    id: data.id,
+    id: data.id ?? 0,
     clientId: data.clientId,
 
     userId: data.userId ?? null,
@@ -61,12 +165,12 @@ export const toForm = (data: ClinicianModel): ClinicianForm => {
     clinicianContact: data.clinicianContact ? {
       id: data.clinicianContact.id,
       clinicianId: data.clinicianContact.clinicianId,
-      primaryContact: data.clinicianContact.primaryContact,
-      secondaryContact: data.clinicianContact.secondaryContact,
-      primaryEmail: data.clinicianContact.primaryEmail,
-      secondaryEmail: data.clinicianContact.secondaryEmail,
-      emergencyContact: data.clinicianContact.emergencyContact,
-      emergencyPerson: data.clinicianContact.emergencyPerson,
+      primaryContact: data.clinicianContact.primaryContact ?? null,
+      secondaryContact: data.clinicianContact.secondaryContact ?? null,
+      primaryEmail: data.clinicianContact.primaryEmail ?? null,
+      secondaryEmail: data.clinicianContact.secondaryEmail ?? null,
+      emergencyContact: data.clinicianContact.emergencyContact ?? null,
+      emergencyPerson: data.clinicianContact.emergencyPerson ?? null,
     } : undefined,
 
     clinicianRecruits: data.clinicianRecruits ? {

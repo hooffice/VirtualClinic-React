@@ -21,12 +21,13 @@ export interface ClinicianList {
     affiliation: string | null;
     primary_Contact: string | null;
     primary_Email: string | null;
+    registrationDate: string;
     orderDate: string | null;
     totalOrders: number | null;
     totalAmount: string | null;
+    isSendGrid: string | null; 
+    
 }
-
-
 
 export interface ClinicianModel {
     id: number;

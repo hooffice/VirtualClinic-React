@@ -1,0 +1,75 @@
+.icon-link-outline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 32px;
+  height: 32px;
+
+  border: 1px solid #0d6efd; /* bootstrap primary */
+  border-radius: 6px;
+
+  color: #0d6efd;
+  text-decoration: none;
+  background-color: transparent;
+
+  transition: all 0.2s ease;
+}
+
+.icon-link-outline:hover {
+  background-color: #0d6efd;
+  color: #fff;
+}
+
+.icon-link-without-outline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 25px;
+  height: 25px;
+
+  color: #0d6efd;
+  text-decoration: none;
+  background-color: transparent;
+
+  transition: all 0.2s ease;
+}
+
+.icon-link-without-outline:hover {
+  background-color: #0d6efd;
+  color: #fff;
+}
+
+.icon-link-without-outline-danger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 25px;
+  height: 25px;
+
+  color: #fd0d2d;
+  text-decoration: none;
+  background-color: transparent;
+
+  transition: all 0.2s ease;
+}
+
+.icon-link-without-outline-danger:hover {
+  background-color: #fd0d2d;
+  color: #fff;
+}
+
+.div-require {
+  position: relative;
+}
+
+.div-require .required-star {
+  color: red;
+  position: absolute;
+  top: 6px;
+  right: 10px;
+  font-size: 14px;
+  pointer-events: none;
+}

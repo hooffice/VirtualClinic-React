@@ -15,6 +15,7 @@ import {
 
 import { rankItem } from "@tanstack/match-sorter-utils";
 
+
 // ----------------------
 // Debounced Input (FIXED)
 // ----------------------
@@ -61,6 +62,9 @@ const DebouncedInput = ({
 // Props
 // ----------------------
 interface TableContainerProps<T> {
+  headerStyle?: React.CSSProperties;
+  rowStyle?: React.CSSProperties; 
+  
   columns: ColumnDef<T, any>[];
   data: T[];
 
@@ -99,6 +103,9 @@ interface TableContainerProps<T> {
 // Component
 // ----------------------
 const TableContainer = <T,>({
+  headerStyle,
+  rowStyle,
+
   columns,
   data,
 
@@ -138,6 +145,27 @@ const TableContainer = <T,>({
   // NEW: local page state (IMPORTANT FIX)
   const [localPage, setLocalPage] = useState(serverSideCurrentPage);
 
+//Default Fonts for Header and Row
+const defaultHeaderStyle: React.CSSProperties = {
+  fontSize: "14px",
+  fontWeight: 600,
+};
+
+const defaultRowStyle: React.CSSProperties = {
+  fontSize: "13px",
+};
+
+
+const mergedHeaderStyle = {
+  ...defaultHeaderStyle,
+  ...headerStyle,
+};
+
+const mergedRowStyle = {
+  ...defaultRowStyle,
+  ...rowStyle,
+};  
+  
   useEffect(() => {
     setLocalPage(serverSideCurrentPage);
   }, [serverSideCurrentPage]);
@@ -319,7 +347,7 @@ const TableContainer = <T,>({
             {getHeaderGroups().map((headerGroup) => (
               <tr key={headerGroup.id} className={theadClass}>
                 {headerGroup.headers.map((header) => (
-                  <th key={header.id}>
+                  <th key={header.id} style={mergedHeaderStyle}>
                     <div
                       onClick={header.column.getToggleSortingHandler()}
                       style={{ cursor: "pointer" }}
@@ -360,16 +388,6 @@ const TableContainer = <T,>({
               </tr>
             ) : getRowModel().rows.length > 0 ? (
               getRowModel().rows.map((row) => (
-                // <tr key={row.id}>
-                //   {row.getVisibleCells().map((cell) => (
-                //     <td key={cell.id}>
-                //       {flexRender(
-                //         cell.column.columnDef.cell,
-                //         cell.getContext(),
-                //       )}
-                //     </td>
-                //   ))}
-                // </tr>
                 <tr
                   key={row.id}
                   onClick={(e) => {
@@ -384,7 +402,7 @@ const TableContainer = <T,>({
                   }}
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <td key={cell.id}>
+                    <td key={cell.id} style={mergedRowStyle}>
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext(),

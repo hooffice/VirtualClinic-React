@@ -88,7 +88,7 @@ export const clinicianSchema = z.object({
   
   stateId: z.number().nullable(),
   
-  countryId: z.number().nullable().default(231),
+  countryId: z.number().nullable(),
 
   zip: z.string().nullable(),
 
