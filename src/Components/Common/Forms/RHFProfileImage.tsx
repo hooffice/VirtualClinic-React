@@ -12,6 +12,8 @@ interface Props {
   required?: boolean;
   showUploadButton?: boolean; 
   className?: string;
+  containerStyle?: React.CSSProperties;
+  style?:  React.CSSProperties;
   
 }
 
@@ -23,7 +25,9 @@ export const RHFProfileImage: React.FC<Props> = ({
   isEdit = true,
   required = false,
   showUploadButton = false, 
-  className="avatar-lg"
+  className="avatar-lg",
+  style,
+  containerStyle
 }) => {
   const { setValue, watch } = useFormContext();
   const fileRef = useRef<HTMLInputElement>(null);
@@ -66,12 +70,14 @@ export const RHFProfileImage: React.FC<Props> = ({
           border: "1px solid #ccc",
           margin: "0 auto",
           cursor: isEdit ? "pointer" : "default",
+          ...containerStyle,
         }}
       >
         <img
           src={preview}
           alt={alt}
           className={className}
+          style={style}
         />
       </div>
 

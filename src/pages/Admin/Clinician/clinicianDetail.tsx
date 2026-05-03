@@ -20,15 +20,13 @@ import {
 } from "reactstrap";
 import Breadcrumb from "Components/Common/Breadcrumb";
 import classnames from "classnames";
-import ClinicianContact from "./clinicianContact";
-import ClinicianAccount from "./clinicianAccount";
 import ClinicianClinic from "./clinicianClinic";
 import ClinicianProfile from "./clinicianProfile";
 import {
   ClinicianForm,
   clinicianSchema,
 } from "@/types/admin/clinician/clinician.schema";
-import { FormProvider, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { emptyForm, toForm, toModel } from "@/types/admin/clinician/clinician.mapper";
 import { setSelected } from "@/slices/admin/organization/reducer";
@@ -142,30 +140,11 @@ const ClinicianDetail: React.FC = () => {
                                 }}
                               >
                                 <span className="d-block d-sm-none">
-                                  <i className="fas fa-key"></i>
-                                </span>
-                                <span className="d-none d-sm-block">
-                                  <i className="fas fa-key me-2"></i>
-                                  Account
-                                </span>
-                              </NavLink>
-                            </NavItem>
-                            <NavItem>
-                              <NavLink
-                                style={{ cursor: "pointer" }}
-                                className={classnames({
-                                  active: activeTab === "3",
-                                })}
-                                onClick={() => {
-                                  toggle("3");
-                                }}
-                              >
-                                <span className="d-block d-sm-none">
                                   <i className="mdi mdi-hospital-building"></i>
                                 </span>
                                 <span className="d-none d-sm-block">
                                   <i className="mdi mdi-hospital-building me-2"></i>
-                                  Clinic
+                                  Clinics
                                 </span>
                               </NavLink>
                             </NavItem>
@@ -182,13 +161,6 @@ const ClinicianDetail: React.FC = () => {
                               </Row>
                             </TabPane>
                             <TabPane tabId="2">
-                              <Row>
-                                <Col sm="12">
-                                  <ClinicianAccount />
-                                </Col>
-                              </Row>
-                            </TabPane>
-                            <TabPane tabId="3">
                               <Row>
                                 <Col sm="12">
                                   <ClinicianClinic />

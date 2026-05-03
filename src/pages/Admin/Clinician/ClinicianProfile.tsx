@@ -3,10 +3,9 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useFormContext } from "react-hook-form";
 
 import { ClinicianForm } from "@/types/admin/clinician/clinician.schema";
-import { Col, Row } from "reactstrap";
+import { Col, FormGroup, Label, Row } from "reactstrap";
 import {
   RHFCheckBox,
-  RHFDatePicker,
   RHFFlatpickr,
   RHFInput,
   RHFProfileImage,
@@ -387,40 +386,60 @@ const ClinicianProfile: React.FC = () => {
       <div className="border-bottom my-3" />
       <Row className="align-items-stretch">
         <Col sm={12} md={3}>
-        <RHFCheckBox label="Active" name="active" />
+          <RHFCheckBox label="Active" name="active" />
         </Col>
         <Col sm={12} md={3}>
-        <RHFCheckBox label="SMS" name="sms" />
+          <RHFCheckBox label="SMS" name="sms" />
         </Col>
         <Col sm={12} md={3}>
-        <RHFCheckBox label="CLIA Certification" name="cliaCertification" />
+          <RHFCheckBox label="CLIA Certification" name="cliaCertification" />
         </Col>
-          {values.cliaCertification &&
-        <Col sm={12} md={3}>
-          <RHFInput
-            name="cliaCertificationNo"
-            placeholder="CLIS Certificate No"
-          />                
-          </Col>}                
+        {values.cliaCertification && (
+          <Col sm={12} md={3}>
+            <RHFInput
+              name="cliaCertificationNo"
+              placeholder="CLIS Certificate No"
+            />
+          </Col>
+        )}
       </Row>
       <div className="border-bottom my-3" />
       <Row className="align-items-stretch">
         <Col sm={12} md={3}>
-        <RHFCheckBox label="Can View Bio-Labs" name="clinicianRecruits.canViewBioLabs" />
+          <RHFCheckBox
+            label="Can View Bio-Labs"
+            name="clinicianRecruits.canViewBioLabs"
+          />
         </Col>
         <Col sm={12} md={3}>
-        <RHFCheckBox label="Can View Agent Commission" name="clinicianRecruits.canViewCommission" />
+          <RHFCheckBox
+            label="Can View Agent Commission"
+            name="clinicianRecruits.canViewCommission"
+          />
         </Col>
         <Col sm={12} md={3}>
-        <RHFCheckBox label="Clinician Signature" name="signature" />
-        </Col>   
-        {values.signature && 
-        <Col sm={12} md={1}>
-          <RHFProfileImage name="bwoVcsign" className="avatar-sm" />
-        </Col>           
-        }
+          <RHFCheckBox label="Clinician Signature" name="signature" />
+        </Col>
+        {values.signature && (
+          <Col sm={12} md={1} className="d-flex align-items-center">
+            <RHFProfileImage
+              name="bwoVcsign"
+              containerStyle={{
+                width: "100%",
+                height: "34px", 
+              }}
+              style={{
+                width: "100%",
+                height: "100%",
+                objectFit: "contain", 
+              }}
+            />
+          </Col>
+        )}
       </Row>
       <div className="border-bottom my-3" />
+      <Row>
+        <Col sm={12} md={12}>
           <RHFSelect
             label="Disease"
             required={true}
@@ -428,7 +447,50 @@ const ClinicianProfile: React.FC = () => {
             name="clinicianRecruits.diseaseList"
             options={[]}
           />
-
+        </Col>
+      </Row>
+      <div className="border-bottom my-3" />
+      <Row className="align-items-stretch">
+        <Col sm={12} md={3}>
+          <RHFInput
+            label="User Name"
+            name="userDetail.userName"
+            disabled={true}
+          />
+        </Col>
+        <Col sm={12} md={3}>
+          <RHFSelect
+            label="User Type"
+            name="userDetail.userType"
+            isDisabled={true}
+            options={[]}
+          />
+        </Col>
+        <Col sm={12} md={3}>
+          <FormGroup>
+            <Label style={{ visibility: "hidden", fontSize: "12px" }}>.</Label>
+            <button
+              type="button"
+              className="btn btn-info w-100"
+              style={{ fontSize: "11px" }}
+            >
+              Change Password
+            </button>
+          </FormGroup>
+        </Col>
+        <Col sm={12} md={3}>
+          <FormGroup>
+            <Label style={{ visibility: "hidden", fontSize: "12px" }}>.</Label>
+            <button
+              type="button"
+              className="btn btn-info w-100"
+              style={{ fontSize: "11px" }}
+            >
+              Change UserName
+            </button>
+          </FormGroup>
+        </Col>
+      </Row>
     </>
   );
 };
