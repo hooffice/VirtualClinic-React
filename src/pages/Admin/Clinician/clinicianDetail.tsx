@@ -21,7 +21,7 @@ import {
 import Breadcrumb from "Components/Common/Breadcrumb";
 import classnames from "classnames";
 import ClinicianClinic from "./clinicianClinic";
-import ClinicianProfile from "./clinicianProfile";
+import ClinicianProfile from "./ClinicianProfile";
 import {
   ClinicianForm,
   clinicianSchema,

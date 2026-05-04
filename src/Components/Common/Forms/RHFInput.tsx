@@ -51,7 +51,7 @@ export function RHFInput<T extends FieldValues>({
 
       {!isEdit ? (
         // 🔹 VIEW MODE
-        <div style={{ padding: "8px 0", minHeight: "38px", fontSize: "12px" }}>
+        <div style={{ padding: "8px 0", minHeight: "38px", fontSize: "11px" }}>
           {value || ""}
         </div>
       ) : (

@@ -29,11 +29,12 @@ import { BillingProcedureTypeList } from "@/types/admin/clinician/clinician.type
 import { ClinicListItem } from "@/types/admin/clinic/clinic.types";
 import clinicService from "@/services/admin/clinic/clinicService";
 import clinicianService from "@/services/admin/clinician/clinicianService";
+import ResetUserModal from "./resetUserModel";
 
 // ============================================================================
 // COMPONENT
 // ============================================================================
-const ClinicianProfile: React.FC = () => {
+const clinicianProfile: React.FC = () => {
   // ========================================================================
   // HOOKS & CONTEXT
   // ========================================================================
@@ -58,15 +59,15 @@ const ClinicianProfile: React.FC = () => {
   /**
    * Safely parse dates from various formats (Date objects, ISO strings, null)
    */
-  const parseDate = (value: any): Date | null => {
-    if (!value) return null;
-    if (value instanceof Date) return value;
-    if (typeof value === "string") {
-      const parsed = new Date(value);
-      return isNaN(parsed.getTime()) ? null : parsed;
-    }
-    return null;
-  };
+  // const parseDate = (value: any): Date | null => {
+  //   if (!value) return null;
+  //   if (value instanceof Date) return value;
+  //   if (typeof value === "string") {
+  //     const parsed = new Date(value);
+  //     return isNaN(parsed.getTime()) ? null : parsed;
+  //   }
+  //   return null;
+  // };
 
   // ========================================================================
   // STATE VARIABLES - Reference Lists
@@ -415,6 +416,16 @@ const ClinicianProfile: React.FC = () => {
     }
   }, [values.stateId]);
 
+  //========================================================================
+  // RESET USERNAME/PASSWORD MODEL
+  //========================================================================
+  const [isResetModalOpen, setIsResetModalOpen] = useState(false);
+  const [isResetPassword, setIsResetPassword] = useState(false);
+
+  const toggleResetModal = () => {
+    setIsResetModalOpen((prev) => !prev);
+  };
+
   // ========================================================================
   // RENDER - FORM JSX
   // ========================================================================
@@ -733,7 +744,7 @@ const ClinicianProfile: React.FC = () => {
           <RHFInput
             label="User Name"
             name="userDetail.userName"
-            disabled={!isAddMode}
+            isEdit={isAddMode}
           />
         </Col>
         <Col sm={12} md={3}>
@@ -757,6 +768,10 @@ const ClinicianProfile: React.FC = () => {
                   type="button"
                   className="btn btn-info w-100"
                   style={{ fontSize: "11px" }}
+                  onClick={() => {
+                    setIsResetPassword(true); // password mode
+                    setIsResetModalOpen(true);
+                  }}
                 >
                   Change Password
                 </button>
@@ -771,6 +786,10 @@ const ClinicianProfile: React.FC = () => {
                   type="button"
                   className="btn btn-info w-100"
                   style={{ fontSize: "11px" }}
+                  onClick={() => {
+                    setIsResetPassword(false); // username mode
+                    setIsResetModalOpen(true);
+                  }}
                 >
                   Change Username
                 </button>
@@ -779,8 +798,21 @@ const ClinicianProfile: React.FC = () => {
           </>
         )}
       </Row>
+      <ResetUserModal
+        isOpen={isResetModalOpen}
+        toggle={toggleResetModal}
+        clinicianId={values.id}
+        userId={values.userDetail?.userId ?? 0}
+        identityId={values.userDetail?.identityId ?? ""}
+        userName={values.userDetail?.userName ?? ""}
+        isResetPassword={isResetPassword}
+        onSuccess={() => {
+          // optional refresh
+          console.log("Updated successfully");
+        }}
+      />
     </>
   );
 };
 
-export default ClinicianProfile;
+export default clinicianProfile;
