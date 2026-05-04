@@ -1,5 +1,11 @@
-import { Controller, useFormContext, FieldValues, Path } from "react-hook-form";
+import {
+  Controller,
+  useFormContext,
+  FieldValues,
+  Path,
+} from "react-hook-form";
 import { Input, FormGroup, Label, FormFeedback } from "reactstrap";
+import { get } from "react-hook-form";
 
 interface Props<T extends FieldValues> {
   name: Path<T>;
@@ -8,7 +14,7 @@ interface Props<T extends FieldValues> {
   placeholder?: string;
   disabled?: boolean;
   isEdit?: boolean;
-  required?: boolean; 
+  required?: boolean;
 }
 
 export function RHFInput<T extends FieldValues>({
@@ -18,7 +24,7 @@ export function RHFInput<T extends FieldValues>({
   placeholder,
   disabled = false,
   isEdit = true,
-  required = false, // default false
+  required = false,
 }: Props<T>) {
   const {
     control,
@@ -26,7 +32,10 @@ export function RHFInput<T extends FieldValues>({
     watch,
   } = useFormContext<T>();
 
-  const error = errors[name];
+  // ✅ Safe error access (supports nested fields)
+  const error = get(errors, name);
+
+  // ✅ Only used for view mode
   const value = watch(name);
 
   return (
@@ -35,18 +44,18 @@ export function RHFInput<T extends FieldValues>({
         <Label style={{ fontSize: "12px", fontWeight: 500 }}>
           {label}
           {required && (
-            <span style={{ color: "red", marginLeft: 4, fontSize: "12px" }}>*</span>
+            <span style={{ color: "red", marginLeft: 4 }}>*</span>
           )}
         </Label>
       )}
 
       {!isEdit ? (
-        // VIEW MODE
+        // 🔹 VIEW MODE
         <div style={{ padding: "8px 0", minHeight: "38px", fontSize: "12px" }}>
           {value || ""}
         </div>
       ) : (
-        // EDIT MODE
+        // 🔹 EDIT MODE
         <Controller
           name={name}
           control={control}
@@ -57,8 +66,10 @@ export function RHFInput<T extends FieldValues>({
               placeholder={placeholder}
               disabled={disabled}
               value={field.value ?? ""}
+              onChange={field.onChange}
+              onBlur={field.onBlur}   // 🔥 critical for onBlur validation
               invalid={!!error}
-              style={{fontSize: "11px"}}
+              style={{ fontSize: "11px" }}
             />
           )}
         />

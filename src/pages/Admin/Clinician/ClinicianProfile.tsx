@@ -1,8 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
-//react hook form
 import { useFormContext } from "react-hook-form";
 
-import { ClinicianForm } from "@/types/admin/clinician/clinician.schema";
+import { useParams } from "react-router-dom";
 import { Col, FormGroup, Label, Row } from "reactstrap";
 import {
   RHFCheckBox,
@@ -12,30 +11,53 @@ import {
   RHFSelect,
   RHFSelect2,
 } from "@/Components/Common/Forms";
-import { useParams } from "react-router-dom";
-//services & types
 import type { SelectOption, SelectStringOption } from "@/types/api.types";
-import { timezoneService, Timezone } from "@/services/timezoneService";
+import { ClinicianForm } from "@/types/admin/clinician/clinician.schema";
 import {
   type Country,
   type State,
   type City,
   commonService,
+  DiseaseList,
+  UserType,
 } from "@/services/commonService";
+import { timezoneService, Timezone } from "@/services/timezoneService";
 import { ReferredBy, referredByService } from "@/services/referredByService";
 import { SalesRep, salesRepService } from "@/services/salesRepService";
 import { Affiliation, affiliationService } from "@/services/affiliationService";
-import { BillingProcedureList } from "@/types/admin/clinician/clinician.types";
+import { BillingProcedureTypeList } from "@/types/admin/clinician/clinician.types";
 import { ClinicListItem } from "@/types/admin/clinic/clinic.types";
+import clinicService from "@/services/admin/clinic/clinicService";
+import clinicianService from "@/services/admin/clinician/clinicianService";
 
+// ============================================================================
+// COMPONENT
+// ============================================================================
 const ClinicianProfile: React.FC = () => {
+  // ========================================================================
+  // HOOKS & CONTEXT
+  // ========================================================================
   const { id } = useParams<{ id: string }>();
-  const { setValue, watch, getValues } = useFormContext<ClinicianForm>();
-
+  const { setValue, watch } = useFormContext<ClinicianForm>();
   const values = watch();
+
+  // ========================================================================
+  // ENVIRONMENT VARIABLES
+  // ========================================================================
+  const clientId: number = Number(import.meta.env.VITE_CLIENT_ID) || 1;
+
+  // ========================================================================
+  // COMPUTED VALUES
+  // ========================================================================
   const isAddMode = !id || id === "0";
 
-  // Helper function to parse and format date values
+  // ========================================================================
+  // HELPER FUNCTIONS
+  // ========================================================================
+
+  /**
+   * Safely parse dates from various formats (Date objects, ISO strings, null)
+   */
   const parseDate = (value: any): Date | null => {
     if (!value) return null;
     if (value instanceof Date) return value;
@@ -46,27 +68,42 @@ const ClinicianProfile: React.FC = () => {
     return null;
   };
 
+  // ========================================================================
+  // STATE VARIABLES - Reference Lists
+  // ========================================================================
   const [timezone, setTimezone] = useState<Timezone[]>([]);
   const [countries, setCountries] = useState<Country[]>([]);
   const [states, setStates] = useState<State[]>([]);
   const [cities, setCities] = useState<City[]>([]);
+  const [affiliations, setAffiliations] = useState<Affiliation[]>([]);
   const [referredByList, setReferredByList] = useState<ReferredBy[]>([]);
   const [salesRepList, setSalesRepList] = useState<SalesRep[]>([]);
-  const [affiliations, setAffiliations] = useState<Affiliation[]>([]);
-  const [billingProcedureList, setBillingProcedureList] = useState<BillingProcedureList[]>([]);
   const [clinic, setClinic] = useState<ClinicListItem[]>([]);
+  const [disease, setDisease] = useState<DiseaseList[]>([]);
+  const [billingProcedureList, setBillingProcedureList] = useState<
+    BillingProcedureTypeList[]
+  >([]);
+  const [usertype, setUsertype] = useState<UserType[]>([]);
 
+  // ========================================================================
+  // STATE VARIABLES - Loading States
+  // ========================================================================
   const [loadingStates, setLoadingStates] = useState(false);
   const [loadingCities, setLoadingCities] = useState(false);
 
+  // ========================================================================
+  // MEMOIZED OPTIONS - Address Section
+  // ========================================================================
   const countryOptions = useMemo<SelectOption[]>(
     () => countries.map((c) => ({ value: Number(c.id), label: c.name })),
     [countries],
   );
+
   const stateOptions = useMemo<SelectOption[]>(
     () => states.map((s) => ({ value: Number(s.id), label: s.name })),
     [states],
   );
+
   const cityOptions = useMemo<SelectOption[]>(
     () => cities.map((c) => ({ value: Number(c.id), label: c.name })),
     [cities],
@@ -81,6 +118,48 @@ const ClinicianProfile: React.FC = () => {
     [timezone],
   );
 
+  // ========================================================================
+  // MEMOIZED OPTIONS - Clinic & Details Section
+  // ========================================================================
+  const clinicOptions = useMemo<SelectOption[]>(
+    () =>
+      clinic.map((c) => ({
+        value: c.id,
+        label: c.name ?? "",
+      })),
+    [clinic],
+  );
+
+  const affiliationOptions = useMemo<SelectStringOption[]>(
+    () =>
+      affiliations.map((a) => ({
+        value: a.affiliation,
+        label: a.affiliation,
+      })),
+    [affiliations],
+  );
+
+  const billingProcedureTypeOptions = useMemo<SelectOption[]>(
+    () =>
+      billingProcedureList.map((d) => ({
+        value: d.id,
+        label: d.billingProcedure ?? "",
+      })),
+    [billingProcedureList],
+  );
+
+  const diseaseOptions = useMemo<SelectOption[]>(
+    () =>
+      disease.map((d) => ({
+        value: d.id,
+        label: d.name ?? "",
+      })),
+    [disease],
+  );
+
+  // ========================================================================
+  // MEMOIZED OPTIONS - Other Dropdowns
+  // ========================================================================
   const salesRepOptions = useMemo<SelectOption[]>(
     () =>
       salesRepList.map((s) => ({
@@ -99,46 +178,37 @@ const ClinicianProfile: React.FC = () => {
     [referredByList],
   );
 
-  const affiliationOptions = useMemo<SelectOption[]>(
+  const usertypeOptions = useMemo<SelectOption[]>(
     () =>
-      affiliations.map((a) => ({
-        value: a.id,
-        label: a.affiliation,
+      usertype.map((d) => ({
+        value: d.id,
+        label: d.type ?? "",
       })),
-    [affiliations],
+    [usertype],
   );
 
-  // Helper to extract value from SelectOption or get raw value
-  const getOptionValue = (option: any): number | null => {
-    if (!option) return null;
-    return typeof option === "object" && option.value !== undefined
-      ? option.value
-      : option;
-  };
+  // ========================================================================
+  // EVENT HANDLERS - Address/Location (Cascading Dropdowns)
+  // ========================================================================
 
-  const getTimezoneValue = (option: any): string | null => {
-    if (!option) return null;
-    return typeof option === "object" && option.value !== undefined
-      ? option.value
-      : option;
-  };
+  /**
+   * Handle Country selection
+   * Loads states for the selected country and resets state/city
+   */
+  const handleCountryChange = async (value: any) => {
+    const countryId =
+      typeof value === "number" || typeof value === "string" ? value : null;
 
-  // Country change → load states, reset state & city
-  const handleCountryChange = async (option: any) => {
-    const countryId = getOptionValue(option);
-    //console.log("Country changed to:", countryId);
-
-    setValue("countryId", countryId);
+    setValue("countryId", countryId as number);
     setValue("stateId", null);
     setValue("cityId", null);
     setStates([]);
     setCities([]);
 
-    if (countryId) {
+    if (countryId !== null && countryId !== undefined && countryId !== "") {
       setLoadingStates(true);
       try {
-        const data = await commonService.getStates(countryId);
-        //console.log("States loaded:", data.length);
+        const data = await commonService.getStates(Number(countryId));
         setStates(data);
       } catch (error) {
         console.error("Failed to load states:", error);
@@ -148,20 +218,22 @@ const ClinicianProfile: React.FC = () => {
     }
   };
 
-  // State change → load cities, reset city
-  const handleStateChange = async (option: any) => {
-    const stateId = getOptionValue(option);
-    //console.log("State changed to:", stateId);
+  /**
+   * Handle State selection
+   * Loads cities for the selected state and resets city
+   */
+  const handleStateChange = async (value: any) => {
+    const stateId =
+      typeof value === "number" || typeof value === "string" ? value : null;
 
-    setValue("stateId", stateId);
+    setValue("stateId", stateId as number);
     setValue("cityId", null);
     setCities([]);
 
-    if (stateId) {
+    if (stateId !== null && stateId !== undefined && stateId !== "") {
       setLoadingCities(true);
       try {
-        const data = await commonService.getCities(stateId);
-        //console.log("Cities loaded:", data.length);
+        const data = await commonService.getCities(Number(stateId));
         setCities(data);
       } catch (error) {
         console.error("Failed to load cities:", error);
@@ -171,99 +243,186 @@ const ClinicianProfile: React.FC = () => {
     }
   };
 
-  // City change
-  const handleCityChange = (option: any) => {
-    const cityId = getOptionValue(option);
-    //console.log("City changed to:", cityId);
-    setValue("cityId", cityId);
+  /**
+   * Handle City selection
+   */
+  const handleCityChange = (value: any) => {
+    const cityId =
+      typeof value === "number" || typeof value === "string" ? value : null;
+    setValue("cityId", cityId as number);
   };
 
-  // Timezone change
-  const handleTimezoneChange = (option: any) => {
-    const timezone = getTimezoneValue(option);
-    //console.log("Timezone changed to:", timezone);
+  /**
+   * Handle Timezone selection
+   */
+  const handleTimezoneChange = (value: any) => {
+    const timezone = typeof value === "string" ? value : null;
     setValue("timeZone", timezone);
   };
 
-  // Load countries and timezones on mount
+  // ========================================================================
+  // EVENT HANDLERS - Clinic & Affiliation
+  // ========================================================================
+
+  /**
+   * Handle Primary Clinic selection
+   */
+  const handleClinicChange = (value: any) => {
+    const id = typeof value === "number" ? value : null;
+    setValue("clinicianRecruits.clinicId", id);
+  };
+
+  /**
+   * Handle Affiliation selection
+   */
+  const handleaffiliationChange = (value: any) => {
+    const id = typeof value === "string" ? value : null;
+    setValue("clinicianRecruits.affiliation", id);
+  };
+
+  /**
+   * Handle Billing Procedure Type selection
+   * Defaults to 0 (none) when value is null/undefined
+   */
+  const handleBillingProcedureTypeChange = (value: any) => {
+    const id = value === null || value === undefined ? 0 : value;
+    setValue("clinicianRecruits.billingProcedure", id);
+  };
+
+  // ========================================================================
+  // EVENT HANDLERS - Sales Rep & Referred By
+  // ========================================================================
+
+  /**
+   * Handle Sales Rep selection
+   */
+  const handlesalerepChange = (value: any) => {
+    const id = typeof value === "number" ? value : null;
+    setValue("salesRep", id);
+  };
+
+  /**
+   * Handle Referred By selection
+   */
+  const handlereferredbyChange = (value: any) => {
+    const id = typeof value === "number" ? value : null;
+    setValue("referredBy", id);
+  };
+
+  // ========================================================================
+  // EVENT HANDLERS - Disease & User Type
+  // ========================================================================
+
+  /**
+   * Handle User Type selection
+   */
+  const handleUserTypeChange = (value: any) => {
+    const id = typeof value === "number" ? value : null;
+    setValue("userDetail.userType", id);
+  };
+
+  // ========================================================================
+  // EFFECTS - Data Fetching
+  // ========================================================================
+
+  /**
+   * Load reference data on mount
+   * Fetches: Timezones, Countries, Affiliations, Referred By, Sales Rep,
+   * Clinics, Diseases, Billing Procedure Types, User Types
+   */
   useEffect(() => {
     const fetchReferenceData = async () => {
       try {
-        // Fetch Timezone
-        const timezoneData = await timezoneService.getTimezones();
+        const [
+          timezoneData,
+          countryData,
+          affiliationsData,
+          referredByData,
+          salesRepData,
+          clinicData,
+          diseaseListData,
+          billingProcedureListData,
+          userTypeData,
+        ] = await Promise.all([
+          timezoneService.getTimezones(),
+          commonService.getCountries(),
+          affiliationService.getAffiliations(),
+          referredByService.getReferredByList(),
+          salesRepService.getSalesRepList(),
+          clinicService.getClinicByClient(clientId),
+          commonService.getDiseaseList(),
+          clinicianService.getBillingProcedureType(),
+          commonService.getUserType(),
+        ]);
+
         setTimezone(timezoneData);
-        // Fetch County
-        const countryData = await commonService.getCountries();
         setCountries(countryData);
-
-        // Fetch affiliations
-        const affiliationsData = await affiliationService.getAffiliations();
         setAffiliations(affiliationsData);
-
-        // Fetch referred by list
-        const referredByData = await referredByService.getReferredByList();
         setReferredByList(referredByData);
-
-        // Fetch sales rep list
-        const salesRepData = await salesRepService.getSalesRepList();
         setSalesRepList(salesRepData);
+        setClinic(clinicData.data);
+        setDisease(diseaseListData);
+        setBillingProcedureList(billingProcedureListData);
+        setUsertype(userTypeData);
       } catch (err) {
         console.error("Failed to fetch reference data:", err);
-        setCountries([]);
-        setTimezone([]);
-        setAffiliations([]);
-        setReferredByList([]);
-        setSalesRepList([]);
       }
     };
-    fetchReferenceData();
-  }, []);
 
-  // Auto-load states when country is selected (add or edit mode)
+    fetchReferenceData();
+  }, [clientId]);
+
+  // ========================================================================
+  // EFFECTS - Cascading Data Loading
+  // ========================================================================
+
+  /**
+   * Auto-load states when country is selected
+   */
   useEffect(() => {
     if (values.countryId) {
-      //console.log("Loading states for country:", values.countryId);
       setLoadingStates(true);
 
       commonService
         .getStates(values.countryId)
         .then((data) => {
-          //console.log("States loaded:", data.length);
           setStates(data);
         })
         .catch((error) => console.error("Failed to load states:", error))
         .finally(() => setLoadingStates(false));
     } else {
-      // Clear states if no country selected
       setStates([]);
       setCities([]);
     }
   }, [values.countryId]);
 
-  // Auto-load cities when state is selected (add or edit mode)
+  /**
+   * Auto-load cities when state is selected
+   */
   useEffect(() => {
     if (values.stateId) {
-      //console.log("Loading cities for state:", values.stateId);
       setLoadingCities(true);
 
       commonService
         .getCities(values.stateId)
         .then((data) => {
-          //console.log("Cities loaded:", data.length);
           setCities(data);
         })
         .catch((error) => console.error("Failed to load cities:", error))
         .finally(() => setLoadingCities(false));
     } else {
-      // Clear cities if no state selected
       setCities([]);
     }
   }, [values.stateId]);
 
+  // ========================================================================
+  // RENDER - FORM JSX
+  // ========================================================================
   return (
     <>
+      {/* SECTION: Personal Information */}
       <Row className="align-items-stretch">
-        {/* LEFT SIDE */}
+        {/* Left: Name, Title, Credential, DOB */}
         <Col sm={12} md={9}>
           <Row className="g-2 mb-2">
             <Col sm={12} md={4}>
@@ -308,7 +467,7 @@ const ClinicianProfile: React.FC = () => {
           </Row>
         </Col>
 
-        {/* RIGHT SIDE */}
+        {/* Right: Profile Image */}
         <Col sm={12} md={3} className="d-flex">
           <div
             className="w-100 border rounded p-2 d-flex flex-column justify-content-center align-items-center"
@@ -317,12 +476,14 @@ const ClinicianProfile: React.FC = () => {
             <RHFProfileImage
               label="Profile Image"
               name="profileImage"
-              imageUrl={values.profileImage} // from API
+              imageUrl={values.profileImage}
               isEdit={true}
             />
           </div>
         </Col>
       </Row>
+
+      {/* SECTION: Contact Information */}
       <Row className="align-items-stretch">
         <Col sm={12} md={3}>
           <RHFInput
@@ -346,16 +507,19 @@ const ClinicianProfile: React.FC = () => {
         </Col>
         <Col sm={12} md={3}>
           <RHFInput
-            label="Secondary Enail"
+            label="Secondary Email"
             name="clinicianContact.secondaryEmail"
           />
         </Col>
       </Row>
+
+      {/* SECTION: Address Information */}
       <div className="border-bottom my-3" />
       <b>Address</b>
       <div className="border-bottom my-3" />
+
       <Row>
-        <Col sm={12} md={4}>
+        <Col sm={12} md={3}>
           <RHFSelect2
             label="Timezone"
             name="timeZone"
@@ -364,10 +528,11 @@ const ClinicianProfile: React.FC = () => {
             isClearable
           />
         </Col>
-        <Col sm={12} md={2}>
+        <Col sm={12} md={3}>
           <RHFSelect
             label="Country"
             name="countryId"
+            required={true}
             options={countryOptions}
             onChange={handleCountryChange}
             isClearable
@@ -394,21 +559,24 @@ const ClinicianProfile: React.FC = () => {
           />
         </Col>
       </Row>
+
       <Row className="align-items-stretch">
         <Col sm={12} md={9}>
           <Row>
             <Col sm={12} md={6}>
-              <RHFInput label="Address Line1" name="address1" />
+              <RHFInput label="Address Line 1" name="address1" />
             </Col>
             <Col sm={12} md={6}>
-              <RHFInput label="Address Line2" name="address2" />
+              <RHFInput label="Address Line 2" name="address2" />
             </Col>
           </Row>
         </Col>
         <Col sm={12} md={3}>
-          <RHFInput label="Zip" name="zip" />
+          <RHFInput label="Zip Code" name="zip" />
         </Col>
       </Row>
+
+      {/* SECTION: Professional Details */}
       <div className="border-bottom my-3" />
       <Row className="align-items-stretch">
         <Col sm={12} md={2}>
@@ -418,24 +586,41 @@ const ClinicianProfile: React.FC = () => {
           <RHFInput label="UPI" name="upinNo" />
         </Col>
         <Col sm={12} md={3}>
-          <RHFSelect label="Sales Rep" name="salesRep" options={salesRepOptions} />
+          <RHFSelect
+            label="Sales Rep"
+            name="salesRep"
+            options={salesRepOptions}
+            onChange={handlesalerepChange}
+            isClearable
+          />
         </Col>
         <Col sm={12} md={3}>
-          <RHFSelect label="Refer By" name="referredBy" options={referredByOptions} />
+          <RHFSelect
+            label="Refer By"
+            name="referredBy"
+            options={referredByOptions}
+            onChange={handlereferredbyChange}
+            isClearable
+          />
         </Col>
-        {values.referredBy == 8 &&
-        <Col sm={12} md={2}>
-          <RHFInput label="Other Detail" name="referredbyOther" />
-        </Col>
-        }
+        {values.referredBy == 8 && (
+          <Col sm={12} md={2}>
+            <RHFInput label="Other Detail" name="referredbyOther" />
+          </Col>
+        )}
       </Row>
+
+      {/* SECTION: Clinic & Billing Information */}
       <Row className="align-items-stretch">
         <Col sm={12} md={3}>
           <RHFSelect
             label="Primary Clinic"
             required={true}
             name="clinicianRecruits.clinicId"
-            options={[]}
+            options={clinicOptions}
+            onChange={handleClinicChange}
+            isClearable
+            isDisabled={true}
           />
         </Col>
         <Col sm={12} md={3}>
@@ -443,6 +628,8 @@ const ClinicianProfile: React.FC = () => {
             label="Affiliation"
             name="clinicianRecruits.affiliation"
             options={affiliationOptions}
+            onChange={handleaffiliationChange}
+            isClearable
           />
         </Col>
         <Col sm={12} md={2}>
@@ -453,7 +640,9 @@ const ClinicianProfile: React.FC = () => {
             label="Billing Type"
             required={true}
             name="clinicianRecruits.billingProcedure"
-            options={[]}
+            options={billingProcedureTypeOptions}
+            onChange={handleBillingProcedureTypeChange}
+            isClearable
           />
         </Col>
         <Col sm={12} md={2}>
@@ -463,6 +652,8 @@ const ClinicianProfile: React.FC = () => {
           />
         </Col>
       </Row>
+
+      {/* SECTION: Status & Certifications */}
       <div className="border-bottom my-3" />
       <Row className="align-items-stretch">
         <Col sm={12} md={3}>
@@ -478,11 +669,13 @@ const ClinicianProfile: React.FC = () => {
           <Col sm={12} md={3}>
             <RHFInput
               name="cliaCertificationNo"
-              placeholder="CLIS Certificate No"
+              placeholder="CLIA Certificate No"
             />
           </Col>
         )}
       </Row>
+
+      {/* SECTION: Permissions & Signature */}
       <div className="border-bottom my-3" />
       <Row className="align-items-stretch">
         <Col sm={12} md={3}>
@@ -517,6 +710,8 @@ const ClinicianProfile: React.FC = () => {
           </Col>
         )}
       </Row>
+
+      {/* SECTION: Disease List */}
       <div className="border-bottom my-3" />
       <Row>
         <Col sm={12} md={12}>
@@ -524,18 +719,21 @@ const ClinicianProfile: React.FC = () => {
             label="Disease"
             required={true}
             isMulti={true}
-            name="clinicianRecruits.diseaseList"
-            options={[]}
+            name="diseaseList"
+            options={diseaseOptions}
+            isClearable
           />
         </Col>
       </Row>
+
+      {/* SECTION: User Account */}
       <div className="border-bottom my-3" />
       <Row className="align-items-stretch">
         <Col sm={12} md={3}>
           <RHFInput
             label="User Name"
             name="userDetail.userName"
-            disabled={true}
+            disabled={!isAddMode}
           />
         </Col>
         <Col sm={12} md={3}>
@@ -543,33 +741,43 @@ const ClinicianProfile: React.FC = () => {
             label="User Type"
             name="userDetail.userType"
             isDisabled={true}
-            options={[]}
+            options={usertypeOptions}
+            onChange={handleUserTypeChange}
+            isClearable
           />
         </Col>
-        <Col sm={12} md={3}>
-          <FormGroup>
-            <Label style={{ visibility: "hidden", fontSize: "12px" }}>.</Label>
-            <button
-              type="button"
-              className="btn btn-info w-100"
-              style={{ fontSize: "11px" }}
-            >
-              Change Password
-            </button>
-          </FormGroup>
-        </Col>
-        <Col sm={12} md={3}>
-          <FormGroup>
-            <Label style={{ visibility: "hidden", fontSize: "12px" }}>.</Label>
-            <button
-              type="button"
-              className="btn btn-info w-100"
-              style={{ fontSize: "11px" }}
-            >
-              Change UserName
-            </button>
-          </FormGroup>
-        </Col>
+        {!isAddMode && (
+          <>
+            <Col sm={12} md={3}>
+              <FormGroup>
+                <Label style={{ visibility: "hidden", fontSize: "12px" }}>
+                  .
+                </Label>
+                <button
+                  type="button"
+                  className="btn btn-info w-100"
+                  style={{ fontSize: "11px" }}
+                >
+                  Change Password
+                </button>
+              </FormGroup>
+            </Col>
+            <Col sm={12} md={3}>
+              <FormGroup>
+                <Label style={{ visibility: "hidden", fontSize: "12px" }}>
+                  .
+                </Label>
+                <button
+                  type="button"
+                  className="btn btn-info w-100"
+                  style={{ fontSize: "11px" }}
+                >
+                  Change Username
+                </button>
+              </FormGroup>
+            </Col>
+          </>
+        )}
       </Row>
     </>
   );

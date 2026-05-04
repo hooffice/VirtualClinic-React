@@ -21,10 +21,27 @@ export interface City {
   name:    string;
   stateID: number;
 }
+
+export interface DiseaseList {
+    id: number;
+    name: string | null;
+    gauge: string | null;
+    printGauge: boolean | null;
+    parentID: number | null;
+    hasChild: boolean | null;
+}
+
+export interface UserType {
+    id: number;
+    type: string;
+}
+
 //Response
-interface CountryResponse { data: Country[]; success: boolean; message: string; }
-interface StateResponse   { data: State[];   success: boolean; message: string; }
-interface CityResponse    { data: City[];    success: boolean; message: string; }
+interface CountryResponse        { data: Country[]; success: boolean; message: string; }
+interface StateResponse          { data: State[];   success: boolean; message: string; }
+interface CityResponse           { data: City[];    success: boolean; message: string; }
+interface DiseaseListResponse    { data: DiseaseList[];    success: boolean; message: string; }
+interface UserTypeResponse       { data: UserType[]; success: boolean; message: string; }
 
 //Service
 
@@ -66,6 +83,29 @@ class CommonService {
     }
   }
 
+  async getDiseaseList(): Promise<DiseaseList[]> {
+    try {
+      const response = await axiosInstance.get<DiseaseListResponse>(`/api/common/diseaseslist`);
+      if (response.data.success && response.data.data) {
+        return response.data.data;
+      }
+      throw new Error(response.data.message || 'Failed to fetch cities');
+    } catch (error) {
+      throw axiosErrorToApiError(error);
+    }
+  }
+
+  async getUserType(): Promise<UserType[]> {
+    try {
+      const response = await axiosInstance.get<UserTypeResponse>(`/api/common/usertypelist`);
+      if (response.data.success && response.data.data) {
+        return response.data.data;
+      }
+      throw new Error(response.data.message || 'Failed to fetch cities');
+    } catch (error) {
+      throw axiosErrorToApiError(error);
+    }
+  }
 }
 
 export const commonService = new CommonService();

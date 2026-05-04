@@ -6,7 +6,7 @@ export const handleAsync = async <TResponse>(
     setSaving?: () => any;
     setError: (msg: string) => any;
   },
-  onSuccess: (res: TResponse, dispatch: any) => void
+  onSuccess: (res: TResponse, dispatch: any) => any
 ) => {
   try {
     if (actions.setSaving) {
@@ -16,16 +16,16 @@ export const handleAsync = async <TResponse>(
     }
 
     const res = await apiCall();
-    onSuccess(res, dispatch);
+    return await onSuccess(res, dispatch);
 
   } catch (err: any) {
     // Better error handling
-    const errorMessage = 
-      typeof err === 'string' 
-        ? err 
+    const errorMessage =
+      typeof err === 'string'
+        ? err
         : err?.response?.data?.message || err?.message || "Something went wrong";
-    
+
     dispatch(actions.setError(errorMessage));
-    
-  } 
+
+  }
 };

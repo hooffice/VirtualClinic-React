@@ -64,7 +64,6 @@ export const fetchClinicianByClinicianId = (clinicianId: number)  =>
         setError,
       },
       (res, dispatch) => {
-        console.log(res)
         dispatch(setSelected(res));
       }
     );
@@ -73,9 +72,9 @@ export const fetchClinicianByClinicianId = (clinicianId: number)  =>
 /**
  * Save Clinician (id = 0 → insert, id > 0 → update)
  */
-export const saveClinician = (model: ClinicianModel, clientId: number) =>
+export const saveClinician = (model: ClinicianModel) =>
   async (dispatch: any) => {
-    await handleAsync(
+    return await handleAsync(
       dispatch,
       () => service.save(model),
       {
@@ -86,14 +85,15 @@ export const saveClinician = (model: ClinicianModel, clientId: number) =>
         if (!res.success) {
           throw new Error(res.message);
         }
-        dispatch(setSuccess(res.message || "Saved successfully"));
-        const param = {
-          clientId: clientId,
-          pageNumber: 1,
-          pageSize: 10,
-          search: ""
-        }
-        await dispatch(fetchCliniciansList(param));
+        await dispatch(setSuccess(res.message || "Saved successfully"));
+        return res;
+        // const param = {
+        //   clientId: clientId,
+        //   pageNumber: 1,
+        //   pageSize: 10,
+        //   search: ""
+        // }
+        //await dispatch(fetchCliniciansList(param));
       }
     );
   };

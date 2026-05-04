@@ -3,7 +3,9 @@ export interface UserModel {
   userId: number;
   userName: string;
   identityId: string;
-  userType: number;
+  pin: string | null;
+  menu: string | null;
+  userType: number | null;
   active: boolean;
 
 }    
@@ -63,6 +65,7 @@ export interface ClinicianModel {
     cliaCertification: boolean | null;
     cliaCertificationNo: string | null;
     isAddedSendGrid: boolean | null;
+    diseaseList: number[] | null;
     clinicianContact: ClinicianContact;
     clinicianRecruits: ClinicianRecruit;
     userDetail: UserModel;
@@ -97,7 +100,6 @@ export interface ClinicianRecruit {
     canViewBioLabs: boolean | null;
     canViewCommission: boolean | null;
     agentId: number | null;
-    diseaseList: number[] | null;
     billingProcedure: number | null;
     billingAgreementSigned: boolean | null;
     billingAgreement: string | null;

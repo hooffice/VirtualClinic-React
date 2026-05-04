@@ -1,9 +1,15 @@
-import { Controller, FieldValues, Path, useFormContext } from "react-hook-form";
+import { useRef } from "react";
+import {
+  Controller,
+  FieldValues,
+  Path,
+  useFormContext,
+  get,
+} from "react-hook-form";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import "./RHFDatePicker.css";
 import { FormGroup, Label, FormFeedback } from "reactstrap";
-import { useRef } from "react";
 
 interface RHFDatePickerProps<T extends FieldValues> {
   name: Path<T>;
@@ -12,7 +18,7 @@ interface RHFDatePickerProps<T extends FieldValues> {
   disabled?: boolean;
   dateFormat?: string;
   showTimeSelect?: boolean;
-  isEdit?: boolean; // NEW
+  isEdit?: boolean;
   required?: boolean;
 }
 
@@ -32,11 +38,13 @@ export function RHFDatePicker<T extends FieldValues>({
     watch,
   } = useFormContext<T>();
 
-  const error = errors[name];
-  const value = watch(name); //  current value
+  // ✅ Safe error access (supports nested fields)
+  const error = get(errors, name);
+
+  const value = watch(name);
   const dateRef = useRef<DatePicker>(null);
 
-  // Helper function to safely parse dates from various formats
+  // ✅ Safe date parser
   const parseDate = (val: any): Date | null => {
     if (!val) return null;
     if (val instanceof Date) {
@@ -49,16 +57,14 @@ export function RHFDatePicker<T extends FieldValues>({
     return null;
   };
 
-  // format date for display
+  // ✅ Display format for view mode
   const formatDisplayDate = () => {
     const date = parseDate(value);
     if (!date) return "";
 
-    if (showTimeSelect) {
-      return date.toLocaleString(); // date + time
-    }
-
-    return date.toLocaleDateString(); // date only
+    return showTimeSelect
+      ? date.toLocaleString()
+      : date.toLocaleDateString();
   };
 
   return (
@@ -66,14 +72,12 @@ export function RHFDatePicker<T extends FieldValues>({
       <Label style={{ fontSize: "12px", fontWeight: 500 }}>
         {label}
         {required && (
-          <span style={{ color: "red", marginLeft: 4, fontSize: "12px" }}>
-            *
-          </span>
+          <span style={{ color: "red", marginLeft: 4 }}>*</span>
         )}
       </Label>
 
       {!isEdit ? (
-        // VIEW MODE
+        // 🔹 VIEW MODE
         <div
           style={{
             padding: "8px 12px",
@@ -87,45 +91,51 @@ export function RHFDatePicker<T extends FieldValues>({
           {formatDisplayDate()}
         </div>
       ) : (
-        // EDIT MODE
-
+        // 🔹 EDIT MODE
         <Controller
           name={name}
           control={control}
           render={({ field }) => {
             const selectedDate = parseDate(field.value);
+
             return (
-            <div style={{ position: "relative" }}>
-              <DatePicker
-                ref={dateRef}
-                selected={selectedDate}
-                onChange={(date) => field.onChange(date)}
-                placeholderText={placeholder}
-                dateFormat={dateFormat}
-                showTimeSelect={showTimeSelect}
-                disabled={disabled}
-                className={`form-control rhf-datepicker ${error ? "is-invalid" : ""}`}
-              />
-              <span
-                onClick={() => dateRef.current?.setOpen(true)}
-                style={{
-                  position: "absolute",
-                  right: "10px",
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  fontSize: "14px",
-                  cursor: "pointer",
-                  color: "#7ab4e7",
-                }}
-              >
-                <i className="fas fa-calendar"></i>
-              </span>
-            </div>
+              <div style={{ position: "relative" }}>
+                <DatePicker
+                  ref={dateRef}
+                  selected={selectedDate}
+                  onChange={(date) => field.onChange(date)}
+                  onBlur={field.onBlur}  // 🔥 CRITICAL FIX
+                  placeholderText={placeholder}
+                  dateFormat={dateFormat}
+                  showTimeSelect={showTimeSelect}
+                  disabled={disabled}
+                  className={`form-control rhf-datepicker ${
+                    error ? "is-invalid" : ""
+                  }`}
+                />
+
+                {/* Calendar Icon */}
+                <span
+                  onClick={() => dateRef.current?.setOpen(true)}
+                  style={{
+                    position: "absolute",
+                    right: "10px",
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    fontSize: "14px",
+                    cursor: "pointer",
+                    color: "#7ab4e7",
+                  }}
+                >
+                  <i className="fas fa-calendar"></i>
+                </span>
+              </div>
             );
           }}
         />
       )}
 
+      {/* ✅ Error Message */}
       {error && (
         <FormFeedback style={{ display: "block" }}>
           {error.message as string}

@@ -1,7 +1,7 @@
-import React, { useRef } from "react";
-import { useFormContext } from "react-hook-form";
-import { FormGroup, Label } from "reactstrap";
-import avatarPlaceholder from "@/assets/images/avatar-placeholder.png"; // adjust path
+import React, { useRef, useEffect, useState } from "react";
+import { useFormContext, get } from "react-hook-form";
+import { FormGroup, Label, FormFeedback } from "reactstrap";
+import avatarPlaceholder from "@/assets/images/avatar-placeholder.png";
 
 interface Props {
   label?: string;
@@ -10,39 +10,62 @@ interface Props {
   imageUrl?: string | null;
   isEdit?: boolean;
   required?: boolean;
-  showUploadButton?: boolean; 
+  showUploadButton?: boolean;
   className?: string;
   containerStyle?: React.CSSProperties;
-  style?:  React.CSSProperties;
-  
+  style?: React.CSSProperties;
 }
 
 export const RHFProfileImage: React.FC<Props> = ({
   label,
   name,
   imageUrl,
-  alt="Profile",
+  alt = "Profile",
   isEdit = true,
   required = false,
-  showUploadButton = false, 
-  className="avatar-lg",
+  showUploadButton = false,
+  className = "avatar-lg",
   style,
-  containerStyle
+  containerStyle,
 }) => {
-  const { setValue, watch } = useFormContext();
-  const fileRef = useRef<HTMLInputElement>(null);
+  const {
+    setValue,
+    watch,
+    formState: { errors },
+    trigger,
+  } = useFormContext();
 
+  const fileRef = useRef<HTMLInputElement>(null);
   const file = watch(name);
 
-  const preview =
-    file instanceof File
-      ? URL.createObjectURL(file)
-      : imageUrl || avatarPlaceholder;
+  // ✅ Safe error access
+  const error = get(errors, name);
+
+  // ✅ Handle preview safely (avoid memory leak)
+  const [preview, setPreview] = useState<string>(avatarPlaceholder);
+
+  useEffect(() => {
+    if (file instanceof File) {
+      const objectUrl = URL.createObjectURL(file);
+      setPreview(objectUrl);
+
+      return () => URL.revokeObjectURL(objectUrl); // 🔥 cleanup
+    } else {
+      setPreview(imageUrl || avatarPlaceholder);
+    }
+  }, [file, imageUrl]);
 
   const handleSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selected = e.target.files?.[0];
+
     if (selected) {
-      setValue(name, selected, { shouldDirty: true });
+      setValue(name, selected, {
+        shouldDirty: true,
+        shouldValidate: true, // 🔥 trigger validation
+      });
+
+      // 🔥 manually trigger validation (acts like blur)
+      trigger(name);
     }
   };
 
@@ -62,14 +85,15 @@ export const RHFProfileImage: React.FC<Props> = ({
         </Label>
       )}
 
-      {/* Image Preview (Clickable) */}
-      <div        
+      {/* Image Preview */}
+      <div
         onClick={openFileDialog}
         style={{
           overflow: "hidden",
-          border: "1px solid #ccc",
+          border: `1px solid ${error ? "red" : "#ccc"}`, // 🔥 error highlight
           margin: "0 auto",
           cursor: isEdit ? "pointer" : "default",
+          borderRadius: "6px",
           ...containerStyle,
         }}
       >
@@ -81,7 +105,7 @@ export const RHFProfileImage: React.FC<Props> = ({
         />
       </div>
 
-      {/* Optional Upload Button */}
+      {/* Upload Button */}
       {isEdit && showUploadButton && (
         <button
           type="button"
@@ -92,7 +116,7 @@ export const RHFProfileImage: React.FC<Props> = ({
         </button>
       )}
 
-      {/* Hidden File Input */}
+      {/* Hidden Input */}
       <input
         type="file"
         accept="image/*"
@@ -100,6 +124,13 @@ export const RHFProfileImage: React.FC<Props> = ({
         style={{ display: "none" }}
         onChange={handleSelect}
       />
+
+      {/* ✅ Error */}
+      {error && (
+        <FormFeedback style={{ display: "block" }}>
+          {error.message as string}
+        </FormFeedback>
+      )}
     </FormGroup>
   );
 };

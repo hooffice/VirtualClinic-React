@@ -1,13 +1,14 @@
 import {
   FieldValues,
   Path,
-  useFormContext
+  useFormContext,
+  get,
 } from "react-hook-form";
 import {
   FormGroup,
   Label,
   Input,
-  FormFeedback
+  FormFeedback,
 } from "reactstrap";
 
 interface RHFTextAreaProps<T extends FieldValues> {
@@ -16,9 +17,8 @@ interface RHFTextAreaProps<T extends FieldValues> {
   placeholder?: string;
   rows?: number;
   disabled?: boolean;
-  isEdit?: boolean; // NEW
-  required?: boolean; 
-  
+  isEdit?: boolean;
+  required?: boolean;
 }
 
 export function RHFTextArea<T extends FieldValues>({
@@ -28,7 +28,7 @@ export function RHFTextArea<T extends FieldValues>({
   rows = 3,
   disabled = false,
   isEdit = true,
-  required = false, // default false
+  required = false,
 }: RHFTextAreaProps<T>) {
   const {
     register,
@@ -36,20 +36,24 @@ export function RHFTextArea<T extends FieldValues>({
     watch,
   } = useFormContext<T>();
 
-  const error = errors[name];
-  const value = watch(name); // get current value
+  // ✅ Safe error access
+  const error = get(errors, name);
+
+  const value = watch(name);
 
   return (
     <FormGroup>
-        <Label>
+      {label && (
+        <Label style={{ fontSize: "12px", fontWeight: 500 }}>
           {label}
           {required && (
             <span style={{ color: "red", marginLeft: 4 }}>*</span>
           )}
         </Label>
+      )}
 
       {!isEdit ? (
-        // VIEW MODE
+        // 🔹 VIEW MODE
         <div
           style={{
             padding: "8px 12px",
@@ -57,23 +61,30 @@ export function RHFTextArea<T extends FieldValues>({
             border: "1px solid #ced4da",
             borderRadius: "6px",
             backgroundColor: "#f8f9fa",
-            whiteSpace: "pre-wrap", // keeps line breaks
+            whiteSpace: "pre-wrap",
+            fontSize: "12px",
           }}
         >
           {value || "-"}
         </div>
       ) : (
-        // EDIT MODE
+        // 🔹 EDIT MODE
         <Input
           type="textarea"
           rows={rows}
           placeholder={placeholder}
           disabled={disabled}
-          {...register(name)}
           invalid={!!error}
+          style={{ fontSize: "11px" }}
+          {...register(name, {
+            onBlur: () => {
+              // 🔥 ensures consistency with onBlur mode
+            },
+          })}
         />
       )}
 
+      {/* ✅ Error */}
       {error && (
         <FormFeedback>
           {error.message as string}

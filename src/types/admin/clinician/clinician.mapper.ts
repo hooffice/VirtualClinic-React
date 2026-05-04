@@ -31,7 +31,7 @@ export const emptyForm = (clientId: number): ClinicianForm => {
     active: true,
 
     code: "",
-    timeZone: "Eastern Standard Time",
+    timeZone: "(GMT-05:00) Eastern Time (US and Canada)",
 
     dob: "",
     registrationDate: "",
@@ -56,24 +56,24 @@ export const emptyForm = (clientId: number): ClinicianForm => {
     cliaCertificationNo: "",
 
     isAddedSendGrid: false,
-
+    diseaseList: [],
     // Nested objects - optional in form schema
     clinicianContact: {
       id: 0,
       clinicianId: 0,
-      primaryContact: "",
-      secondaryContact: "",
-      primaryEmail: "",
-      secondaryEmail: "",
-      emergencyContact: "",
-      emergencyPerson: "",
+      primaryContact: null,
+      secondaryContact: null,
+      primaryEmail: null,
+      secondaryEmail: null,
+      emergencyContact: null,
+      emergencyPerson: null,
     },
 
     clinicianRecruits: {
       id: 0,
       clinicianId: 0,
       dateOfHire: "",
-      clinicId: 0,
+      clinicId: 16,
       hourlyRate: 0,
       recruitCvid: null,
       payrollProcess: false,
@@ -88,8 +88,7 @@ export const emptyForm = (clientId: number): ClinicianForm => {
       canViewBioLabs: false,
       canViewCommission: false,
       agentId: null,
-      diseaseList: null,
-      billingProcedure: null,
+      billingProcedure: 0,
       billingAgreementSigned: false,
       billingAgreement: "",
       tempCouponCode: "",
@@ -98,6 +97,8 @@ export const emptyForm = (clientId: number): ClinicianForm => {
     userDetail: {
       userId: 0,
       userName: "",
+      pin: "",
+      menu: "",
       userType: 3,
       identityId: "",
       active: true
@@ -160,49 +161,50 @@ export const toForm = (data: ClinicianModel): ClinicianForm => {
     cliaCertificationNo: data.cliaCertificationNo ?? "",
 
     isAddedSendGrid: data.isAddedSendGrid ?? false,
-
+    diseaseList: Array.isArray(data.diseaseList) && data.diseaseList.length > 0 ? data.diseaseList : null,
     // Nested objects - optional in form schema
     clinicianContact: data.clinicianContact ? {
       id: data.clinicianContact.id,
       clinicianId: data.clinicianContact.clinicianId,
-      primaryContact: data.clinicianContact.primaryContact ?? null,
-      secondaryContact: data.clinicianContact.secondaryContact ?? null,
-      primaryEmail: data.clinicianContact.primaryEmail ?? null,
-      secondaryEmail: data.clinicianContact.secondaryEmail ?? null,
-      emergencyContact: data.clinicianContact.emergencyContact ?? null,
-      emergencyPerson: data.clinicianContact.emergencyPerson ?? null,
+      primaryContact: data.clinicianContact.primaryContact?.trim() || null,
+      secondaryContact: data.clinicianContact.secondaryContact?.trim() || null,
+      primaryEmail: data.clinicianContact.primaryEmail?.trim() || null,
+      secondaryEmail: data.clinicianContact.secondaryEmail?.trim() || null,
+      emergencyContact: data.clinicianContact.emergencyContact?.trim() || null,
+      emergencyPerson: data.clinicianContact.emergencyPerson?.trim() || null,
     } : undefined,
 
     clinicianRecruits: data.clinicianRecruits ? {
       id: data.clinicianRecruits.id,
       clinicianId: data.clinicianRecruits.clinicianId,
-      dateOfHire: data.clinicianRecruits.dateOfHire,
+      dateOfHire: data.clinicianRecruits.dateOfHire || null,
       clinicId: data.clinicianRecruits.clinicId,
-      hourlyRate: data.clinicianRecruits.hourlyRate,
-      recruitCvid: data.clinicianRecruits.recruitCvid,
-      payrollProcess: data.clinicianRecruits.payrollProcess,
-      policyDisplay: data.clinicianRecruits.policyDisplay,
-      protocolDisplay: data.clinicianRecruits.protocolDisplay,
-      salaryPayBy: data.clinicianRecruits.salaryPayBy,
-      bankName: data.clinicianRecruits.bankName,
-      dateOfExit: data.clinicianRecruits.dateOfExit,
-      onlineBooking: data.clinicianRecruits.onlineBooking,
-      affiliation: data.clinicianRecruits.affiliation,
-      affiliationOther: data.clinicianRecruits.affiliationOther,
-      canViewBioLabs: data.clinicianRecruits.canViewBioLabs,
-      canViewCommission: data.clinicianRecruits.canViewCommission,
-      agentId: data.clinicianRecruits.agentId,
-      diseaseList: data.clinicianRecruits.diseaseList,
-      billingProcedure: data.clinicianRecruits.billingProcedure,
-      billingAgreementSigned: data.clinicianRecruits.billingAgreementSigned,
-      billingAgreement: data.clinicianRecruits.billingAgreement,
-      tempCouponCode: data.clinicianRecruits.tempCouponCode,
+      hourlyRate: data.clinicianRecruits.hourlyRate || null,
+      recruitCvid: data.clinicianRecruits.recruitCvid || null,
+      payrollProcess: data.clinicianRecruits.payrollProcess || false,
+      policyDisplay: data.clinicianRecruits.policyDisplay || false,
+      protocolDisplay: data.clinicianRecruits.protocolDisplay || false,
+      salaryPayBy: data.clinicianRecruits.salaryPayBy || null,
+      bankName: data.clinicianRecruits.bankName || null,
+      dateOfExit: data.clinicianRecruits.dateOfExit || null,
+      onlineBooking: data.clinicianRecruits.onlineBooking || null,
+      affiliation: data.clinicianRecruits.affiliation || null,
+      affiliationOther: data.clinicianRecruits.affiliationOther || null,
+      canViewBioLabs: data.clinicianRecruits.canViewBioLabs || false,
+      canViewCommission: data.clinicianRecruits.canViewCommission || false,
+      agentId: data.clinicianRecruits.agentId || null,
+      billingProcedure: data.clinicianRecruits.billingProcedure || 0,
+      billingAgreementSigned: data.clinicianRecruits.billingAgreementSigned || false,
+      billingAgreement: data.clinicianRecruits.billingAgreement || null,
+      tempCouponCode: data.clinicianRecruits.tempCouponCode || null,
     } : undefined,
 
     userDetail: data.userDetail ? {
       userId: data.userDetail.userId,
       userName: data.userDetail.userName,
-      userType: data.userDetail.userType,
+      userType: data.userDetail.userType ?? null,
+      pin: data.userDetail.pin,
+      menu: data.userDetail.menu,
       identityId: data.userDetail.identityId,
       active: data.userDetail.active
     } : undefined
@@ -211,63 +213,95 @@ export const toForm = (data: ClinicianModel): ClinicianForm => {
 
 //Form - to - API
 export const toModel = (form: ClinicianForm): ClinicianModel => {
+  // Helper function to convert empty strings to null
+  const emptyToNull = (value: any) =>
+    typeof value === "string" && value.trim() === "" ? null : value;
+
   return {
     id: form.id,
     clientId: form.clientId,
 
     userId: form.userId,
 
-    firstName: form.firstName,
-    middleName: form.middleName,
-    lastName: form.lastName,
+    firstName: form.firstName || "",
+    middleName: emptyToNull(form.middleName),
+    lastName: form.lastName || "",
 
-    title: form.title,
-    credential: form.credential,
+    title: emptyToNull(form.title),
+    credential: emptyToNull(form.credential),
 
-    addressLine1: form.addressLine1,
-    addressLine2: form.addressLine2,
+    addressLine1: emptyToNull(form.addressLine1),
+    addressLine2: emptyToNull(form.addressLine2),
 
     cityId: form.cityId,
 
     stateId: form.stateId,
 
     countryId: form.countryId,
-    zip: form.zip,
+    zip: emptyToNull(form.zip),
 
-    profileImage: form.profileImage,
+    profileImage: emptyToNull(form.profileImage),
 
     active: form.active,
 
-    code: form.code,
+    code: emptyToNull(form.code),
     timeZone: form.timeZone,
 
-    dob: form.dob,
-    registrationDate: form.registrationDate,
+    dob: emptyToNull(form.dob),
+    registrationDate: emptyToNull(form.registrationDate),
 
     subscriptionId: form.subscriptionId,
 
-    signature: form.signature,
-    upinNo: form.upinNo,
-    npiNo: form.npiNo,
+    signature: emptyToNull(form.signature),
+    upinNo: emptyToNull(form.upinNo),
+    npiNo: emptyToNull(form.npiNo),
 
     bwoVcsign: form.bwoVcsign,
-    keyword: form.keyword,
+    keyword: emptyToNull(form.keyword),
 
     sms: form.sms,
 
     referredBy: form.referredBy,
-    referredbyOther: form.referredbyOther,
+    referredbyOther: emptyToNull(form.referredbyOther),
 
     salesRep: form.salesRep,
 
     cliaCertification: form.cliaCertification,
-    cliaCertificationNo: form.cliaCertificationNo,
+    cliaCertificationNo: emptyToNull(form.cliaCertificationNo),
 
     isAddedSendGrid: form.isAddedSendGrid,
+    diseaseList: Array.isArray(form.diseaseList) && form.diseaseList.length > 0 ? form.diseaseList : null,
 
-    clinicianContact: form.clinicianContact as ClinicianContact,
-    clinicianRecruits: form.clinicianRecruits as ClinicianRecruit,
+    clinicianContact: form.clinicianContact ? {
+      ...form.clinicianContact,
+      primaryContact: emptyToNull(form.clinicianContact.primaryContact),
+      secondaryContact: emptyToNull(form.clinicianContact.secondaryContact),
+      primaryEmail: emptyToNull(form.clinicianContact.primaryEmail),
+      secondaryEmail: emptyToNull(form.clinicianContact.secondaryEmail),
+      emergencyContact: emptyToNull(form.clinicianContact.emergencyContact),
+      emergencyPerson: emptyToNull(form.clinicianContact.emergencyPerson),
+    } as ClinicianContact : null as any,
 
-    userDetail: form.userDetail as UserModel,
+    clinicianRecruits: form.clinicianRecruits ? {
+      ...form.clinicianRecruits,
+      dateOfHire: emptyToNull(form.clinicianRecruits.dateOfHire),
+      salaryPayBy: emptyToNull(form.clinicianRecruits.salaryPayBy),
+      bankName: emptyToNull(form.clinicianRecruits.bankName),
+      dateOfExit: emptyToNull(form.clinicianRecruits.dateOfExit),
+      affiliation: emptyToNull(form.clinicianRecruits.affiliation),
+      affiliationOther: emptyToNull(form.clinicianRecruits.affiliationOther),
+      billingAgreement: emptyToNull(form.clinicianRecruits.billingAgreement),
+      tempCouponCode: emptyToNull(form.clinicianRecruits.tempCouponCode),
+      
+    } as ClinicianRecruit : null as any,
+
+    userDetail: form.userDetail ? {
+      ...form.userDetail,
+      userId: form.userDetail.userId ?? null,
+      userName: emptyToNull(form.userDetail.userName),
+      identityId: emptyToNull(form.userDetail.identityId),
+      userType: form.userDetail.userType,
+      active: form.userDetail.active,
+    } as UserModel : null as any,
   };
 };

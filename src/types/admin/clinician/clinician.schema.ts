@@ -1,10 +1,15 @@
 import { z } from "zod";
 
 export const userModelSchema = z.object({
-    userId: z.number().int(),
-    userName: z.string().min(1, "UserName is required"),
-    identityId: z.string(),
-    userType: z.number().int(),
+    userId: z.number().int().nullable(),
+    userName: z.union([
+      z.literal(null),
+      z.string().min(1, "UserName is required")
+    ]).nullable(),
+    pin: z.string().nullable(),
+    menu: z.string().nullable(),
+    identityId: z.string().nullable(),
+    userType: z.number().int().nullable(),
     active: z.boolean().nullable(),
 });
 
@@ -59,9 +64,9 @@ export const clinicianRecruitSchema = z.object({
 
   agentId: z.number().nullable(),
 
-  diseaseList: z.array(z.number()).nullable(),
-
-  billingProcedure: z.number().nullable(),
+  billingProcedure: z.number().nullable().refine((val) => val !== null, {
+    message: "Billing Type is required",
+  }),
   billingAgreementSigned: z.boolean().nullable(),
   billingAgreement: z.string().nullable(),
 
@@ -87,8 +92,12 @@ export const clinicianSchema = z.object({
   cityId: z.number().nullable(),
   
   stateId: z.number().nullable(),
-  
+
   countryId: z.number().nullable(),
+  //if required to set - for numeric
+  // countryId: z.number().nullable().refine((val) => val !== null, {
+  //   message: "Country is required",
+  // }),
 
   zip: z.string().nullable(),
 
@@ -122,11 +131,11 @@ export const clinicianSchema = z.object({
   cliaCertificationNo: z.string().nullable(),
 
   isAddedSendGrid: z.boolean().nullable(),
+  diseaseList: z.array(z.number()).nullable(),
+  clinicianContact: clinicianContactSchema.nullable().optional(),
+  clinicianRecruits: clinicianRecruitSchema.nullable().optional(),
 
-  clinicianContact: clinicianContactSchema.optional(),
-  clinicianRecruits: clinicianRecruitSchema.optional(),
-
-  userDetail: userModelSchema.optional(),
+  userDetail: userModelSchema.nullable().optional(),
 });
 
 export type ClinicianForm = z.infer<typeof clinicianSchema>;

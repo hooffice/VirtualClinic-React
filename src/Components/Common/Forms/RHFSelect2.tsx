@@ -1,6 +1,12 @@
-import { Controller, FieldValues, Path, useFormContext } from "react-hook-form";
+import {
+  Controller,
+  FieldValues,
+  Path,
+  useFormContext,
+  get,
+} from "react-hook-form";
 import Select from "react-select";
-import { FormGroup, Label } from "reactstrap";
+import { FormGroup, Label, FormFeedback } from "reactstrap";
 
 type SelectOption = {
   value: string | number;
@@ -51,10 +57,11 @@ export function RHFSelect2<
     watch,
   } = useFormContext<T>();
 
-  const error = errors[name];
+  // ✅ Safe error access
+  const error = get(errors, name);
   const value = watch(name);
 
-  // ✅ View mode
+  // 🔹 View mode
   const getDisplayValue = () => {
     if (isMulti) {
       if (!Array.isArray(value)) return "";
@@ -74,9 +81,7 @@ export function RHFSelect2<
         <Label style={{ fontSize: "12px", fontWeight: 500 }}>
           {label}
           {required && (
-            <span style={{ color: "red", marginLeft: 4, fontSize: "12px" }}>
-              *
-            </span>
+            <span style={{ color: "red", marginLeft: 4 }}>*</span>
           )}
         </Label>
       )}
@@ -99,99 +104,125 @@ export function RHFSelect2<
           name={name}
           control={control}
           render={({ field }) => (
-            <Select
-              options={options}
-              isSearchable={isSearchable}
-              isClearable={isClearable}
-              isDisabled={isDisabled}
-              isMulti={isMulti}
-              isLoading={isLoading}
-              classNamePrefix="react-select"
-              menuPortalTarget={document.body}
-              menuPosition="fixed"
-              maxMenuHeight={maxheight}
-              styles={{
-                menuPortal: (base) => ({
-                  ...base,
-                  zIndex: 9999,
-                  fontSize: "11px",
-                }),
-                menu: (base) => ({
-                  ...base,
-                  zIndex: 9999,
-                  backgroundColor: "#fff",
-                  fontSize: "11px",
-                }),
+            <div>
+              <Select
+                options={options}
+                isSearchable={isSearchable}
+                isClearable={isClearable}
+                isDisabled={isDisabled}
+                isMulti={isMulti}
+                isLoading={isLoading}
+                classNamePrefix="react-select"
+                menuPortalTarget={document.body}
+                menuPosition="fixed"
+                maxMenuHeight={maxheight}
 
-                control: (base, state) => ({
-                  ...base,
-                  minHeight: "34px", // reduce height here
-                  height: "34px",
-                  fontSize: "11px",
-                }),
-                placeholder: (base) => ({
-                  ...base,
-                  fontSize: "11px",
-                  color: "#adb5bd", // softer gray
-                }),
-                valueContainer: (base) => ({
-                  ...base,
-                  height: "34px",
-                  padding: "0 8px", // reduce vertical padding
-                }),
-
-                input: (base) => ({
-                  ...base,
-                  margin: "0px",
-                  padding: "0px",
-                  fontSize: "11px",
-                }),
-
-                indicatorsContainer: (base) => ({
-                  ...base,
-                  height: "34px",
-                }),
-
-                singleValue: (base) => ({
-                  ...base,
-                  fontSize: "11px",
-                }),
-
-                multiValue: (base) => ({
-                  ...base,
-                  fontSize: "11px",
-                }),
-              }}
-              value={
-                isMulti
-                  ? options.filter((o) =>
-                      ((field.value as (string | number)[]) || []).some(
-                        (v) => v == o.value,
-                      ),
-                    )
-                  : options.find((o) => o.value == field.value) || null
-              }
-              onChange={(option) => {
-                let finalValue: BaseValue | MultiValueType;
-
-                if (isMulti) {
-                  finalValue =
-                    (option as SelectOption[] | null)?.map((o) => o.value) ||
-                    [];
-                } else {
-                  finalValue = (option as SelectOption | null)?.value ?? null;
+                // ✅ VALUE
+                value={
+                  isMulti
+                    ? options.filter((o) =>
+                        ((field.value as (string | number)[]) || []).some(
+                          (v) => v == o.value,
+                        ),
+                      )
+                    : options.find((o) => o.value == field.value) || null
                 }
 
-                field.onChange(finalValue);
-                onChange?.(finalValue as TValue);
-              }}
-            />
+                // ✅ CHANGE
+                onChange={(option) => {
+                  let finalValue: BaseValue | MultiValueType;
+
+                  if (isMulti) {
+                    finalValue =
+                      (option as SelectOption[] | null)?.map((o) => o.value) ||
+                      [];
+                  } else {
+                    finalValue =
+                      (option as SelectOption | null)?.value ?? null;
+                  }
+
+                  field.onChange(finalValue);
+
+                  // 🔥 trigger validation immediately
+                  field.onBlur();
+
+                  onChange?.(finalValue as TValue);
+                }}
+
+                // 🔥 CRITICAL: BLUR
+                onBlur={field.onBlur}
+
+                // ✅ STYLES (error support)
+                styles={{
+                  control: (base) => ({
+                    ...base,
+                    minHeight: "34px",
+                    height: "34px",
+                    fontSize: "11px",
+                    borderColor: error ? "#dc3545" : base.borderColor,
+                    boxShadow: error ? "0 0 0 1px #dc3545" : base.boxShadow,
+                    "&:hover": {
+                      borderColor: error ? "#dc3545" : base.borderColor,
+                    },
+                  }),
+
+                  menuPortal: (base) => ({
+                    ...base,
+                    zIndex: 9999,
+                    fontSize: "11px",
+                  }),
+
+                  menu: (base) => ({
+                    ...base,
+                    zIndex: 9999,
+                    fontSize: "11px",
+                  }),
+
+                  placeholder: (base) => ({
+                    ...base,
+                    fontSize: "11px",
+                    color: "#adb5bd",
+                  }),
+
+                  valueContainer: (base) => ({
+                    ...base,
+                    height: "34px",
+                    padding: "0 8px",
+                  }),
+
+                  input: (base) => ({
+                    ...base,
+                    margin: 0,
+                    padding: 0,
+                    fontSize: "11px",
+                  }),
+
+                  indicatorsContainer: (base) => ({
+                    ...base,
+                    height: "34px",
+                  }),
+
+                  singleValue: (base) => ({
+                    ...base,
+                    fontSize: "11px",
+                  }),
+
+                  multiValue: (base) => ({
+                    ...base,
+                    fontSize: "11px",
+                  }),
+                }}
+              />
+
+              {/* ✅ Error */}
+              {error && (
+                <FormFeedback style={{ display: "block" }}>
+                  {error.message as string}
+                </FormFeedback>
+              )}
+            </div>
           )}
         />
-      )}
-
-      {error && (
-        <div className="text-danger small mt-1">{error.message as string}</div>
       )}
     </FormGroup>
   );
