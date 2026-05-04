@@ -806,9 +806,11 @@ const clinicianProfile: React.FC = () => {
         identityId={values.userDetail?.identityId ?? ""}
         userName={values.userDetail?.userName ?? ""}
         isResetPassword={isResetPassword}
-        onSuccess={() => {
-          // optional refresh
-          console.log("Updated successfully");
+        onSuccess={(newUsername) => {
+          // Refresh username in form if it was updated
+          if (newUsername) {
+            setValue("userDetail.userName", newUsername);
+          }
         }}
       />
     </>

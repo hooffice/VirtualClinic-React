@@ -12,6 +12,7 @@ import {
 import { useForm, FormProvider } from "react-hook-form";
 import clinicianService from "@/services/admin/clinician/clinicianService";
 import { RHFInput } from "@/Components/Common/Forms";
+import toastService from "@/services/toastService";
 
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -21,8 +22,8 @@ const getSchema = (isResetPassword: boolean) =>
     userName: z.string().optional(),
 
     newUsername: !isResetPassword
-      ? z.string().optional()
-      : z.string().min(3, "Username is required"),
+      ? z.string().min(3, "New username is required")
+      : z.string().optional(),
 
     password: isResetPassword
       ? z.string().min(6, "Password must be at least 6 characters")
@@ -37,7 +38,7 @@ interface ResetUserModalProps {
   identityId: string;
   userName: string;
   isResetPassword: boolean;
-  onSuccess?: () => void;
+  onSuccess?: (newUsername?: string) => void;
 }
 
 interface FormValues {
@@ -83,17 +84,20 @@ const ResetUserModal: React.FC<ResetUserModalProps> = ({
           identityId: identityId,
           userName: data.newUsername ?? "",
         });
-      }else
-      {
+        toastService.success("Username updated successfully");
+        onSuccess?.(data.newUsername);
+      } else {
         await clinicianService.changePassword({
           identityId: identityId,
           password: data.password ?? "",
-        });        
+        });
+        toastService.success("Password updated successfully");
+        onSuccess?.();
       }
-      onSuccess?.();
       toggle();
     } catch (err: any) {
       console.error(err);
+      toastService.error(err?.response?.data?.message || "Failed to update. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -102,7 +106,9 @@ const ResetUserModal: React.FC<ResetUserModalProps> = ({
   return (
     <FormProvider {...methods}>
       <Modal isOpen={isOpen} toggle={toggle} centered>
-        <ModalHeader toggle={toggle}>Reset Username</ModalHeader>
+        <ModalHeader toggle={toggle}>
+          {isResetPassword ? "Change Password" : "Change Username"}
+        </ModalHeader>
 
         <ModalBody>
           <Row>
