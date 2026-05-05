@@ -101,7 +101,7 @@ export const clinicianSchema = z.object({
 
   zip: z.string().nullable(),
 
-  profileImage: z.string().nullable(),
+  profileImage: z.any().nullable(),
 
   active: z.boolean().nullable(),
 
@@ -113,11 +113,11 @@ export const clinicianSchema = z.object({
 
   subscriptionId: z.number().nullable(),
 
-  signature: z.string().nullable(),
+  signature: z.any().nullable(),
   upinNo: z.string().nullable(),
   npiNo: z.string().nullable(),
 
-  bwoVcsign: z.boolean().nullable(),
+  bwoVcsign: z.any().nullable(),
   keyword: z.string().nullable(),
 
   sms: z.boolean().nullable(),

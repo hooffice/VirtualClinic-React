@@ -37,6 +37,7 @@ import { setSelected } from "@/slices/admin/organization/reducer";
 import { RHFFormWrapper } from "@/Components/Common/Forms";
 import toastService from "@/services/toastService";
 import { resetClinicianClinicState } from "@/slices/admin/clinician/clinicianClinicSlice";
+import { commonService } from "@/services/commonService";
 
 const ClinicianDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -69,12 +70,66 @@ const ClinicianDetail: React.FC = () => {
 
   const onSubmit = async (formData: ClinicianForm) => {
     try {
-      const payload = toModel(formData);
+      let preparedData = { ...formData };
+
+      // Handle file uploads for profileImage
+      if ( (formData as any).profileImage instanceof File) {
+        try {
+          toastService.info("Uploading profile image...");
+          const profileImageResult = await commonService.uploadFile(
+             (formData as any).profileImage,
+            "clinician-profiles",
+            {
+              maxSize: 5 * 1024 * 1024, // 5MB
+              allowedTypes: ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],
+              onProgress: (progress) => {
+                if (progress === 100) {
+                  toastService.success("Profile image uploaded successfully");
+                }
+              },
+            }
+          );
+          preparedData.profileImage = profileImageResult.path;
+        } catch (uploadError: any) {
+          toastService.error(
+            uploadError?.message || "Failed to upload profile image"
+          );
+          return;
+        }
+      }
+
+      // Handle file uploads for clinician signature
+      if ((formData as any).signature instanceof File) {
+        try {
+          toastService.info("Uploading signature...");
+          const signatureResult = await commonService.uploadFile(
+            (formData as any).signature,
+            "clinician-signatures",
+            {
+              maxSize: 2 * 1024 * 1024, // 2MB for signatures
+              allowedTypes: ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],
+              onProgress: (progress) => {
+                if (progress === 100) {
+                  toastService.success("Signature uploaded successfully");
+                }
+              },
+            }
+          );
+          (preparedData as any).signature = signatureResult.path;
+        } catch (uploadError: any) {
+          toastService.error(
+            uploadError?.message || "Failed to upload signature"
+          );
+          return;
+        }
+      }
+
+      const payload = toModel(preparedData);
       const result = await dispatch(saveClinician(payload));
 
       // Check if save was successful
       if (result && result.success) {
-        toastService.success(result.message || "Saved successfully");
+        toastService.success("Clinician information saved successfully");
         // Stay on the detail page after save
         // navigate("/admin/clinician");
       } else {

@@ -4,28 +4,52 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toastService } from "@/services/toastService";
 import {
-  Container, Card, CardBody, Row, Col, Badge,
-  Modal, ModalHeader, ModalBody, ModalFooter,
-  Button, Spinner,
+  Container,
+  Card,
+  CardBody,
+  Row,
+  Col,
+  Badge,
+  Modal,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  Button,
+  Spinner,
 } from "reactstrap";
 import { RootState } from "@/store";
 import Breadcrumb from "Components/Common/Breadcrumb";
 import TableContainer from "Components/Common/TableContainer";
 import DeleteModal from "Components/Common/DeleteModal";
-import { RHFInput, RHFCheckBox, RHFSelect, RHFFormWrapper } from "Components/Common/Forms";
+import {
+  RHFInput,
+  RHFCheckBox,
+  RHFSelect,
+  RHFFormWrapper,
+} from "Components/Common/Forms";
 
 //type
 import { EmployerList } from "@/types/admin/employer/employer.type";
-import { employerSchema, EmployerForm } from "@/types/admin/employer/employer.schema";
+import {
+  employerSchema,
+  EmployerForm,
+} from "@/types/admin/employer/employer.schema";
 import { toForm, toModel } from "@/types/admin/employer/employer.mapper";
 //thunk
-import { fetchEmployers, saveEmployer, removeEmployer } from "@/slices/admin/employer/employerThunk";
+import {
+  fetchEmployers,
+  saveEmployer,
+  removeEmployer,
+} from "@/slices/admin/employer/employerThunk";
 //slice-reducre
-import { setSelected, resetEmployerState, clearError } from "@/slices/admin/employer/employerSlice";
+import {
+  setSelected,
+  resetEmployerState,
+  clearError,
+} from "@/slices/admin/employer/employerSlice";
 //service
 import { organizationService } from "@/services/admin/organization/organizationService";
 import { OrganizationListItem } from "@/types/admin/organization/organization.type";
-
 
 // Helpers ─ Models
 const emptyModel = (clientId: number): EmployerForm => ({
@@ -34,18 +58,19 @@ const emptyModel = (clientId: number): EmployerForm => ({
   organizationId: null,
   code: "",
   name: "",
-  active: true
+  active: true,
 });
 
 // Map list row → form data
-const listToForm = (item: EmployerList): EmployerForm => toForm({
-  id: item.id,
-  clientId: item.clientId,
-  organizationId: item.organizationId ? Number(item.organizationId) : null,
-  code: item.code ?? "",
-  name: item.name ?? "",
-  active: item.active === 'Yes' ? true : false
-});
+const listToForm = (item: EmployerList): EmployerForm =>
+  toForm({
+    id: item.id,
+    clientId: item.clientId,
+    organizationId: item.organizationId ? Number(item.organizationId) : null,
+    code: item.code ?? "",
+    name: item.name ?? "",
+    active: item.active === "Yes" ? true : false,
+  });
 
 // component - rafcep
 
@@ -57,29 +82,33 @@ const Employers: React.FC = () => {
 
   // Redux State
   const { list, loading, saving, success, error, message } = useSelector(
-    (state: RootState) => state.Employer
+    (state: RootState) => state.Employer,
   );
-
 
   // React Hook Form with Zod validation
   const methods = useForm<EmployerForm>({
     resolver: zodResolver(employerSchema),
-    mode: 'onBlur',
+    mode: "onBlur",
     defaultValues: emptyModel(clientId),
   });
-  const { setError, formState: { errors }, } = methods;
+  const {
+    setError,
+    formState: { errors },
+  } = methods;
   // Local UI state
   const [modalOpen, setModalOpen] = useState(false);
   const [deleteModal, setDeleteModal] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<number | null>(null);
-  const [organizations, setOrganizations] = useState<OrganizationListItem[]>([]);
+  const [organizations, setOrganizations] = useState<OrganizationListItem[]>(
+    [],
+  );
   const [editingRow, setEditingRow] = useState<EmployerList | null>(null);
 
   // react-select options (memoized)
   const organizationOptions = useMemo(
     () =>
       organizations.map((c) => ({ value: Number(c.id), label: c.name ?? "" })),
-    [organizations]
+    [organizations],
   );
 
   // Handlers
@@ -117,13 +146,13 @@ const Employers: React.FC = () => {
 
   // Form Submit with React Hook Form
   const onSubmit = (formData: EmployerForm) => {
-  if (!formData.organizationId) {
-    setError("organizationId", {
-      type: "manual",
-      message: "Organization is required",
-    });
-    return;
-  }    
+    if (!formData.organizationId) {
+      setError("organizationId", {
+        type: "manual",
+        message: "Organization is required",
+      });
+      return;
+    }
     const model = toModel(formData);
     dispatch(saveEmployer(model, clientId));
   };
@@ -141,8 +170,13 @@ const Employers: React.FC = () => {
   // Load list + dropdown on mount
   useEffect(() => {
     dispatch(fetchEmployers(clientId));
-    organizationService.getByClientId(clientId).then((res)=>{setOrganizations(res.data)}).catch(console.error);
-  }, [dispatch, clientId]);  
+    organizationService
+      .getByClientId(clientId)
+      .then((res) => {
+        setOrganizations(res.data);
+      })
+      .catch(console.error);
+  }, [dispatch, clientId]);
 
   // Show success toast and auto-close modal
   useEffect(() => {
@@ -193,7 +227,10 @@ const Employers: React.FC = () => {
           const val = cell.getValue();
           const isActive = val === true || val === "Yes" || val === "1";
           return (
-            <Badge color={isActive ? "success" : "secondary"} className="font-size-12">
+            <Badge
+              color={isActive ? "success" : "secondary"}
+              className="font-size-12"
+            >
               {isActive ? "Active" : "Inactive"}
             </Badge>
           );
@@ -208,10 +245,20 @@ const Employers: React.FC = () => {
           const row: EmployerList = cell.row.original;
           return (
             <div className="d-flex gap-2">
-              <Button color="primary" size="sm" outline onClick={() => handleEdit(row)}>
+              <Button
+                color="primary"
+                size="sm"
+                outline
+                onClick={() => handleEdit(row)}
+              >
                 <i className="mdi mdi-pencil" />
               </Button>
-              <Button color="danger" size="sm" outline onClick={() => handleDeleteOpen(row.id)}>
+              <Button
+                color="danger"
+                size="sm"
+                outline
+                onClick={() => handleDeleteOpen(row.id)}
+              >
                 <i className="mdi mdi-trash-can-outline" />
               </Button>
             </div>
@@ -219,11 +266,10 @@ const Employers: React.FC = () => {
         },
       },
     ],
-    [] // eslint-disable-line react-hooks/exhaustive-deps
+    [], // eslint-disable-line react-hooks/exhaustive-deps
   );
 
-
- // render
+  // render
 
   return (
     <React.Fragment>
@@ -235,25 +281,27 @@ const Employers: React.FC = () => {
             <Col xs={12}>
               <Card>
                 <CardBody>
-                    <TableContainer
-                      columns={columns}
-                      data={list || []} 
-                      isGlobalFilter
-                      isAddButton
-                      isPagination
-                      isCustomPageSize
-                      isLoading={loading} 
-                      // isRowClickable={true}
-                      // onRowClick={(row)=>{console.log(row)}}
-                      handleUserClick={handleAddNew}
-                      buttonClass="btn btn-info btn-rounded"
-                      buttonName=" + Add"
-                      searchPlaceholder="Search employer..."
-                      tableClass="table-bordered align-middle nowrap mt-2"
-                      theadClass="table-light"
-                      paginationWrapper="dataTables_paginate paging_simple_numbers"
-                      pagination="pagination justify-content-end pagination-sm"
-                    />
+                  <TableContainer
+                    headerStyle={{ fontSize: "11px", fontWeight: 600 }}
+                    rowStyle={{ fontSize: "10px" }}                  
+                    columns={columns}
+                    data={list || []}
+                    isGlobalFilter
+                    isAddButton
+                    isPagination
+                    isCustomPageSize
+                    isLoading={loading}
+                    // isRowClickable={true}
+                    // onRowClick={(row)=>{console.log(row)}}
+                    handleUserClick={handleAddNew}
+                    buttonClass="btn btn-info btn-rounded"
+                    buttonName=" + Add"
+                    searchPlaceholder="Search employer..."
+                    tableClass="table-bordered align-middle nowrap mt-2"
+                    theadClass="table-light"
+                    paginationWrapper="dataTables_paginate paging_simple_numbers"
+                    pagination="pagination justify-content-end pagination-sm"
+                  />
                 </CardBody>
               </Card>
             </Col>
@@ -262,13 +310,15 @@ const Employers: React.FC = () => {
       </div>
 
       {/* Add / Edit Modal */}
-      <Modal isOpen={modalOpen} toggle={handleModalClose} size="lg" centered >
+      <Modal isOpen={modalOpen} toggle={handleModalClose} size="lg" centered>
         <ModalHeader toggle={handleModalClose}>
-          {methods.getValues('id') === 0 ? "Add Employer" : "Edit Employer"}
+          {methods.getValues("id") === 0 ? "Add Employer" : "Edit Employer"}
         </ModalHeader>
 
         <RHFFormWrapper methods={methods} onSubmit={onSubmit}>
-          <ModalBody style={{ maxHeight: 'calc(90vh - 180px)', overflowY: 'auto' }}>
+          <ModalBody
+            style={{ maxHeight: "calc(90vh - 180px)", overflowY: "auto" }}
+          >
             <Row>
               <Col md={12}>
                 <RHFSelect<EmployerForm>
@@ -277,11 +327,11 @@ const Employers: React.FC = () => {
                   options={organizationOptions}
                   isClearable
                 />
-{errors.organizationId && (
-  <span className="text-danger">
-    {errors.organizationId.message}
-  </span>
-)}                
+                {errors.organizationId && (
+                  <span className="text-danger">
+                    {errors.organizationId.message}
+                  </span>
+                )}
               </Col>
             </Row>
 
@@ -309,16 +359,18 @@ const Employers: React.FC = () => {
 
             <Row>
               <Col md={12}>
-                <RHFCheckBox<EmployerForm>
-                  name="active"
-                  label="Active"
-                />
+                <RHFCheckBox<EmployerForm> name="active" label="Active" />
               </Col>
             </Row>
           </ModalBody>
 
           <ModalFooter>
-            <Button color="secondary" outline onClick={handleModalClose} disabled={saving}>
+            <Button
+              color="secondary"
+              outline
+              onClick={handleModalClose}
+              disabled={saving}
+            >
               Cancel
             </Button>
             <Button color="primary" type="submit" disabled={saving}>
@@ -327,7 +379,7 @@ const Employers: React.FC = () => {
                   <Spinner size="sm" className="me-1" />
                   Saving...
                 </>
-              ) : methods.getValues('id') === 0 ? (
+              ) : methods.getValues("id") === 0 ? (
                 "Add Employer"
               ) : (
                 "Save Changes"

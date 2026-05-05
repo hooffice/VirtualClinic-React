@@ -57,17 +57,30 @@ const clinicianProfile: React.FC = () => {
   // ========================================================================
 
   /**
-   * Safely parse dates from various formats (Date objects, ISO strings, null)
+   * Build full URL for file paths by combining with API base URL
+   * Handles both relative paths and already-full URLs
    */
-  // const parseDate = (value: any): Date | null => {
-  //   if (!value) return null;
-  //   if (value instanceof Date) return value;
-  //   if (typeof value === "string") {
-  //     const parsed = new Date(value);
-  //     return isNaN(parsed.getTime()) ? null : parsed;
-  //   }
-  //   return null;
-  // };
+  const buildFileUrl = (filePath: string | null | undefined): string | null => {
+    if (!filePath || typeof filePath !== 'string') {
+      return null;
+    }
+
+    // If it's already a full URL, return as-is
+    if (filePath.startsWith('http://') || filePath.startsWith('https://')) {
+      return filePath;
+    }
+
+    // Combine with API base URL for relative paths
+    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || '';
+    if (apiBaseUrl) {
+      // Remove trailing slash from base URL if present
+      const cleanBaseUrl = apiBaseUrl.endsWith('/') ? apiBaseUrl.slice(0, -1) : apiBaseUrl;
+      return `${cleanBaseUrl}/${filePath}`;
+    }
+
+    // If no base URL, return the path as-is (for local development)
+    return filePath;
+  };
 
   // ========================================================================
   // STATE VARIABLES - Reference Lists
@@ -487,7 +500,7 @@ const clinicianProfile: React.FC = () => {
             <RHFProfileImage
               label="Profile Image"
               name="profileImage"
-              imageUrl={values.profileImage}
+              imageUrl={buildFileUrl(values.profileImage)}
               isEdit={true}
             />
           </div>
@@ -702,12 +715,13 @@ const clinicianProfile: React.FC = () => {
           />
         </Col>
         <Col sm={12} md={3}>
-          <RHFCheckBox label="Clinician Signature" name="signature" />
+          <RHFCheckBox label="Clinician Signature" name="bwoVcsign" />
         </Col>
-        {values.signature && (
+        {values.bwoVcsign && (
           <Col sm={12} md={1} className="d-flex align-items-center">
             <RHFProfileImage
-              name="bwoVcsign"
+              name="signature"
+              imageUrl={buildFileUrl(values.signature)}
               containerStyle={{
                 width: "100%",
                 height: "34px",
