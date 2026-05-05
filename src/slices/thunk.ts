@@ -17,3 +17,4 @@ export * from "./auth/forgetpwd/thunk";
 export * from "./admin/organization/thunk"; //Organzation
 export * from "./admin/clinic/clinicThunk"; //Clinic
 export * from "./admin/clinician/clinicianThunk";//Clinician
+export * from "./admin/clinician/clinicianClinicSlice";//ClinicianClinic

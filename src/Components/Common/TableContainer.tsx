@@ -332,7 +332,7 @@ const mergedRowStyle = {
         )}
 
         {isAddButton && (
-          <Col sm={6} className="text-end">
+          <Col sm={isGlobalFilter ? 6 : 12} className="text-end">
             <Button className={buttonClass} onClick={handleUserClick}>
               {buttonName || "Add"}
             </Button>

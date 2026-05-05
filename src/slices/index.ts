@@ -13,6 +13,7 @@ import organizationReducer from "./admin/organization/reducer";
 import clinicReducer from "./admin/clinic/clinicSlice";
 import employerReducer from "./admin/employer/employerSlice";
 import clinicianReducer from "./admin/clinician/clinicianSlice";
+import clinicianclinicReducer from "./admin/clinician/clinicianClinicSlice";
 
 const rootReducer = combineReducers({
     Layout: layoutReducer,
@@ -26,6 +27,7 @@ const rootReducer = combineReducers({
     Clinic: clinicReducer,
     Employer: employerReducer,
     Clinician: clinicianReducer,
+    ClinicianClinic: clinicianclinicReducer
 });
 
 export default rootReducer;

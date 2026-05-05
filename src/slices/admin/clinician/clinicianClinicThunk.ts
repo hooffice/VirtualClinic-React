@@ -30,10 +30,10 @@ export const fetchclinicianClinics = (clinicianId: number) =>
 /**
  * Save clinicianClinic (id = 0 → insert, id > 0 → update)
  */
-export const saveclinicianClinic = (model: ClinicianClinicModel, clinicianId: number) => 
+export const saveclinicianClinic = (model: ClinicianClinicModel, clinicianId: number) =>
   async (dispatch: any) => {
     await handleAsync(
-      dispatch, 
+      dispatch,
       () => clinicianClinicService.save(model),
       {
         setSaving,
@@ -44,6 +44,7 @@ export const saveclinicianClinic = (model: ClinicianClinicModel, clinicianId: nu
           throw new Error(res.message);
         }
         dispatch(saveSuccess(res.message || "Saved successfully"));
+        // Refresh the list after successful save
         await dispatch(fetchclinicianClinics(clinicianId));
       }
     );
@@ -52,9 +53,9 @@ export const saveclinicianClinic = (model: ClinicianClinicModel, clinicianId: nu
 /**
  * Delete clinicianClinic by ID
  */
-export const removeclinicianClinic = (id: number) => async (dispatch: any) => {
+export const removeclinicianClinic = (id: number, clinicianId: number) => async (dispatch: any) => {
   await handleAsync(
-    dispatch, 
+    dispatch,
     () => clinicianClinicService.delete(id),
     {
       setSaving,
@@ -66,6 +67,8 @@ export const removeclinicianClinic = (id: number) => async (dispatch: any) => {
       }
 
       dispatch(deleteSuccess(id));
+      // Refresh the list after successful delete
+      await dispatch(fetchclinicianClinics(clinicianId));
     }
   );
 };

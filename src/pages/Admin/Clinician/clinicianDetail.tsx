@@ -36,6 +36,7 @@ import {
 import { setSelected } from "@/slices/admin/organization/reducer";
 import { RHFFormWrapper } from "@/Components/Common/Forms";
 import toastService from "@/services/toastService";
+import { resetClinicianClinicState } from "@/slices/admin/clinician/clinicianClinicSlice";
 
 const ClinicianDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -74,8 +75,8 @@ const ClinicianDetail: React.FC = () => {
       // Check if save was successful
       if (result && result.success) {
         toastService.success(result.message || "Saved successfully");
-        // Optional navigation after successful save
-        navigate("/admin/clinician");
+        // Stay on the detail page after save
+        // navigate("/admin/clinician");
       } else {
         toastService.error(result?.message || "Save failed");
       }
@@ -94,6 +95,7 @@ const ClinicianDetail: React.FC = () => {
   useEffect(() => {
     if (isAddMode) {
       dispatch(setSelected(null));
+      dispatch(resetClinicianClinicState());
       const emptyData = emptyForm(clientId);
       reset(emptyData);
     } else if (id) {

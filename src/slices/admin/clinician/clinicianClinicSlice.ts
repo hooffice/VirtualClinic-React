@@ -1,9 +1,8 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { ClinicListItem } from "@/types/admin/clinic/clinic.types";
-import { ClinicianClinicModel } from "@/types/admin/clinician/referalclinic.types";
+import { ClinicianClinicModel, ClinicianClinicList } from "@/types/admin/clinician/referalclinic.types";
 import { createBaseState, baseReducers, advancedReducers, resetBaseState } from '@/types/reducer.type';
 
-const initialState = createBaseState<ClinicListItem,ClinicianClinicModel>();
+const initialState = createBaseState<ClinicianClinicList,ClinicianClinicModel>();
 
 const clinicianClinicSlice = createSlice({
   name: 'clinicianclinic',

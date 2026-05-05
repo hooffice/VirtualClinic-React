@@ -1,8 +1,7 @@
 import axiosInstance from '@/config/axiosInstance';
 import { ApiResponse, SaveResponse } from '@/types/api.types';
 import { axiosErrorToApiError } from '@/types/errors';
-import { ClinicListItem } from '@/types/admin/clinic/clinic.types';
-import { ClinicianClinicModel } from '@/types/admin/clinician/referalclinic.types';
+import { ClinicianClinicModel, ClinicianClinicList } from '@/types/admin/clinician/referalclinic.types';
 
 const BASE = "/api/clinicianclinic";
 
@@ -10,9 +9,9 @@ class ClinicianClinicService {
     /**
      * GET /api/clinicianclinic/referralclinics/{id}
      */
-    async getReferalClinicbyClinicianById(clinicianId: number): Promise<ClinicListItem[]> {
+    async getReferalClinicbyClinicianById(clinicianId: number): Promise<ClinicianClinicList[]> {
         try {
-            const result = await axiosInstance.get<ApiResponse<ClinicListItem[]>>(
+            const result = await axiosInstance.get<ApiResponse<ClinicianClinicList[]>>(
                 `${BASE}/referralclinics/${clinicianId}`
             );
             const res = result.data;
